@@ -1,0 +1,67 @@
+syntax = "v1"
+
+import "model.api"
+
+@server (
+  group: communication
+  jwt: Auth
+)
+service tiktok-api {
+  @handler SubscribeHandler
+  post /relation/action (SubscribeRequest) returns (SubscribeResponse)
+
+  @handler GetSubscriberListHandler
+  get /following/list (GetSubscriberListRequest) returns (GetSubscriberListResponse)
+
+  @handler GetFansListHandler
+  get /follower/list (GetFansListRequest) returns (GetFansListResponse)
+
+  @handler GetFriendListHandler
+  get /friend/list (GetFriendListRequest) returns (GetFriendListResponse)
+}
+
+type (
+  SubscribeRequest {
+    UserID       string `form:"user_id"`
+    ToUserID string `form:"to_user_id"`
+    ActionType   int32  `form:"action_type"`
+  }
+
+  SubscribeResponse {
+    BaseResponse BaseResponse `json:"base_response"`
+  }
+
+  GetSubscriberListRequest {
+
+    PageNumber int32  `query:"page_number"`
+    PageSize   int32  `query:"page_size"`
+  }
+
+  GetSubscriberListResponse {
+    BaseResponse    BaseResponse `json:"base_response"`
+    SubscriberList  []UserBaseinfo   `json:"subscriber_list"`
+    SubscriberCount int32               `json:"subscriber_count"`
+  }
+
+  GetFansListRequest {
+    PageNumber int32  `query:"page_number"`
+    PageSize   int32  `query:"page_size"`
+  }
+
+  GetFansListResponse {
+    BaseResponse BaseResponse `json:"base_response"`
+    FansList     []UserBaseinfo   `json:"fans_list"`
+    FansCount    int32               `json:"fans_count"`
+  }
+
+  GetFriendListRequest {
+    PageNumber int32 `query:"page_number"`
+    PageSize   int32 `query:"page_size"`
+  }
+
+  GetFriendListResponse {
+    BaseResponse BaseResponse `json:"base_response"`
+    FriendList   []UserBaseinfo   `json:"friend_list"`
+    FriendCount  int32               `json:"friend_count"`
+  }
+)

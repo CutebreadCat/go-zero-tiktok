@@ -1,0 +1,61 @@
+syntax = "v1"
+
+import "model.api"
+
+@server(
+    group: video
+)
+
+service tiktok-api {
+  @handler GetVideoListHandler
+  get /video/list (GetVideoListRequest) returns (GetVideoListResponse)
+
+  @handler VideoSearchHandler
+  get /video/search (VideoSearchRequest) returns (VideoSearchResponse)
+
+  @handler VideoPopularHandler
+  get /video/popular (VideoPopularRequest) returns (VideoPopularResponse)
+}
+
+type (
+  PublishVideoRequest  {
+    Title       string `form:"title"`
+    Description string `form:"description"`
+  }
+
+  PublishVideoResponse  {
+    Base    BaseResponse `json:"base"`
+    VideoID string              `json:"video_id"`
+  }
+
+  GetVideoListRequest  {
+    PageSize int32  `query:"page_size"`
+    PageNum  int32  `query:"page_num"`
+  }
+
+  GetVideoListResponse  {
+    Base   BaseResponse `json:"base"`
+    Videos []VideoBaseinfo      `json:"videos"`
+  }
+
+  VideoSearchRequest  {
+    Keyword  string `query:"keyword"`
+    PageSize int32  `query:"page_size"`
+    PageNum  int32  `query:"page_num"`
+  }
+
+  VideoSearchResponse  {
+    Base   BaseResponse `json:"base"`
+    Videos []VideoBaseinfo      `json:"videos"`
+  }
+
+  VideoPopularRequest  {
+    PageSize int32 `query:"page_size"`
+    PageNum  int32 `query:"page_num"`
+  }
+
+  VideoPopularResponse   {
+    Base   BaseResponse `json:"base"`
+    Videos []VideoBaseinfo      `json:"videos"`
+  }
+)

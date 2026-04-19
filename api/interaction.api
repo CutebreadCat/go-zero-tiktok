@@ -1,0 +1,77 @@
+syntax = "v1"
+
+import "model.api"
+
+@server(
+    group: interaction
+  jwt: Auth
+)
+
+service tiktok-api {
+  @handler LikeVideoHandler
+  post /like/action (LikeVideoRequest) returns (LikeVideoResponse)
+
+  @handler GetLikeListHandler
+  get /like/list (GetLikeListRequest) returns (GetLikeListResponse)
+
+  @handler CommentVideoHandler
+  post /comment/publish (CommentVideoRequest) returns (CommentVideoResponse)
+
+  @handler GetCommentListHandler
+  get /comment/list (GetCommentListRequest) returns (GetCommentListResponse)
+
+  @handler DeleteCommentHandler
+  post /comment/delete (DeleteCommentRequest) returns (DeleteCommentResponse)
+}
+
+type (
+  LikeVideoRequest  {
+    VideoID    string `form:"video_id"`
+    ActionType int32  `form:"action_type"`
+  }
+
+  LikeVideoResponse  {
+    Base BaseResponse `json:"base_response"`
+  }
+
+  GetLikeListRequest  {
+    PageNumber int32  `query:"page_number"`
+    PageSize   int32  `query:"page_size"`
+  }
+
+  GetLikeListResponse  {
+    Base      BaseResponse `json:"base_response"`
+    VideoList []VideoBaseinfo      `json:"video_list"`
+    LikeCount int32               `json:"like_count"`
+  }
+
+  CommentVideoRequest  {
+    VideoID     string `form:"video_id"`
+    CommentText string `form:"comment_text"`
+  }
+
+  CommentVideoResponse  {
+    Base      BaseResponse `json:"base_response"`
+    CommentID string              `json:"comment_id"`
+  }
+
+  GetCommentListRequest  {
+    VideoID    string `query:"video_id"`
+    PageNumber int32  `query:"page_number"`
+    PageSize   int32  `query:"page_size"`
+  }
+
+  GetCommentListResponse  {
+    Base         BaseResponse `json:"base_response"`
+    CommentList  []CommentBaseinfo    `json:"comment_list"`
+    CommentCount int32               `json:"comment_count"`
+  }
+
+  DeleteCommentRequest  {
+    CommentID string `form:"comment_id"`
+  }
+
+  DeleteCommentResponse  {
+    Base BaseResponse `json:"base_response"`
+  }
+)

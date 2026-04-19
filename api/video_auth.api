@@ -1,0 +1,12 @@
+syntax = "v1"
+
+import "video.api"
+
+@server(
+  group: video
+  jwt: Auth
+)
+service tiktok-api {
+  @handler PublishVideoHandler
+  post /video/publish (PublishVideoRequest) returns (PublishVideoResponse)
+}

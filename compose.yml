@@ -1,0 +1,48 @@
+services:
+  go-zero-tiktokgo:
+    build: .
+    ports:
+      - "8081:8080"
+    volumes:
+      - .:/app
+    command: go run .
+    environment:
+      - GIN_MODE=release
+      - REDIS_ADDR=redis:6379
+      - MYSQL_ADDR=mysql:3306
+      - MYSQL_USER=tiktok
+      - MYSQL_PASSWORD=yourpassword
+      - MYSQL_DATABASE=gozero-tiktok
+      - GOPROXY=https://goproxy.cn,direct
+      - GOSUMDB=sum.golang.org
+    depends_on:
+      - redis
+      - mysql
+    restart: always
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - redis-data:/data
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=yourpassword
+      - MYSQL_DATABASE=gozero-tiktok
+      - MYSQL_USER=gozero-tiktok
+      - MYSQL_PASSWORD=yourpassword
+    restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  redis-data:
+  mysql-data:
+
+  

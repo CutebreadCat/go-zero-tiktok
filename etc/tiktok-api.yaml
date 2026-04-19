@@ -1,0 +1,21 @@
+Name: tiktok-api
+Host: 0.0.0.0
+Port: 8888
+
+# 1. 数据库配置
+# 注意：go-zero 的 sqlx 库通常识别 "DataSource" 这个键名
+# 如果你坚持用 "mysql"，需要在 config.go 里手动指定 yaml 标签
+DataSource: "root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
+
+# 2. Redis 配置
+# go-zero 的 redis 配置块通常叫 "Redis" (首字母大写) 或者在 config 里定义结构体
+Redis:
+  Host: redis:6379  # 注意：go-zero 的 Redis 配置项通常叫 Host，而不是 addr
+  Type: node        # 必须指定类型，单机版是 node，集群是 cluster
+
+# 3. JWT 配置
+# 注意：go-zero 的 rest 框架内置识别 "Auth" 这个键名
+# 如果你写 "jwt"，框架可能找不到，导致鉴权失效
+Auth:
+  AccessSecret: "your_access_secret" # 这个必须和代码里的配置对应
+  AccessExpire: 3600                 # 这里对应你的 accesstokenexpire

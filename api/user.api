@@ -1,0 +1,71 @@
+syntax = "v1"
+
+import "model.api"
+
+@server (
+  group: user
+)
+service tiktok-api {
+  @handler RegisterHandler
+  post /user/register (RegisterRequest) returns (RegisterResponse)
+
+  @handler LoginHandler
+  post /user/login (LoginRequest) returns (LoginResponse)
+
+  @handler RefreshTokenHandler
+  post /user/token/refresh (RefreshTokenRequest) returns (RefreshTokenResponse)
+
+  @handler GetUserInfoHandler
+  get /user/info (UserInfoRequest) returns (UserInfoResponse)
+}
+
+type (
+  RegisterRequest  {
+    Username string `form:"username"`
+    Password string `form:"password"`
+  }
+
+  RegisterResponse  {
+    Base   BaseResponse `json:"base"`
+    UserID string              `json:"user_id"`
+  }
+
+  LoginRequest  {
+    Username string `form:"username"`
+    Password string `form:"password"`
+  }
+
+  LoginResponse  {
+    Base         BaseResponse `json:"base"`
+    UserID       string       `json:"user_id"`
+    AccessToken  string       `json:"access_token"`
+    RefreshToken string       `json:"refresh_token"`
+  }
+
+  UserInfoRequest  {
+    UserID string `query:"user_id"`
+  }
+
+  UserInfoResponse  {
+    Base BaseResponse `json:"base"`
+    User UserBaseinfo `json:"user"`
+  }
+
+  UserphotoRequest  {
+    PhotoURL     string `form:"photo_url"`
+  }
+
+  UserphotoResponse  {
+    StatusCode int32  `json:"status_code"`
+    StatusMsg  string `json:"status_msg"`
+  }
+
+  RefreshTokenRequest {
+    RefreshToken string `cookie:"refresh_token"`
+  }
+  RefreshTokenResponse {
+    Base         BaseResponse `json:"base"`
+    AccessToken  string       `json:"access_token"`
+    RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+  }
+)

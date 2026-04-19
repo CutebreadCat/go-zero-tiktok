@@ -1,0 +1,12 @@
+syntax = "v1"
+
+import "user.api"
+
+@server(
+  group: user
+  jwt: Auth
+)
+service tiktok-api {
+  @handler PostUserPhotoHandler
+  put /user/avatar/upload (UserphotoRequest) returns (UserphotoResponse)
+}
