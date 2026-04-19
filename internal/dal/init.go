@@ -46,6 +46,9 @@ func InitMysql(dsn string) error {
 	}
 
 	log.Println("数据库连接成功！")
+	if err := InitTables(); err != nil {
+		return err
+	}
 	return nil
 }
 

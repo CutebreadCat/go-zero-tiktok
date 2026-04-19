@@ -6,6 +6,7 @@ package user
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
@@ -41,10 +42,13 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	}
 
 	user := &types.UserBaseinfo{
-		UserID:   myutils.GenerateUserID(),
-		Username: req.Username,
-		Password: myutils.HashPassword(req.Password),
-		PhotoURL: "",
+		UserID:    myutils.GenerateUserID(),
+		Username:  req.Username,
+		Password:  myutils.HashPassword(req.Password),
+		PhotoURL:  "",
+		CreatedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		UpdatedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		DeletedAt: "",
 	}
 
 	if err := dal.CreateUser(l.ctx, user); err != nil {

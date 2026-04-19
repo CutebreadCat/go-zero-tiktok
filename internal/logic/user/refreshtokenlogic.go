@@ -30,7 +30,7 @@ func NewRefreshTokenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Refr
 
 func (l *RefreshTokenLogic) RefreshToken(req *types.RefreshTokenRequest) (resp *types.RefreshTokenResponse, err error) {
 	if req.RefreshToken == "" {
-		logx.Error("refresh token is empty")
+		l.Logger.Infof("refresh token is empty")
 		return nil, xerr.New(1005, "刷新令牌不能为空")
 	}
 

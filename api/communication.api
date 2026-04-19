@@ -34,8 +34,8 @@ type (
 
   GetSubscriberListRequest {
 
-    PageNumber int32  `query:"page_number"`
-    PageSize   int32  `query:"page_size"`
+    PageNumber int32  `form:"page_number"`
+    PageSize   int32  `form:"page_size"`
   }
 
   GetSubscriberListResponse {
@@ -45,8 +45,8 @@ type (
   }
 
   GetFansListRequest {
-    PageNumber int32  `query:"page_number"`
-    PageSize   int32  `query:"page_size"`
+    PageNumber int32  `form:"page_number"`
+    PageSize   int32  `form:"page_size"`
   }
 
   GetFansListResponse {
@@ -56,8 +56,8 @@ type (
   }
 
   GetFriendListRequest {
-    PageNumber int32 `query:"page_number"`
-    PageSize   int32 `query:"page_size"`
+    PageNumber int32 `form:"page_number"`
+    PageSize   int32 `form:"page_size"`
   }
 
   GetFriendListResponse {

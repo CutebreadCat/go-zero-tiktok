@@ -36,8 +36,8 @@ type (
   }
 
   GetLikeListRequest  {
-    PageNumber int32  `query:"page_number"`
-    PageSize   int32  `query:"page_size"`
+    PageNumber int32  `form:"page_number"`
+    PageSize   int32  `form:"page_size"`
   }
 
   GetLikeListResponse  {
@@ -57,9 +57,9 @@ type (
   }
 
   GetCommentListRequest  {
-    VideoID    string `query:"video_id"`
-    PageNumber int32  `query:"page_number"`
-    PageSize   int32  `query:"page_size"`
+    VideoID    string `form:"video_id"`
+    PageNumber int32  `form:"page_number"`
+    PageSize   int32  `form:"page_size"`
   }
 
   GetCommentListResponse  {

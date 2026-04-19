@@ -9,14 +9,14 @@ type BaseResponse struct {
 }
 
 type CommentBaseinfo struct {
-	CommentID string `json:"Comment_id" gorm:"primaryKey type:varchar(25)"`
-	UserID    string `json:"user_id" gorm:"not null type:varchar(25)"`
-	VideoID   string `json:"video_id" gorm:"not null type:varchar(25)"`
-	Content   string `json:"content" gorm:"not null type:varchar(255)"`
+	CommentID string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
+	UserID    string `json:"user_id" gorm:"not null;type:varchar(64)"`
+	VideoID   string `json:"video_id" gorm:"not null;type:varchar(64)"`
+	Content   string `json:"content" gorm:"not null;type:varchar(1024)"` // 增加评论内容长度
 	CreatedAt string `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt string `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt string `json:"deleted_at" `
-	LikeCount int32  `json:"like_count" gorm:"default:0 type:int"`
+	DeletedAt string `json:"deleted_at"`
+	LikeCount int32  `json:"like_count" gorm:"default:0;type:int"`
 }
 
 type CommentVideoRequest struct {
@@ -38,9 +38,9 @@ type DeleteCommentResponse struct {
 }
 
 type GetCommentListRequest struct {
-	VideoID    string `query:"video_id"`
-	PageNumber int32  `query:"page_number"`
-	PageSize   int32  `query:"page_size"`
+	VideoID    string `form:"video_id"`
+	PageNumber int32  `form:"page_number"`
+	PageSize   int32  `form:"page_size"`
 }
 
 type GetCommentListResponse struct {
@@ -50,8 +50,8 @@ type GetCommentListResponse struct {
 }
 
 type GetFansListRequest struct {
-	PageNumber int32 `query:"page_number"`
-	PageSize   int32 `query:"page_size"`
+	PageNumber int32 `form:"page_number"`
+	PageSize   int32 `form:"page_size"`
 }
 
 type GetFansListResponse struct {
@@ -61,8 +61,8 @@ type GetFansListResponse struct {
 }
 
 type GetFriendListRequest struct {
-	PageNumber int32 `query:"page_number"`
-	PageSize   int32 `query:"page_size"`
+	PageNumber int32 `form:"page_number"`
+	PageSize   int32 `form:"page_size"`
 }
 
 type GetFriendListResponse struct {
@@ -72,8 +72,8 @@ type GetFriendListResponse struct {
 }
 
 type GetLikeListRequest struct {
-	PageNumber int32 `query:"page_number"`
-	PageSize   int32 `query:"page_size"`
+	PageNumber int32 `form:"page_number"`
+	PageSize   int32 `form:"page_size"`
 }
 
 type GetLikeListResponse struct {
@@ -83,8 +83,8 @@ type GetLikeListResponse struct {
 }
 
 type GetSubscriberListRequest struct {
-	PageNumber int32 `query:"page_number"`
-	PageSize   int32 `query:"page_size"`
+	PageNumber int32 `form:"page_number"`
+	PageSize   int32 `form:"page_size"`
 }
 
 type GetSubscriberListResponse struct {
@@ -94,8 +94,8 @@ type GetSubscriberListResponse struct {
 }
 
 type GetVideoListRequest struct {
-	PageSize int32 `query:"page_size"`
-	PageNum  int32 `query:"page_num"`
+	PageSize int32 `form:"page_size"`
+	PageNum  int32 `form:"page_num"`
 }
 
 type GetVideoListResponse struct {
@@ -125,8 +125,8 @@ type LoginResponse struct {
 }
 
 type ParentComment struct {
-	CommentID       string `json:"comment_id" gorm:"primaryKey type:varchar(25)"`
-	ParentCommentID string `json:"parent_comment_id" gorm:"type:varchar(25)"`
+	CommentID       string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
+	ParentCommentID string `json:"parent_comment_id" gorm:"type:varchar(64)"` // 修复字段名映射
 }
 
 type PublishVideoRequest struct {
@@ -170,23 +170,23 @@ type SubscribeResponse struct {
 }
 
 type UserBaseinfo struct {
-	UserID    string `json:"user_id" gorm:"primaryKey type:varchar(25)"`
-	Username  string `json:"username" gorm:"unique type:varchar(25)"`
-	Password  string `json:"password" gorm:"not null type:varchar(25)"`
-	PhotoURL  string `json:"photo_url" gorm:"default:'https://example.com/default_photo.jpg' type:varchar(35)"`
+	UserID    string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`                                       // 增加长度以兼容各种 ID 生成策略
+	Username  string `json:"username" gorm:"unique;type:varchar(64)"`                                          // 增加长度
+	Password  string `json:"password" gorm:"not null;type:varchar(255)"`                                       // 密码哈希通常较长，建议 255
+	PhotoURL  string `json:"photo_url" gorm:"default:https://example.com/default_photo.jpg;type:varchar(512)"` // 修正：去掉了多余的引号，增加 URL 长度
 	CreatedAt string `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt string `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt string `json:"deleted_at" `
+	DeletedAt string `json:"deleted_at"`
 }
 
 type UserFollow struct {
-	FollowerID string `json:"follower_id" gorm:"primaryKey notnull type:varchar(25)"`
-	UserID     string `json:"user_id" gorm:"primaryKey not null type:varchar(25)"`
-	Status     int32  `json:"status" default:"0" gorm:"type:int"`
+	FollowerID string `json:"follower_id" gorm:"primaryKey;type:varchar(64)"` // 联合主键：关注者
+	UserID     string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`     // 联合主键：被关注者
+	Status     int32  `json:"status" gorm:"default:0;type:int"`               // 修正：default 和 type 之间加分号或空格
 }
 
 type UserInfoRequest struct {
-	UserID string `query:"user_id"`
+	UserID string `form:"user_id"`
 }
 
 type UserInfoResponse struct {
@@ -204,32 +204,32 @@ type UserphotoResponse struct {
 }
 
 type VideoBaseinfo struct {
-	VideoID     string `json:"video_id" gorm:"primaryKey type:varchar(25)"`
-	AuthorID    string `json:"author_id" gorm:"not null type:varchar(25)"`
-	VideoURL    string `json:"video_url" gorm:"not null type:varchar(25)"`
-	CoverURL    string `json:"cover_url" gorm:"type:varchar(25)"`
-	Title       string `json:"title" gorm:"not null type:varchar(100)"`
-	Description string `json:"description" gorm:"type:varchar(25)"`
+	VideoID     string `json:"video_id" gorm:"primaryKey;type:varchar(64)"`
+	AuthorID    string `json:"author_id" gorm:"not null;type:varchar(64)"`
+	VideoURL    string `json:"video_url" gorm:"not null;type:varchar(512)"` // 增加 URL 长度
+	CoverURL    string `json:"cover_url" gorm:"type:varchar(512)"`          // 增加 URL 长度
+	Title       string `json:"title" gorm:"not null;type:varchar(255)"`     // 标题通常需要更长
+	Description string `json:"description" gorm:"type:varchar(512)"`        // 增加描述长度
 	CreatedAt   string `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   string `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt   string `json:"deleted_at" `
+	DeletedAt   string `json:"deleted_at"`
 }
 
 type VideoLiker struct {
-	UserID  string `json:"user_id" gorm:"primaryKey type:varchar(25)"`
-	VideoID string `json:"video_id" gorm:"primaryKey type:varchar(25)"`
+	UserID  string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
+	VideoID string `json:"video_id" gorm:"primaryKey;type:varchar(64)"`
 }
 
 type VideoPopular struct {
-	VideoID      string `json:"video_id" gorm :"primaryKey type:varchar(25)"`
-	VisitCount   int64  `json:"visit_count" gorm:"default:0 type:int"`
-	LikeCount    int64  `json:"like_count" gorm:"default:0 type:int"`
-	CommentCount int64  `json:"comment_count" gorm:"default:0 type:int"`
+	VideoID      string `json:"video_id" gorm:"primaryKey;type:varchar(64)"`
+	VisitCount   int64  `json:"visit_count" gorm:"default:0;type:bigint"` // 建议用 bigint 防止溢出
+	LikeCount    int64  `json:"like_count" gorm:"default:0;type:bigint"`
+	CommentCount int64  `json:"comment_count" gorm:"default:0;type:bigint"`
 }
 
 type VideoPopularRequest struct {
-	PageSize int32 `query:"page_size"`
-	PageNum  int32 `query:"page_num"`
+	PageSize int32 `form:"page_size"`
+	PageNum  int32 `form:"page_num"`
 }
 
 type VideoPopularResponse struct {
@@ -238,9 +238,9 @@ type VideoPopularResponse struct {
 }
 
 type VideoSearchRequest struct {
-	Keyword  string `query:"keyword"`
-	PageSize int32  `query:"page_size"`
-	PageNum  int32  `query:"page_num"`
+	Keyword  string `form:"keyword"`
+	PageSize int32  `form:"page_size"`
+	PageNum  int32  `form:"page_num"`
 }
 
 type VideoSearchResponse struct {

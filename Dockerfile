@@ -11,9 +11,9 @@ RUN go mod download
 
 COPY . .
 
-RUN cp config/config.yml ./config.yml
+
 
 RUN go build -o main .
-EXPOSE 8080
+EXPOSE 8888
 
 CMD ["./main"]

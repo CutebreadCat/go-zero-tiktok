@@ -23,7 +23,7 @@ func CreateComment(ctx context.Context, comment *types.CommentBaseinfo) error {
 
 	if err := Db.WithContext(ctx).Create(comment).Error; err != nil {
 		logger.Errorf("create comment failed: %v", err)
-		return xerr.New(1002, "创建评论失败")
+		return errors.New("创建评论失败")
 	}
 
 	return nil
@@ -35,13 +35,13 @@ func DeleteCommentByID(ctx context.Context, commentID string) error {
 	result := Db.WithContext(ctx).Where("comment_id = ?", commentID).Delete(&types.CommentBaseinfo{})
 	if result.Error != nil {
 		logger.Errorf("delete comment failed: %v", result.Error)
-		return xerr.New(1002, "删除评论失败")
+		return errors.New("删除评论失败")
 	}
 
 	if result.RowsAffected == 0 {
 		err := gorm.ErrRecordNotFound
 		logger.Errorf("delete comment failed: %v", err)
-		return xerr.New(1002, "删除评论失败")
+		return errors.New("删除评论失败")
 	}
 
 	return nil
@@ -62,14 +62,14 @@ func GetCommentsByVideoID(ctx context.Context, videoID string, pageNumber, pageS
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		logger.Errorf("get comments by video id count failed: %v", err)
-		return nil, 0, xerr.New(1002, "获取评论总数失败")
+		return nil, 0, errors.New("获取评论总数失败")
 	}
 
 	var comments []types.CommentBaseinfo
 	offset := (pageNumber - 1) * pageSize
 	if err := query.Order("created_at DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&comments).Error; err != nil {
 		logger.Errorf("get comments by video id failed: %v", err)
-		return nil, 0, xerr.New(1002, "获取评论失败")
+		return nil, 0, errors.New("获取评论失败")
 	}
 
 	return comments, total, nil

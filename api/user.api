@@ -44,7 +44,7 @@ type (
   }
 
   UserInfoRequest  {
-    UserID string `query:"user_id"`
+    UserID string `form:"user_id"`
   }
 
   UserInfoResponse  {

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 
@@ -32,15 +33,14 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
-	// 【核心代码】全局注册错误处理器
+	// 全局错误处理器：业务错误统一返回 200，错误码和消息放在 body 中
 	httpx.SetErrorHandler(func(err error) (int, interface{}) {
-		// 判断错误类型
-		if codeErr, ok := err.(*xerr.CodeError); ok {
-			// 如果是我们的自定义业务错误，返回 HTTP 200，但 body 里带业务码
-			// 你也可以选择返回 codeErr.Code 作为 HTTP 状态码，看你的需求
-			return codeErr.Code, codeErr
+		var codeErr *xerr.CodeError
+		if errors.As(err, &codeErr) {
+			return http.StatusOK, codeErr
 		}
-		// 如果是其他未知错误（如系统 panic），返回 500
+
+		// 其他未知错误返回 500，交给前端按系统错误处理
 		return http.StatusInternalServerError, nil
 	})
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)

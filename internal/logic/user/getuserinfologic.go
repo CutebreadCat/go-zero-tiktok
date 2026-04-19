@@ -36,6 +36,7 @@ func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.
 	if userID == "" {
 		userID = req.UserID
 	}
+	logx.Infof("getting user info for user ID: %s", userID)
 	if userID == "" {
 		return nil, xerr.New(http.StatusBadRequest, "用户ID不能为空")
 	}

@@ -30,8 +30,8 @@ type (
   }
 
   GetVideoListRequest  {
-    PageSize int32  `query:"page_size"`
-    PageNum  int32  `query:"page_num"`
+    PageSize int32  `form:"page_size"`
+    PageNum  int32  `form:"page_num"`
   }
 
   GetVideoListResponse  {
@@ -40,9 +40,9 @@ type (
   }
 
   VideoSearchRequest  {
-    Keyword  string `query:"keyword"`
-    PageSize int32  `query:"page_size"`
-    PageNum  int32  `query:"page_num"`
+    Keyword  string `form:"keyword"`
+    PageSize int32  `form:"page_size"`
+    PageNum  int32  `form:"page_num"`
   }
 
   VideoSearchResponse  {
@@ -51,8 +51,8 @@ type (
   }
 
   VideoPopularRequest  {
-    PageSize int32 `query:"page_size"`
-    PageNum  int32 `query:"page_num"`
+    PageSize int32 `form:"page_size"`
+    PageNum  int32 `form:"page_num"`
   }
 
   VideoPopularResponse   {
