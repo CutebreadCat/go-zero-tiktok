@@ -31,10 +31,12 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 
 func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.RegisterResponse, err error) {
 	if req.Username == "" || req.Password == "" {
+		logx.Error("username or password is empty")
 		return nil, errors.New("username or password is empty")
 	}
 
 	if _, err := dal.GetUserByUsername(l.ctx, req.Username); err == nil {
+		logx.Errorf("user already exists: %s", req.Username)
 		return nil, errors.New("user already exists")
 	}
 
@@ -42,10 +44,12 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 		UserID:   myutils.GenerateUserID(),
 		Username: req.Username,
 		Password: myutils.HashPassword(req.Password),
-		PhotoURL: "https://example.com/default_photo.jpg",
+		PhotoURL: "",
 	}
 
 	if err := dal.CreateUser(l.ctx, user); err != nil {
+		logx.Errorf("failed to create user: %v", err)
+
 		return nil, err
 	}
 

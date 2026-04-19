@@ -5,11 +5,12 @@ package interaction
 
 import (
 	"context"
-	"errors"
 
 	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -29,7 +30,7 @@ func NewLikeVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeVid
 }
 
 func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.LikeVideoResponse, err error) {
-	userID, err := getUserIDFromContext(l.ctx)
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +47,7 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 			err = dal.UpdateVideoLikeCount(l.ctx, req.VideoID, -1)
 		}
 	default:
-		err = errors.New("invalid action_type")
+		err = xerr.New(400, "操作类型无效，仅支持1(点赞)或2(取消点赞)")
 	}
 	if err != nil {
 		return nil, err
@@ -60,17 +61,4 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 	}
 
 	return
-}
-
-func getUserIDFromContext(ctx context.Context) (string, error) {
-	keys := []string{"user_id", "userId", "uid", "UserID"}
-	for _, key := range keys {
-		if v := ctx.Value(key); v != nil {
-			if uid, ok := v.(string); ok && uid != "" {
-				return uid, nil
-			}
-		}
-	}
-
-	return "", errors.New("user id not found in context")
 }

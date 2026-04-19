@@ -6,6 +6,8 @@ import (
 
 	"go_zero-tiktok/internal/types"
 
+	"go_zero-tiktok/internal/svc/xerr"
+
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
@@ -32,7 +34,7 @@ func CreatePopularVideo(ctx context.Context, videoID string) error {
 
 	if err := Db.WithContext(ctx).Create(record).Error; err != nil {
 		logger.Errorf("create popular video failed: %v", err)
-		return err
+		return xerr.New(1002, "创建热门视频记录失败")
 	}
 
 	return nil
@@ -51,12 +53,12 @@ func IncreaseVideoVisitCount(ctx context.Context, videoID string, delta int64) e
 		Update("visit_count", gorm.Expr("visit_count + ?", delta))
 	if result.Error != nil {
 		logger.Errorf("increase video visit count failed: %v", result.Error)
-		return result.Error
+		return xerr.New(1002, "增加视频访问次数失败")
 	}
 
 	if result.RowsAffected == 0 {
 		logger.Errorf("increase video visit count failed: %v", gorm.ErrRecordNotFound)
-		return gorm.ErrRecordNotFound
+		return xerr.New(1002, "增加视频访问次数失败")
 	}
 
 	return nil
@@ -71,12 +73,12 @@ func UpdateVideoLikeCount(ctx context.Context, videoID string, delta int64) erro
 		Update("like_count", gorm.Expr("CASE WHEN like_count + ? < 0 THEN 0 ELSE like_count + ? END", delta, delta))
 	if result.Error != nil {
 		logger.Errorf("update video like count failed: %v", result.Error)
-		return result.Error
+		return xerr.New(1002, "更新视频点赞数失败")
 	}
 
 	if result.RowsAffected == 0 {
 		logger.Errorf("update video like count failed: %v", gorm.ErrRecordNotFound)
-		return gorm.ErrRecordNotFound
+		return xerr.New(1002, "更新视频点赞数失败")
 	}
 
 	return nil
@@ -97,14 +99,14 @@ func GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		logger.Errorf("get popular video count failed: %v", err)
-		return nil, 0, err
+		return nil, 0, xerr.New(1002, "获取热门视频总数失败")
 	}
 
 	var rows []types.VideoPopular
 	offset := (pageNum - 1) * pageSize
 	if err := query.Order("visit_count DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&rows).Error; err != nil {
 		logger.Errorf("get popular videos failed: %v", err)
-		return nil, 0, err
+		return nil, 0, xerr.New(1002, "获取热门视频失败")
 	}
 
 	videoIDs := make([]string, 0, len(rows))
@@ -124,18 +126,18 @@ func SetPopularVideoToRedis(ctx context.Context, video types.VideoBaseinfo, visi
 
 	if ok, err := Rdb.Zadd(popularVideosRankKey, visitCount, video.VideoID); !ok {
 		logger.Errorf("set popular video to redis failed: %v", err)
-		return err
+		return xerr.New(1002, "设置热门视频到Redis失败")
 	}
 
 	videoJSON, err := json.Marshal(video)
 	if err != nil {
 		logger.Errorf("marshal popular video failed: %v", err)
-		return err
+		return xerr.New(1002, "序列化热门视频失败")
 	}
 
 	if err := Rdb.Hset(popularVideosHashKey, video.VideoID, string(videoJSON)); err != nil {
 		logger.Errorf("set popular video hash failed: %v", err)
-		return err
+		return xerr.New(1002, "设置热门视频哈希失败")
 	}
 
 	return nil
@@ -146,7 +148,7 @@ func IncrVideoVisitCountInRedis(ctx context.Context, videoID string) error {
 
 	if _, err := Rdb.Zincrby(popularVideosRankKey, 1, videoID); err != nil {
 		logger.Errorf("incr video visit count in redis failed: %v", err)
-		return err
+		return xerr.New(1002, "增加视频访问次数失败")
 	}
 
 	return nil
@@ -167,7 +169,7 @@ func GetVideoVisitCountFromRedis(ctx context.Context, pageSize int, pageNum int)
 	pairs, err := Rdb.ZrevrangeWithScores(popularVideosRankKey, start, stop)
 	if err != nil {
 		logger.Errorf("get video visit count from redis failed: %v", err)
-		return nil, err
+		return nil, xerr.New(1002, "获取视频访问次数失败")
 	}
 
 	result := make([]PopularVideoWithHeat, 0, len(pairs))
@@ -175,13 +177,13 @@ func GetVideoVisitCountFromRedis(ctx context.Context, pageSize int, pageNum int)
 		videoJSON, err := Rdb.Hget(popularVideosHashKey, pair.Key)
 		if err != nil {
 			logger.Errorf("get video hash from redis failed: %v", err)
-			return nil, err
+			return nil, xerr.New(1002, "获取视频哈希失败")
 		}
 
 		var video types.VideoBaseinfo
 		if err := json.Unmarshal([]byte(videoJSON), &video); err != nil {
 			logger.Errorf("unmarshal video hash failed: %v", err)
-			return nil, err
+			return nil, xerr.New(1002, "反序列化视频哈希失败")
 		}
 
 		result = append(result, PopularVideoWithHeat{

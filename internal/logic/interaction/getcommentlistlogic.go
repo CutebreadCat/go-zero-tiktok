@@ -6,7 +6,9 @@ package interaction
 import (
 	"context"
 
+	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -27,7 +29,32 @@ func NewGetCommentListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 }
 
 func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (resp *types.GetCommentListResponse, err error) {
-	// todo: add your logic here and delete this line
+	if req.VideoID == "" {
+		return nil, xerr.New(400, "视频ID不能为空")
+	}
+	if req.PageNumber <= 0 {
+		req.PageNumber = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+	if req.PageSize > 100 {
+		return nil, xerr.New(400, "每页数量不能超过100")
+	}
 
-	return
+	comments, total, err := dal.GetCommentsByVideoID(l.ctx, req.VideoID, req.PageNumber, req.PageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = &types.GetCommentListResponse{
+		Base:         types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
+		CommentList:  comments,
+		CommentCount: int32(total),
+	}
+	if resp.CommentList == nil {
+		resp.CommentList = []types.CommentBaseinfo{}
+	}
+
+	return resp, nil
 }

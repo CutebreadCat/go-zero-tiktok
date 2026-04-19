@@ -5,6 +5,7 @@ import "video.api"
 @server(
   group: video
   jwt: Auth
+  tags:"video"
 )
 service tiktok-api {
   @handler PublishVideoHandler

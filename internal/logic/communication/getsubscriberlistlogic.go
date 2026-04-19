@@ -6,8 +6,10 @@ package communication
 import (
 	"context"
 
+	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -27,7 +29,31 @@ func NewGetSubscriberListLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 }
 
 func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListRequest) (resp *types.GetSubscriberListResponse, err error) {
-	// todo: add your logic here and delete this line
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	relations, total, err := dal.GetFollowingByFollowerID(l.ctx, userID, req.PageNumber, req.PageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	subscriberIDs := make([]string, 0, len(relations))
+	for _, relation := range relations {
+		subscriberIDs = append(subscriberIDs, relation.UserID)
+	}
+
+	subscriberList, err := dal.GetUsersByIDs(l.ctx, subscriberIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = &types.GetSubscriberListResponse{
+		BaseResponse:    types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
+		SubscriberList:  subscriberList,
+		SubscriberCount: int32(total),
+	}
+
+	return resp, nil
 }

@@ -6,10 +6,11 @@ package communication
 import (
 	"net/http"
 
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"go_zero-tiktok/internal/logic/communication"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
+
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func GetFansListHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {

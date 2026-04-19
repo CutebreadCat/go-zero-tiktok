@@ -5,12 +5,14 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/mw/token"
 	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
+
+	"net/http"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -35,7 +37,7 @@ func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.
 		userID = req.UserID
 	}
 	if userID == "" {
-		return nil, errors.New("user id is empty")
+		return nil, xerr.New(http.StatusBadRequest, "用户ID不能为空")
 	}
 
 	user, err := dal.GetUserByID(l.ctx, userID)

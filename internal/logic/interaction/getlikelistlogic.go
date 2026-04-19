@@ -9,6 +9,7 @@ import (
 	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -28,7 +29,7 @@ func NewGetLikeListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetLi
 }
 
 func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *types.GetLikeListResponse, err error) {
-	userID, err := getUserIDFromContext(l.ctx)
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
 		return nil, err
 	}

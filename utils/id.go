@@ -1,7 +1,9 @@
 package myutils
 
 import (
+	"context"
 	"fmt"
+	"go_zero-tiktok/internal/svc/xerr"
 
 	"github.com/bwmarrin/snowflake"
 )
@@ -32,4 +34,21 @@ func GenerateVideoID() string {
 
 func GenerateCommentID() string {
 	return fmt.Sprintf("c%d", snowflakeNode.Generate().Int64())
+}
+
+func GetUserIDFromContext(ctx context.Context) (string, error) {
+	if ctx == nil {
+		return "", xerr.New(500, "上下文为空")
+	}
+
+	keys := []string{"user_id", "userId", "uid", "UserID"}
+	for _, key := range keys {
+		if v := ctx.Value(key); v != nil {
+			if uid, ok := v.(string); ok && uid != "" {
+				return uid, nil
+			}
+		}
+	}
+
+	return "", xerr.New(401, "用户未登录或登录已过期")
 }

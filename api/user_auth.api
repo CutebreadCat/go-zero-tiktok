@@ -5,6 +5,7 @@ import "user.api"
 @server(
   group: user
   jwt: Auth
+  tags:"user"
 )
 service tiktok-api {
   @handler PostUserPhotoHandler

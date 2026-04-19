@@ -4,6 +4,7 @@ import "model.api"
 
 @server(
     group: video
+    tags:"video"
 )
 
 service tiktok-api {

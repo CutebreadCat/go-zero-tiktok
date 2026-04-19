@@ -6,8 +6,10 @@ package communication
 import (
 	"context"
 
+	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -27,7 +29,31 @@ func NewGetFansListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFa
 }
 
 func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *types.GetFansListResponse, err error) {
-	// todo: add your logic here and delete this line
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	relations, total, err := dal.GetFansByUserID(l.ctx, userID, req.PageNumber, req.PageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	fansIDs := make([]string, 0, len(relations))
+	for _, relation := range relations {
+		fansIDs = append(fansIDs, relation.FollowerID)
+	}
+
+	fansList, err := dal.GetUsersByIDs(l.ctx, fansIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = &types.GetFansListResponse{
+		BaseResponse: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
+		FansList:     fansList,
+		FansCount:    int32(total),
+	}
+
+	return resp, nil
 }

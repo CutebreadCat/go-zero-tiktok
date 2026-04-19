@@ -4,6 +4,7 @@ import "model.api"
 
 @server (
   group: user
+  tags:"user"
 )
 service tiktok-api {
   @handler RegisterHandler
@@ -39,7 +40,7 @@ type (
     Base         BaseResponse `json:"base"`
     UserID       string       `json:"user_id"`
     AccessToken  string       `json:"access_token"`
-    RefreshToken string       `json:"refresh_token"`
+    RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
   }
 
   UserInfoRequest  {

@@ -5,7 +5,6 @@ package video
 
 import (
 	"context"
-	"errors"
 
 	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
@@ -30,7 +29,7 @@ func NewPublishVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Publ
 }
 
 func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *types.PublishVideoResponse, err error) {
-	authorID, err := getVideoUserIDFromContext(l.ctx)
+	authorID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -57,17 +56,4 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 	}
 
 	return
-}
-
-func getVideoUserIDFromContext(ctx context.Context) (string, error) {
-	keys := []string{"user_id", "userId", "uid", "UserID"}
-	for _, key := range keys {
-		if v := ctx.Value(key); v != nil {
-			if uid, ok := v.(string); ok && uid != "" {
-				return uid, nil
-			}
-		}
-	}
-
-	return "", errors.New("user id not found in context")
 }

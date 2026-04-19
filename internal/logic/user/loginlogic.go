@@ -5,13 +5,15 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/mw/token"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/utils"
+
+	"go_zero-tiktok/internal/svc/xerr"
+	"net/http"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -32,30 +34,36 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
 	if req.Username == "" || req.Password == "" {
-		return nil, errors.New("username or password is empty")
+		logx.Errorf("username or password is empty")
+		return nil, xerr.New(http.StatusBadRequest, "用户名或密码不能为空")
 	}
 
 	user, err := dal.GetUserByUsername(l.ctx, req.Username)
 	if err != nil {
+		logx.Errorf("get user by username failed: %v", err)
 		return nil, err
 	}
 
 	if !myutils.CompareHashAndPassword(req.Password, user.Password) {
-		return nil, errors.New("invalid username or password")
+		logx.Errorf("invalid username or password")
+		return nil, xerr.New(http.StatusBadRequest, "用户名或密码错误")
 	}
 
 	accessToken, err := token.GenerateAccessToken(l.svcCtx.Config.Auth.AccessSecret, user.UserID)
 	if err != nil {
-		return nil, err
+		logx.Errorf("generate access token failed: %v", err)
+		return nil, xerr.New(http.StatusInternalServerError, "生成访问令牌失败")
 	}
 
 	refreshToken, err := token.GenerateRefreshToken(l.svcCtx.Config.Auth.AccessSecret, user.UserID)
 	if err != nil {
-		return nil, err
+		logx.Errorf("generate refresh token failed: %v", err)
+		return nil, xerr.New(http.StatusInternalServerError, "生成刷新令牌失败")
 	}
 
 	if err := token.SaveRefreshToken(l.ctx, l.svcCtx.Rdb, refreshToken, user.UserID); err != nil {
-		return nil, err
+		logx.Errorf("save refresh token failed: %v", err)
+		return nil, xerr.New(http.StatusInternalServerError, "保存刷新令牌失败")
 	}
 
 	resp = &types.LoginResponse{
@@ -64,6 +72,5 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
-
 	return
 }
