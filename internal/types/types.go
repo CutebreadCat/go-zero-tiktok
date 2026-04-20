@@ -132,7 +132,6 @@ type ParentComment struct {
 type PublishVideoRequest struct {
 	Title       string `form:"title"`
 	Description string `form:"description"`
-	VideoFile   string `form:"video_file"`
 }
 
 type PublishVideoResponse struct {

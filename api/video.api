@@ -22,7 +22,7 @@ type (
   PublishVideoRequest  {
     Title       string `form:"title"`
     Description string `form:"description"`
-    VideoFile  string `form:"video_file"`
+    
   }
 
   PublishVideoResponse  {

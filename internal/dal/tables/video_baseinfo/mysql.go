@@ -14,7 +14,7 @@ func CreateVideo(ctx context.Context, db *gorm.DB, video *types.VideoBaseinfo) e
 	logger := logx.WithContext(ctx)
 
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.WithContext(ctx).Create(video).Error; err != nil {
+		if err := tx.WithContext(ctx).Model(&types.VideoBaseinfo{}).Create(video).Error; err != nil {
 			return xerr.New(1002, "创建视频失败")
 		}
 
@@ -24,7 +24,7 @@ func CreateVideo(ctx context.Context, db *gorm.DB, video *types.VideoBaseinfo) e
 			LikeCount:    0,
 			CommentCount: 0,
 		}
-		if err := tx.WithContext(ctx).Create(popular).Error; err != nil {
+		if err := tx.WithContext(ctx).Model(&types.VideoPopular{}).Create(popular).Error; err != nil {
 			return xerr.New(1002, "创建热门视频记录失败")
 		}
 

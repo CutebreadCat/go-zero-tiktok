@@ -27,6 +27,7 @@ go.work.sum
 # env file
 .env
 /internal/mw/ali/aliconfig.yaml
+/testdata
 
 # Editor/IDE
 # .idea/

@@ -6,6 +6,7 @@ package video
 import (
 	"bytes"
 	"context"
+	"time"
 
 	"go_zero-tiktok/internal/mw/ali"
 	"go_zero-tiktok/internal/svc"
@@ -60,6 +61,9 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 		CoverURL:    "",
 		Title:       req.Title,
 		Description: req.Description,
+		CreatedAt:   myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		UpdatedAt:   myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		DeletedAt:   "",
 	}
 
 	if err := l.svcCtx.Dal.Video.CreateVideo(l.ctx, video); err != nil {
