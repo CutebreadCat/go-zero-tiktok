@@ -40,7 +40,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	user, err := l.svcCtx.Dal.User.GetUserByUsername(l.ctx, req.Username)
 	if err != nil {
 		logx.Errorf("get user by username failed: %v", err)
-		return nil, err
+		return nil, xerr.New(http.StatusBadRequest, "用户名或密码错误")
 	}
 
 	if !myutils.CompareHashAndPassword(req.Password, user.Password) {

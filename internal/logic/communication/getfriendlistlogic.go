@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -33,11 +34,11 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListRequest) (res
 		user_id = userID
 	} else {
 		logx.Errorf("failed to get user_id from context")
-		return nil, err
+		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
 	}
 	if relationsIDPeople, total, err := l.svcCtx.Dal.UserFollow.GetFriendByUserID(l.ctx, user_id, req.PageNumber, req.PageSize); err != nil {
 		logx.Errorf("failed to get friend list: %v", err)
-		return nil, err
+		return nil, xerr.New(1002, "获取好友列表失败，请稍后重试")
 	} else {
 		var relationsID []string
 		for _, relation := range relationsIDPeople {
@@ -46,7 +47,7 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListRequest) (res
 		relations := make([]types.UserBaseinfo, 0, len(relationsID))
 		if relations, err = l.svcCtx.Dal.User.GetUsersByIDs(l.ctx, relationsID); err != nil {
 			logx.Errorf("failed to get user base info: %v", err)
-			return nil, err
+			return nil, xerr.New(1002, "获取好友信息失败，请稍后重试")
 		}
 		resp = &types.GetFriendListResponse{
 			BaseResponse: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},

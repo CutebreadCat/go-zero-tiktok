@@ -5,7 +5,6 @@ import (
 
 	mysqlrepo "go_zero-tiktok/internal/dal/repository/mysql"
 	redisrepo "go_zero-tiktok/internal/dal/repository/redis"
-	videopopulartable "go_zero-tiktok/internal/dal/tables/video_popular"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -156,7 +155,7 @@ func (r *VideoPopularRepo) IncrVideoVisitCountInRedis(ctx context.Context, video
 	return r.redis.IncrVideoVisitCountInRedis(ctx, videoID)
 }
 
-func (r *VideoPopularRepo) GetVideoVisitCountFromRedis(ctx context.Context, pageSize int, pageNum int) ([]videopopulartable.PopularVideoWithHeat, error) {
+func (r *VideoPopularRepo) GetVideoVisitCountFromRedis(ctx context.Context, pageSize int, pageNum int) ([]string, error) {
 	return r.redis.GetVideoVisitCountFromRedis(ctx, pageSize, pageNum)
 }
 
@@ -223,7 +222,32 @@ func (r *VideoLikerRepo) CancelLikeVideo(ctx context.Context, userID, videoID st
 }
 
 func (r *VideoLikerRepo) GetLikedVideoIDsByUserID(ctx context.Context, userID string, pageNumber, pageSize int32) ([]string, int64, error) {
-	return r.mysql.GetLikedVideoIDsByUserID(ctx, userID, pageNumber, pageSize)
+	videoIDs, total, err := r.redis.GetLikedVideoIDs(ctx, userID, pageNumber, pageSize)
+	if err == nil {
+		if total > 0 {
+			return videoIDs, total, nil
+		}
+	} else {
+		logx.WithContext(ctx).Errorf("read liked videos from redis failed: %v", err)
+	}
+
+	videoIDs, total, err = r.mysql.GetLikedVideoIDsByUserID(ctx, userID, pageNumber, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	allLikedVideoIDs, listErr := r.mysql.GetAllLikedVideoIDsByUserID(ctx, userID)
+	if listErr != nil {
+		logx.WithContext(ctx).Errorf("query all liked videos for cache backfill failed: %v", listErr)
+		return videoIDs, total, nil
+	}
+
+	// Cache-aside backfill: when cache miss, repopulate full set from DB.
+	if cacheErr := r.redis.ResetLikedVideoIDs(ctx, userID, allLikedVideoIDs); cacheErr != nil {
+		logx.WithContext(ctx).Errorf("backfill liked videos cache failed: %v", cacheErr)
+	}
+
+	return videoIDs, total, nil
 }
 
 type UserFollowRepo struct {
@@ -236,6 +260,14 @@ func NewUserFollowRepo(db *gorm.DB) *UserFollowRepo {
 
 func (r *UserFollowRepo) CreateUserFollow(ctx context.Context, followerID, userID string) error {
 	return r.mysql.CreateUserFollow(ctx, followerID, userID)
+}
+
+func (r *UserFollowRepo) FollowUser(ctx context.Context, followerID, userID string) error {
+	return r.mysql.FollowUser(ctx, followerID, userID)
+}
+
+func (r *UserFollowRepo) UnfollowUser(ctx context.Context, followerID, userID string) error {
+	return r.mysql.UnfollowUser(ctx, followerID, userID)
 }
 
 func (r *UserFollowRepo) UpdateUserFollowStatus(ctx context.Context, followerID, userID string, status int32) error {

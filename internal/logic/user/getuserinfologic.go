@@ -42,7 +42,7 @@ func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.
 
 	user, err := l.svcCtx.Dal.User.GetUserByID(l.ctx, userID)
 	if err != nil {
-		return nil, err
+		return nil, xerr.New(http.StatusNotFound, "用户不存在或已被删除")
 	}
 
 	resp = &types.UserInfoResponse{

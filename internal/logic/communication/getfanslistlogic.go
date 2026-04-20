@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/utils"
 
@@ -30,12 +31,12 @@ func NewGetFansListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFa
 func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *types.GetFansListResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, err
+		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
 	}
 
 	relations, total, err := l.svcCtx.Dal.UserFollow.GetFansByUserID(l.ctx, userID, req.PageNumber, req.PageSize)
 	if err != nil {
-		return nil, err
+		return nil, xerr.New(1002, "获取粉丝列表失败，请稍后重试")
 	}
 
 	fansIDs := make([]string, 0, len(relations))
@@ -45,7 +46,7 @@ func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *typ
 
 	fansList, err := l.svcCtx.Dal.User.GetUsersByIDs(l.ctx, fansIDs)
 	if err != nil {
-		return nil, err
+		return nil, xerr.New(1002, "获取粉丝信息失败，请稍后重试")
 	}
 
 	resp = &types.GetFansListResponse{

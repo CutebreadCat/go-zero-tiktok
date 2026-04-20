@@ -31,7 +31,10 @@ func NewLikeVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeVid
 func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.LikeVideoResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, err
+		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
+	}
+	if req.VideoID == "" {
+		return nil, xerr.New(400, "视频ID不能为空")
 	}
 
 	switch req.ActionType {
@@ -40,13 +43,13 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 		if err == nil {
 			err = l.svcCtx.Dal.Popular.UpdateVideoLikeCount(l.ctx, req.VideoID, 1)
 		}
-	case 2:
+	case 0:
 		err = l.svcCtx.Dal.VideoLiker.CancelLikeVideo(l.ctx, userID, req.VideoID)
 		if err == nil {
 			err = l.svcCtx.Dal.Popular.UpdateVideoLikeCount(l.ctx, req.VideoID, -1)
 		}
 	default:
-		err = xerr.New(400, "操作类型无效，仅支持1(点赞)或2(取消点赞)")
+		err = xerr.New(400, "操作类型无效，仅支持1(点赞)或0(取消点赞)")
 	}
 	if err != nil {
 		return nil, err

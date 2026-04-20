@@ -1,6 +1,7 @@
 Name: tiktok-api
 Host: 0.0.0.0
 Port: 8888
+MaxBytes: 10485760
 
 # 1. 数据库配置
 # 注意：go-zero 的 sqlx 库通常识别 "DataSource" 这个键名

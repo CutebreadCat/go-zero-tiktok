@@ -32,7 +32,7 @@ func NewCommentVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Comm
 func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *types.CommentVideoResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, err
+		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
 	}
 	if req.VideoID == "" {
 		return nil, xerr.New(400, "视频ID不能为空")
@@ -50,7 +50,7 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 	}
 
 	if err := l.svcCtx.Dal.Comment.CreateComment(l.ctx, comment); err != nil {
-		return nil, err
+		return nil, xerr.New(1002, "发布评论失败，请稍后重试")
 	}
 
 	resp = &types.CommentVideoResponse{

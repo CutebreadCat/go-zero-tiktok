@@ -33,7 +33,7 @@ func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentRequest) (res
 	}
 
 	if err := l.svcCtx.Dal.Comment.DeleteCommentByID(l.ctx, req.CommentID); err != nil {
-		return nil, err
+		return nil, xerr.New(1002, "删除评论失败，请稍后重试")
 	}
 
 	resp = &types.DeleteCommentResponse{

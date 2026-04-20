@@ -132,6 +132,7 @@ type ParentComment struct {
 type PublishVideoRequest struct {
 	Title       string `form:"title"`
 	Description string `form:"description"`
+	VideoFile   string `form:"video_file"`
 }
 
 type PublishVideoResponse struct {
@@ -170,10 +171,10 @@ type SubscribeResponse struct {
 }
 
 type UserBaseinfo struct {
-	UserID    string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`                                       // 增加长度以兼容各种 ID 生成策略
-	Username  string `json:"username" gorm:"unique;type:varchar(64)"`                                          // 增加长度
-	Password  string `json:"password" gorm:"not null;type:varchar(255)"`                                       // 密码哈希通常较长，建议 255
-	PhotoURL  string `json:"photo_url" gorm:"default:https://example.com/default_photo.jpg;type:varchar(512)"` // 修正：去掉了多余的引号，增加 URL 长度
+	UserID    string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`  // 增加长度以兼容各种 ID 生成策略
+	Username  string `json:"username" gorm:"unique;type:varchar(64)"`     // 增加长度
+	Password  string `json:"password" gorm:"not null;type:varchar(255)"`  // 密码哈希通常较长，建议 255
+	PhotoURL  string `json:"photo_url" gorm:"not null;type:varchar(255)"` // 修正：去掉了多余的引号，增加 URL 长度
 	CreatedAt string `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt string `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt string `json:"deleted_at"`
@@ -204,18 +205,15 @@ type UserphotoResponse struct {
 }
 
 type VideoBaseinfo struct {
-	VideoID      string `json:"video_id" gorm:"primaryKey;type:varchar(64)"`
-	AuthorID     string `json:"author_id" gorm:"not null;type:varchar(64)"`
-	VideoURL     string `json:"video_url" gorm:"not null;type:varchar(512)"` // 增加 URL 长度
-	CoverURL     string `json:"cover_url" gorm:"type:varchar(512)"`          // 增加 URL 长度
-	Title        string `json:"title" gorm:"not null;type:varchar(255)"`     // 标题通常需要更长
-	Description  string `json:"description" gorm:"type:varchar(512)"`        // 增加描述长度
-	CreatedAt    string `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt    string `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt    string `json:"deleted_at"`
-	VisitCount   int64  `json:"visit_count" gorm:"default:0;type:bigint"` // 建议用 bigint 防止溢出
-	LikeCount    int64  `json:"like_count" gorm:"default:0;type:bigint"`
-	CommentCount int64  `json:"comment_count" gorm:"default:0;type:bigint"`
+	VideoID     string `json:"video_id" gorm:"primaryKey;type:varchar(64)"`
+	AuthorID    string `json:"author_id" gorm:"not null;type:varchar(64)"`
+	VideoURL    string `json:"video_url" gorm:"not null;type:varchar(512)"` // 增加 URL 长度
+	CoverURL    string `json:"cover_url" gorm:"type:varchar(512)"`          // 增加 URL 长度
+	Title       string `json:"title" gorm:"not null;type:varchar(255)"`     // 标题通常需要更长
+	Description string `json:"description" gorm:"type:varchar(512)"`        // 增加描述长度
+	CreatedAt   string `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   string `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt   string `json:"deleted_at"`
 }
 
 type VideoLiker struct {

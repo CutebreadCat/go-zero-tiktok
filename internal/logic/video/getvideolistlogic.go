@@ -40,7 +40,7 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 
 	videos, _, err := l.svcCtx.Dal.Video.SearchVideosByKeyword(l.ctx, "", req.PageNum, req.PageSize)
 	if err != nil {
-		return nil, err
+		return nil, xerr.New(1002, "获取视频列表失败，请稍后重试")
 	}
 
 	resp = &types.GetVideoListResponse{

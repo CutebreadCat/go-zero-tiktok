@@ -40,8 +40,8 @@ func main() {
 			return http.StatusOK, codeErr
 		}
 
-		// 其他未知错误返回 500，交给前端按系统错误处理
-		return http.StatusInternalServerError, nil
+		// 兜底转换为统一业务错误，保证客户端总能收到可读错误信息
+		return http.StatusOK, xerr.New(1004, "服务繁忙，请稍后重试")
 	})
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()

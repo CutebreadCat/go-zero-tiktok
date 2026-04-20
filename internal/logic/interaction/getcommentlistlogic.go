@@ -43,7 +43,7 @@ func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (
 
 	comments, total, err := l.svcCtx.Dal.Comment.GetCommentsByVideoID(l.ctx, req.VideoID, req.PageNumber, req.PageSize)
 	if err != nil {
-		return nil, err
+		return nil, xerr.New(1002, "获取评论列表失败，请稍后重试")
 	}
 
 	resp = &types.GetCommentListResponse{

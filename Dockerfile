@@ -1,6 +1,6 @@
 FROM  golang:1.26-alpine
 
-ENV GOPROXY=https://mirrors.aliyun.com/goproxy/,https://goproxy.cn,direct
+ENV GOPROXY=https://mirrors.aliyun.com/goproxy/,https://goproxy.cn,https://mirrors.tencent.com/go/,https://mirrors.huaweicloud.com/repository/goproxy/,direct
 ENV GOSUMDB=off
 ENV GO111MODULE=on
 

@@ -5,10 +5,10 @@ package user
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/utils"
 
@@ -32,12 +32,12 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.RegisterResponse, err error) {
 	if req.Username == "" || req.Password == "" {
 		logx.Error("username or password is empty")
-		return nil, errors.New("username or password is empty")
+		return nil, xerr.New(400, "用户名或密码不能为空")
 	}
 
 	if _, err := l.svcCtx.Dal.User.GetUserByUsername(l.ctx, req.Username); err == nil {
 		logx.Errorf("user already exists: %s", req.Username)
-		return nil, errors.New("user already exists")
+		return nil, xerr.New(409, "用户名已存在，请更换后重试")
 	}
 
 	user := &types.UserBaseinfo{
@@ -53,7 +53,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	if err := l.svcCtx.Dal.User.CreateUser(l.ctx, user); err != nil {
 		logx.Errorf("failed to create user: %v", err)
 
-		return nil, err
+		return nil, xerr.New(1002, "注册失败，请稍后重试")
 	}
 
 	resp = &types.RegisterResponse{

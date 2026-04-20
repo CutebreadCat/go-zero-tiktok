@@ -25,6 +25,16 @@ func LikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) error {
 		VideoID: videoID,
 	}
 
+	var existed types.VideoLiker
+	err := db.WithContext(ctx).Where("user_id = ? AND video_id = ?", userID, videoID).First(&existed).Error
+	if err == nil {
+		return xerr.New(400, "重复点赞")
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		logger.Errorf("check like relation failed: %v", err)
+		return xerr.New(1002, "查询点赞关系失败")
+	}
+
 	if err := db.WithContext(ctx).Create(like).Error; err != nil {
 		logger.Errorf("like video failed: %v", err)
 		return xerr.New(1002, "点赞视频失败")
@@ -82,4 +92,21 @@ func GetLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID string, p
 	}
 
 	return videoIDs, total, nil
+}
+
+func GetAllLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID string) ([]string, error) {
+	logger := logx.WithContext(ctx)
+
+	var likerRows []types.VideoLiker
+	if err := db.WithContext(ctx).Model(&types.VideoLiker{}).Where("user_id = ?", userID).Find(&likerRows).Error; err != nil {
+		logger.Errorf("get all liked video ids failed: %v", err)
+		return nil, xerr.New(1002, "获取全部点赞视频ID失败")
+	}
+
+	videoIDs := make([]string, 0, len(likerRows))
+	for _, row := range likerRows {
+		videoIDs = append(videoIDs, row.VideoID)
+	}
+
+	return videoIDs, nil
 }

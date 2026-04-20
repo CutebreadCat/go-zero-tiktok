@@ -130,6 +130,10 @@ func (r *VideoLikerRepo) GetLikedVideoIDsByUserID(ctx context.Context, userID st
 	return videolikertable.GetLikedVideoIDsByUserID(ctx, r.db, userID, pageNumber, pageSize)
 }
 
+func (r *VideoLikerRepo) GetAllLikedVideoIDsByUserID(ctx context.Context, userID string) ([]string, error) {
+	return videolikertable.GetAllLikedVideoIDsByUserID(ctx, r.db, userID)
+}
+
 type UserFollowRepo struct {
 	db *gorm.DB
 }
@@ -140,6 +144,14 @@ func NewUserFollowRepo(db *gorm.DB) *UserFollowRepo {
 
 func (r *UserFollowRepo) CreateUserFollow(ctx context.Context, followerID, userID string) error {
 	return userfollowtable.CreateUserFollow(ctx, r.db, followerID, userID)
+}
+
+func (r *UserFollowRepo) FollowUser(ctx context.Context, followerID, userID string) error {
+	return userfollowtable.FollowUser(ctx, r.db, followerID, userID)
+}
+
+func (r *UserFollowRepo) UnfollowUser(ctx context.Context, followerID, userID string) error {
+	return userfollowtable.UnfollowUser(ctx, r.db, followerID, userID)
 }
 
 func (r *UserFollowRepo) UpdateUserFollowStatus(ctx context.Context, followerID, userID string, status int32) error {

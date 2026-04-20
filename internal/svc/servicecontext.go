@@ -6,6 +6,7 @@ package svc
 import (
 	"go_zero-tiktok/internal/config"
 	"go_zero-tiktok/internal/dal"
+	"go_zero-tiktok/internal/mw/ali"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -22,6 +23,10 @@ type ServiceContext struct {
 func NewServiceContext(config config.Config) *ServiceContext {
 	logx.Must(dal.InitMysql(config.DataSource))
 	dal.InitRedis(config.Redis)
+
+	// 初始化阿里云配置
+	ali.GetAliConfig()
+	ali.AliInit()
 
 	return &ServiceContext{
 		Config: config,

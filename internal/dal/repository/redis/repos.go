@@ -26,7 +26,7 @@ func (r *VideoPopularRepo) IncrVideoVisitCountInRedis(ctx context.Context, video
 	return videopopulartable.IncrVideoVisitCountInRedis(ctx, r.rdb, videoID)
 }
 
-func (r *VideoPopularRepo) GetVideoVisitCountFromRedis(ctx context.Context, pageSize int, pageNum int) ([]videopopulartable.PopularVideoWithHeat, error) {
+func (r *VideoPopularRepo) GetVideoVisitCountFromRedis(ctx context.Context, pageSize int, pageNum int) ([]string, error) {
 	return videopopulartable.GetVideoVisitCountFromRedis(ctx, r.rdb, pageSize, pageNum)
 }
 
@@ -48,4 +48,12 @@ func (r *VideoLikerRepo) AddVideoLike(ctx context.Context, userID, videoID strin
 
 func (r *VideoLikerRepo) RemoveVideoLike(ctx context.Context, userID, videoID string) error {
 	return videolikertable.RemoveVideoLike(ctx, r.rdb, userID, videoID)
+}
+
+func (r *VideoLikerRepo) GetLikedVideoIDs(ctx context.Context, userID string, pageNumber, pageSize int32) ([]string, int64, error) {
+	return videolikertable.GetLikedVideoIDs(ctx, r.rdb, userID, pageNumber, pageSize)
+}
+
+func (r *VideoLikerRepo) ResetLikedVideoIDs(ctx context.Context, userID string, videoIDs []string) error {
+	return videolikertable.ResetLikedVideoIDs(ctx, r.rdb, userID, videoIDs)
 }
