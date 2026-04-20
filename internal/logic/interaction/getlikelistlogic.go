@@ -6,7 +6,6 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/utils"
@@ -34,12 +33,12 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 		return nil, err
 	}
 
-	videoIDs, total, err := dal.GetLikedVideoIDsByUserID(l.ctx, userID, req.PageNumber, req.PageSize)
+	videoIDs, total, err := l.svcCtx.Dal.VideoLiker.GetLikedVideoIDsByUserID(l.ctx, userID, req.PageNumber, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
 
-	videos, err := dal.GetVideosByIDs(l.ctx, videoIDs)
+	videos, err := l.svcCtx.Dal.Video.GetVideosByIDs(l.ctx, videoIDs)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,6 @@ package user
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/mw/token"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -38,7 +37,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		return nil, xerr.New(http.StatusBadRequest, "用户名或密码不能为空")
 	}
 
-	user, err := dal.GetUserByUsername(l.ctx, req.Username)
+	user, err := l.svcCtx.Dal.User.GetUserByUsername(l.ctx, req.Username)
 	if err != nil {
 		logx.Errorf("get user by username failed: %v", err)
 		return nil, err

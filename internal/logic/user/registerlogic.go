@@ -8,7 +8,6 @@ import (
 	"errors"
 	"time"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/utils"
@@ -36,7 +35,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 		return nil, errors.New("username or password is empty")
 	}
 
-	if _, err := dal.GetUserByUsername(l.ctx, req.Username); err == nil {
+	if _, err := l.svcCtx.Dal.User.GetUserByUsername(l.ctx, req.Username); err == nil {
 		logx.Errorf("user already exists: %s", req.Username)
 		return nil, errors.New("user already exists")
 	}
@@ -51,7 +50,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 		DeletedAt: "",
 	}
 
-	if err := dal.CreateUser(l.ctx, user); err != nil {
+	if err := l.svcCtx.Dal.User.CreateUser(l.ctx, user); err != nil {
 		logx.Errorf("failed to create user: %v", err)
 
 		return nil, err

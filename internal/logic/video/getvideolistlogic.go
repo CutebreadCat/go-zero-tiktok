@@ -6,7 +6,6 @@ package video
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
@@ -39,7 +38,7 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 		return nil, xerr.New(400, "每页数量不能超过100")
 	}
 
-	videos, _, err := dal.SearchVideosByKeyword(l.ctx, "", req.PageNum, req.PageSize)
+	videos, _, err := l.svcCtx.Dal.Video.SearchVideosByKeyword(l.ctx, "", req.PageNum, req.PageSize)
 	if err != nil {
 		return nil, err
 	}

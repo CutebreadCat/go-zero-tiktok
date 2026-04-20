@@ -7,7 +7,6 @@ import (
 	"context"
 	"strings"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
@@ -50,7 +49,7 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 		Content:   commentText,
 	}
 
-	if err := dal.CreateComment(l.ctx, comment); err != nil {
+	if err := l.svcCtx.Dal.Comment.CreateComment(l.ctx, comment); err != nil {
 		return nil, err
 	}
 

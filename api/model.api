@@ -32,6 +32,9 @@ type (
     CreatedAt   string `json:"created_at" gorm:"autoCreateTime"`
     UpdatedAt   string `json:"updated_at" gorm:"autoUpdateTime"`
     DeletedAt   string `json:"deleted_at"`
+    VisitCount int64  `json:"visit_count" gorm:"default:0;type:bigint"`      // 建议用 bigint 防止溢出
+    LikeCount  int64  `json:"like_count" gorm:"default:0;type:bigint"`
+    CommentCount int64  `json:"comment_count" gorm:"default:0;type:bigint"`
   }
 
   VideoPopular {

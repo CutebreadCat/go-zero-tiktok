@@ -16,6 +16,7 @@ type ServiceContext struct {
 	Config config.Config
 	DB     *gorm.DB
 	Rdb    *redis.Redis
+	Dal    *dal.Repositories
 }
 
 func NewServiceContext(config config.Config) *ServiceContext {
@@ -26,5 +27,6 @@ func NewServiceContext(config config.Config) *ServiceContext {
 		Config: config,
 		DB:     dal.Db,
 		Rdb:    dal.Rdb,
+		Dal:    dal.NewRepositories(dal.Db, dal.Rdb),
 	}
 }

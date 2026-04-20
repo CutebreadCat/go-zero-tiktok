@@ -9,8 +9,6 @@ import (
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
-	"go_zero-tiktok/internal/dal"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -37,7 +35,7 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListRequest) (res
 		logx.Errorf("failed to get user_id from context")
 		return nil, err
 	}
-	if relationsIDPeople, total, err := dal.GetFriendByUserID(l.ctx, user_id, req.PageNumber, req.PageSize); err != nil {
+	if relationsIDPeople, total, err := l.svcCtx.Dal.UserFollow.GetFriendByUserID(l.ctx, user_id, req.PageNumber, req.PageSize); err != nil {
 		logx.Errorf("failed to get friend list: %v", err)
 		return nil, err
 	} else {
@@ -46,7 +44,7 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListRequest) (res
 			relationsID = append(relationsID, relation.FollowerID)
 		}
 		relations := make([]types.UserBaseinfo, 0, len(relationsID))
-		if relations, err = dal.GetUsersByIDs(l.ctx, relationsID); err != nil {
+		if relations, err = l.svcCtx.Dal.User.GetUsersByIDs(l.ctx, relationsID); err != nil {
 			logx.Errorf("failed to get user base info: %v", err)
 			return nil, err
 		}

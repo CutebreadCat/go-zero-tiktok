@@ -11,6 +11,14 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	userLikedVideosSetPrefix = "user:liked:videos:"
+)
+
+func userLikedVideosSetKey(userID string) string {
+	return userLikedVideosSetPrefix + userID
+}
+
 func LikeVideo(ctx context.Context, userID, videoID string) error {
 	logger := logx.WithContext(ctx)
 
@@ -30,6 +38,11 @@ func LikeVideo(ctx context.Context, userID, videoID string) error {
 		return xerr.New(1002, "点赞视频失败")
 	}
 
+	// 数据库为主，Redis 作为缓存加速，缓存写失败不阻断主流程。
+	if err := addVideoLikeToRedis(ctx, userID, videoID); err != nil {
+		logger.Errorf("sync like to redis failed: %v", err)
+	}
+
 	return nil
 }
 
@@ -46,6 +59,37 @@ func CancelLikeVideo(ctx context.Context, userID, videoID string) error {
 		err := gorm.ErrRecordNotFound
 		logger.Errorf("cancel like video failed: %v", err)
 		return xerr.New(400, "点赞关系不存在")
+	}
+
+	// 数据库删除成功后再清理缓存，缓存失败不影响主流程。
+	if err := removeVideoLikeFromRedis(ctx, userID, videoID); err != nil {
+		logger.Errorf("sync unlike to redis failed: %v", err)
+	}
+
+	return nil
+}
+
+func addVideoLikeToRedis(ctx context.Context, userID, videoID string) error {
+	if Rdb == nil {
+		logx.WithContext(ctx).Error("Redis client is not initialized")
+		return xerr.ErrRedisError
+	}
+
+	if _, err := Rdb.SaddCtx(ctx, userLikedVideosSetKey(userID), videoID); err != nil {
+		logx.WithContext(ctx).Errorf("add video like to redis failed: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func removeVideoLikeFromRedis(ctx context.Context, userID, videoID string) error {
+	if Rdb == nil {
+		return xerr.ErrRedisError
+	}
+
+	if _, err := Rdb.SremCtx(ctx, userLikedVideosSetKey(userID), videoID); err != nil {
+		return err
 	}
 
 	return nil

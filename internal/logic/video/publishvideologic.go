@@ -6,7 +6,6 @@ package video
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/utils"
@@ -43,7 +42,7 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 		Description: req.Description,
 	}
 
-	if err := dal.CreateVideo(l.ctx, video); err != nil {
+	if err := l.svcCtx.Dal.Video.CreateVideo(l.ctx, video); err != nil {
 		return nil, err
 	}
 

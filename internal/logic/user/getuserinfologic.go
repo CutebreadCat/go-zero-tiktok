@@ -6,7 +6,6 @@ package user
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/mw/token"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
@@ -41,7 +40,7 @@ func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.
 		return nil, xerr.New(http.StatusBadRequest, "用户ID不能为空")
 	}
 
-	user, err := dal.GetUserByID(l.ctx, userID)
+	user, err := l.svcCtx.Dal.User.GetUserByID(l.ctx, userID)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,6 @@ package video
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
@@ -28,12 +27,12 @@ func NewVideoPopularLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Vide
 }
 
 func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *types.VideoPopularResponse, err error) {
-	videoIDs, _, err := dal.GetPopularVideoIDsByVisitCount(l.ctx, req.PageNum, req.PageSize)
+	videoIDs, _, err := l.svcCtx.Dal.Popular.GetPopularVideoIDsByVisitCount(l.ctx, req.PageNum, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
 
-	videos, err := dal.GetVideosByIDs(l.ctx, videoIDs)
+	videos, err := l.svcCtx.Dal.Video.GetVideosByIDs(l.ctx, videoIDs)
 	if err != nil {
 		return nil, err
 	}

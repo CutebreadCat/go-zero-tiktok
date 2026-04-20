@@ -6,7 +6,6 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
@@ -33,7 +32,7 @@ func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentRequest) (res
 		return nil, xerr.New(400, "评论ID不能为空")
 	}
 
-	if err := dal.DeleteCommentByID(l.ctx, req.CommentID); err != nil {
+	if err := l.svcCtx.Dal.Comment.DeleteCommentByID(l.ctx, req.CommentID); err != nil {
 		return nil, err
 	}
 

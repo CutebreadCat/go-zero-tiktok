@@ -3,11 +3,14 @@ package dal
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"strconv"
 
 	"go_zero-tiktok/internal/types"
 
 	"go_zero-tiktok/internal/svc/xerr"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
@@ -53,12 +56,12 @@ func IncreaseVideoVisitCount(ctx context.Context, videoID string, delta int64) e
 		Update("visit_count", gorm.Expr("visit_count + ?", delta))
 	if result.Error != nil {
 		logger.Errorf("increase video visit count failed: %v", result.Error)
-		return xerr.New(1002, "增加视频访问次数失败")
+		return xerr.New(1002, "数据库当中增加视频访问次数失败")
 	}
 
 	if result.RowsAffected == 0 {
-		logger.Errorf("increase video visit count failed: %v", gorm.ErrRecordNotFound)
-		return xerr.New(1002, "增加视频访问次数失败")
+		logger.Errorf("Video %s not found in DB, count lost.", videoID)
+
 	}
 
 	return nil
@@ -84,7 +87,7 @@ func UpdateVideoLikeCount(ctx context.Context, videoID string, delta int64) erro
 	return nil
 }
 
-func GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]string, int64, error) {
+func GetPopularVideoIDsByVisitCountInZset(ctx context.Context, pageNum, pageSize int32) ([]string, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNum <= 0 {
@@ -117,6 +120,33 @@ func GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32
 	return videoIDs, total, nil
 }
 
+func GetVideoVisitCountByIDInHash(ctx context.Context, videoIDs []string) ([]map[string]string, error) {
+	logger := logx.WithContext(ctx)
+
+	if len(videoIDs) == 0 {
+		return nil, nil
+	}
+
+	var videos []map[string]string
+	for _, videoID := range videoIDs {
+		popularVideoHashKey := popularVideosHashKey + ":" + videoID
+		visitCountStr, err := Rdb.Hgetall(popularVideoHashKey)
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				logger.Errorf("video %s not found in Redis, skipping.", videoID)
+				return nil, redis.Nil
+			}
+			logger.Errorf("get video visit count from redis failed: %v", err)
+			return nil, xerr.New(1002, "获取视频访问次数失败")
+		}
+
+		videos = append(videos, visitCountStr)
+
+	}
+
+	return videos, nil
+}
+
 func SetPopularVideoToRedis(ctx context.Context, video types.VideoBaseinfo, visitCount int64) error {
 	logger := logx.WithContext(ctx)
 
@@ -129,13 +159,19 @@ func SetPopularVideoToRedis(ctx context.Context, video types.VideoBaseinfo, visi
 		return xerr.New(1002, "设置热门视频到Redis失败")
 	}
 
-	videoJSON, err := json.Marshal(video)
-	if err != nil {
-		logger.Errorf("marshal popular video failed: %v", err)
-		return xerr.New(1002, "序列化热门视频失败")
-	}
+	videoinfo := make(map[string]string)
+	videoinfo["video_id"] = video.VideoID
+	videoinfo["author_id"] = video.AuthorID
+	videoinfo["video_url"] = video.VideoURL
+	videoinfo["cover_url"] = video.CoverURL
+	videoinfo["title"] = video.Title
+	videoinfo["description"] = video.Description
+	videoinfo["visit_count"] = strconv.FormatInt(video.VisitCount, 10)
+	videoinfo["like_count"] = strconv.FormatInt(video.LikeCount, 10)
+	videoinfo["comment_count"] = strconv.FormatInt(video.CommentCount, 10)
 
-	if err := Rdb.Hset(popularVideosHashKey, video.VideoID, string(videoJSON)); err != nil {
+	popularVideoHashKey := popularVideosHashKey + ":" + video.VideoID
+	if err := Rdb.Hmset(popularVideoHashKey, videoinfo); err != nil {
 		logger.Errorf("set popular video hash failed: %v", err)
 		return xerr.New(1002, "设置热门视频哈希失败")
 	}
@@ -148,9 +184,13 @@ func IncrVideoVisitCountInRedis(ctx context.Context, videoID string) error {
 
 	if _, err := Rdb.Zincrby(popularVideosRankKey, 1, videoID); err != nil {
 		logger.Errorf("incr video visit count in redis failed: %v", err)
-		return xerr.New(1002, "增加视频访问次数失败")
+		return xerr.New(1002, "在zset中增加视频访问次数失败")
 	}
-
+	PopularVideoHashKey := popularVideosHashKey + ":" + videoID
+	if _, err := Rdb.Hincrby(PopularVideoHashKey, "visit_count", 1); err != nil {
+		logger.Errorf("incr video visit count hash failed: %v", err)
+		return xerr.New(1002, "在hash中增加视频访问次数失败")
+	}
 	return nil
 }
 

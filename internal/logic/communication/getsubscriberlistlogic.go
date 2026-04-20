@@ -6,7 +6,6 @@ package communication
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/utils"
@@ -34,7 +33,7 @@ func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListR
 		return nil, err
 	}
 
-	relations, total, err := dal.GetFollowingByFollowerID(l.ctx, userID, req.PageNumber, req.PageSize)
+	relations, total, err := l.svcCtx.Dal.UserFollow.GetFollowingByFollowerID(l.ctx, userID, req.PageNumber, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +43,7 @@ func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListR
 		subscriberIDs = append(subscriberIDs, relation.UserID)
 	}
 
-	subscriberList, err := dal.GetUsersByIDs(l.ctx, subscriberIDs)
+	subscriberList, err := l.svcCtx.Dal.User.GetUsersByIDs(l.ctx, subscriberIDs)
 	if err != nil {
 		return nil, err
 	}

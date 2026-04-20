@@ -6,7 +6,6 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/internal/dal"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
@@ -42,7 +41,7 @@ func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (
 		return nil, xerr.New(400, "每页数量不能超过100")
 	}
 
-	comments, total, err := dal.GetCommentsByVideoID(l.ctx, req.VideoID, req.PageNumber, req.PageSize)
+	comments, total, err := l.svcCtx.Dal.Comment.GetCommentsByVideoID(l.ctx, req.VideoID, req.PageNumber, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
