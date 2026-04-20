@@ -1,18 +1,17 @@
-package dal
+package comment_baseinfo
 
 import (
 	"context"
 	"errors"
 
-	"go_zero-tiktok/internal/types"
-
 	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
 
-func CreateComment(ctx context.Context, comment *types.CommentBaseinfo) error {
+func CreateComment(ctx context.Context, db *gorm.DB, comment *types.CommentBaseinfo) error {
 	logger := logx.WithContext(ctx)
 
 	if comment == nil {
@@ -21,7 +20,7 @@ func CreateComment(ctx context.Context, comment *types.CommentBaseinfo) error {
 		return xerr.New(400, "评论不存在")
 	}
 
-	if err := Db.WithContext(ctx).Create(comment).Error; err != nil {
+	if err := db.WithContext(ctx).Create(comment).Error; err != nil {
 		logger.Errorf("create comment failed: %v", err)
 		return errors.New("创建评论失败")
 	}
@@ -29,10 +28,10 @@ func CreateComment(ctx context.Context, comment *types.CommentBaseinfo) error {
 	return nil
 }
 
-func DeleteCommentByID(ctx context.Context, commentID string) error {
+func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID string) error {
 	logger := logx.WithContext(ctx)
 
-	result := Db.WithContext(ctx).Where("comment_id = ?", commentID).Delete(&types.CommentBaseinfo{})
+	result := db.WithContext(ctx).Where("comment_id = ?", commentID).Delete(&types.CommentBaseinfo{})
 	if result.Error != nil {
 		logger.Errorf("delete comment failed: %v", result.Error)
 		return errors.New("删除评论失败")
@@ -47,7 +46,7 @@ func DeleteCommentByID(ctx context.Context, commentID string) error {
 	return nil
 }
 
-func GetCommentsByVideoID(ctx context.Context, videoID string, pageNumber, pageSize int32) ([]types.CommentBaseinfo, int64, error) {
+func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, pageNumber, pageSize int32) ([]types.CommentBaseinfo, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNumber <= 0 {
@@ -57,7 +56,7 @@ func GetCommentsByVideoID(ctx context.Context, videoID string, pageNumber, pageS
 		pageSize = 10
 	}
 
-	query := Db.WithContext(ctx).Model(&types.CommentBaseinfo{}).Where("video_id = ?", videoID)
+	query := db.WithContext(ctx).Model(&types.CommentBaseinfo{}).Where("video_id = ?", videoID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {

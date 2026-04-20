@@ -1,18 +1,17 @@
-package dal
+package user_follow
 
 import (
 	"context"
 	"errors"
 
-	"go_zero-tiktok/internal/types"
-
 	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
 
-func CreateUserFollow(ctx context.Context, followerID, userID string) error {
+func CreateUserFollow(ctx context.Context, db *gorm.DB, followerID, userID string) error {
 	logger := logx.WithContext(ctx)
 
 	if followerID == "" || userID == "" {
@@ -27,7 +26,7 @@ func CreateUserFollow(ctx context.Context, followerID, userID string) error {
 		Status:     0,
 	}
 
-	if err := Db.WithContext(ctx).Create(relation).Error; err != nil {
+	if err := db.WithContext(ctx).Create(relation).Error; err != nil {
 		logger.Errorf("create user follow failed: %v", err)
 		return xerr.New(1002, "创建用户关注关系失败")
 	}
@@ -35,10 +34,10 @@ func CreateUserFollow(ctx context.Context, followerID, userID string) error {
 	return nil
 }
 
-func UpdateUserFollowStatus(ctx context.Context, followerID, userID string, status int32) error {
+func UpdateUserFollowStatus(ctx context.Context, db *gorm.DB, followerID, userID string, status int32) error {
 	logger := logx.WithContext(ctx)
 
-	result := Db.WithContext(ctx).
+	result := db.WithContext(ctx).
 		Model(&types.UserFollow{}).
 		Where("follower_id = ? AND user_id = ?", followerID, userID).
 		Update("status", status)
@@ -55,10 +54,12 @@ func UpdateUserFollowStatus(ctx context.Context, followerID, userID string, stat
 
 	return nil
 }
-func GetFollowingISSubriber(ctx context.Context, followerID, userID string) (bool, error) {
+
+func GetFollowingISSubriber(ctx context.Context, db *gorm.DB, followerID, userID string) (bool, error) {
 	logger := logx.WithContext(ctx)
+
 	var relation types.UserFollow
-	err := Db.WithContext(ctx).Where("follower_id = ? AND user_id = ?", followerID, userID).First(&relation).Error
+	err := db.WithContext(ctx).Where("follower_id = ? AND user_id = ?", followerID, userID).First(&relation).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -69,7 +70,7 @@ func GetFollowingISSubriber(ctx context.Context, followerID, userID string) (boo
 	return true, nil
 }
 
-func GetFollowingByFollowerID(ctx context.Context, followerID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
+func GetFollowingByFollowerID(ctx context.Context, db *gorm.DB, followerID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNumber <= 0 {
@@ -79,7 +80,7 @@ func GetFollowingByFollowerID(ctx context.Context, followerID string, pageNumber
 		pageSize = 10
 	}
 
-	query := Db.WithContext(ctx).Model(&types.UserFollow{}).Where("follower_id = ?", followerID)
+	query := db.WithContext(ctx).Model(&types.UserFollow{}).Where("follower_id = ?", followerID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -97,7 +98,7 @@ func GetFollowingByFollowerID(ctx context.Context, followerID string, pageNumber
 	return relations, total, nil
 }
 
-func GetFansByUserID(ctx context.Context, userID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
+func GetFansByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNumber <= 0 {
@@ -107,7 +108,7 @@ func GetFansByUserID(ctx context.Context, userID string, pageNumber, pageSize in
 		pageSize = 10
 	}
 
-	query := Db.WithContext(ctx).Model(&types.UserFollow{}).Where("user_id = ?", userID)
+	query := db.WithContext(ctx).Model(&types.UserFollow{}).Where("user_id = ?", userID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -125,7 +126,7 @@ func GetFansByUserID(ctx context.Context, userID string, pageNumber, pageSize in
 	return relations, total, nil
 }
 
-func GetFriendByUserID(ctx context.Context, userID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
+func GetFriendByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNumber <= 0 {
@@ -135,7 +136,7 @@ func GetFriendByUserID(ctx context.Context, userID string, pageNumber, pageSize 
 		pageSize = 10
 	}
 
-	query := Db.WithContext(ctx).Model(&types.UserFollow{}).Where("user_id = ? AND status = ?", userID, 1)
+	query := db.WithContext(ctx).Model(&types.UserFollow{}).Where("user_id = ? AND status = ?", userID, 1)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {

@@ -1,20 +1,19 @@
-package dal
+package video_baseinfo
 
 import (
 	"context"
 
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 
-	"go_zero-tiktok/internal/svc/xerr"
-
 	"github.com/zeromicro/go-zero/core/logx"
-	"gorm.io/gorm" // gorm import for transaction use in CreateVideo
+	"gorm.io/gorm"
 )
 
-func CreateVideo(ctx context.Context, video *types.VideoBaseinfo) error {
+func CreateVideo(ctx context.Context, db *gorm.DB, video *types.VideoBaseinfo) error {
 	logger := logx.WithContext(ctx)
 
-	err := Db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.WithContext(ctx).Create(video).Error; err != nil {
 			return xerr.New(1002, "创建视频失败")
 		}
@@ -38,7 +37,7 @@ func CreateVideo(ctx context.Context, video *types.VideoBaseinfo) error {
 	return nil
 }
 
-func SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNum <= 0 {
@@ -48,7 +47,7 @@ func SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSiz
 		pageSize = 10
 	}
 
-	query := Db.WithContext(ctx).Model(&types.VideoBaseinfo{})
+	query := db.WithContext(ctx).Model(&types.VideoBaseinfo{})
 	if keyword != "" {
 		query = query.Where("title LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
 	}
@@ -69,7 +68,7 @@ func SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSiz
 	return videos, total, nil
 }
 
-func GetVideosByIDs(ctx context.Context, videoIDs []string) ([]types.VideoBaseinfo, error) {
+func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]types.VideoBaseinfo, error) {
 	logger := logx.WithContext(ctx)
 
 	if len(videoIDs) == 0 {
@@ -77,7 +76,7 @@ func GetVideosByIDs(ctx context.Context, videoIDs []string) ([]types.VideoBasein
 	}
 
 	var videos []types.VideoBaseinfo
-	if err := Db.WithContext(ctx).Where("video_id IN ?", videoIDs).Find(&videos).Error; err != nil {
+	if err := db.WithContext(ctx).Where("video_id IN ?", videoIDs).Find(&videos).Error; err != nil {
 		logger.Errorf("get videos by ids failed: %v", err)
 		return nil, xerr.New(1002, "获取视频失败")
 	}
@@ -85,7 +84,7 @@ func GetVideosByIDs(ctx context.Context, videoIDs []string) ([]types.VideoBasein
 	return videos, nil
 }
 
-func GetVideosByAuthorID(ctx context.Context, authorID string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNum <= 0 {
@@ -95,7 +94,7 @@ func GetVideosByAuthorID(ctx context.Context, authorID string, pageNum, pageSize
 		pageSize = 10
 	}
 
-	query := Db.WithContext(ctx).Model(&types.VideoBaseinfo{}).Where("author_id = ?", authorID)
+	query := db.WithContext(ctx).Model(&types.VideoBaseinfo{}).Where("author_id = ?", authorID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
