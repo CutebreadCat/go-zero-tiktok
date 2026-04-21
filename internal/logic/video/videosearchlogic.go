@@ -5,6 +5,7 @@ package video
 
 import (
 	"context"
+	"time"
 
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
@@ -58,6 +59,16 @@ func (l *VideoSearchLogic) VideoSearch(req *types.VideoSearchRequest) (resp *typ
 	if req.Keyword == "" && len(resp.Videos) == 0 {
 		resp.Base.StatusMsg = "暂无视频数据"
 	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+		for _, video := range videos {
+			if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, video.VideoID, 1); err != nil {
+				logx.Errorf("increment visit count failed for video %s: %v", video.VideoID, err)
+			}
+		}
+
+	}()
 
 	return resp, nil
 }

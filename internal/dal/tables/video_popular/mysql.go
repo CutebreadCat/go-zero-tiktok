@@ -71,7 +71,7 @@ func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID string, delt
 	return nil
 }
 
-func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]string, int64, error) {
+func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]types.VideoPopular, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNum <= 0 {
@@ -96,10 +96,38 @@ func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, p
 		return nil, 0, xerr.New(1002, "获取热门视频失败")
 	}
 
-	videoIDs := make([]string, 0, len(rows))
-	for _, row := range rows {
-		videoIDs = append(videoIDs, row.VideoID)
+	return rows, total, nil
+}
+
+func IncrVideoVisitCountInDB(ctx context.Context, db *gorm.DB, videoID string) error {
+	logger := logx.WithContext(ctx)
+
+	result := db.WithContext(ctx).
+		Model(&types.VideoPopular{}).
+		Where("video_id = ?", videoID).
+		Update("visit_count", gorm.Expr("visit_count + 1"))
+	if result.Error != nil {
+		logger.Errorf("incr video visit count failed: %v", result.Error)
+		return xerr.New(1002, "数据库当中增加视频访问次数失败")
 	}
 
-	return videoIDs, total, nil
+	if result.RowsAffected == 0 {
+		logger.Errorf("video %s not found in DB, count lost.", videoID)
+	}
+
+	return nil
+}
+
+func GetVideoPopularByVideoID(ctx context.Context, db *gorm.DB, videoID string) (*types.VideoPopular, error) {
+	logger := logx.WithContext(ctx)
+	var videoPopular types.VideoPopular
+	if err := db.WithContext(ctx).Where("video_id = ?", videoID).First(&videoPopular).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			logger.Errorf("video %s not found in DB", videoID)
+			return nil, nil
+		}
+		logger.Errorf("get video popular failed: %v", err)
+		return nil, xerr.New(1002, "获取视频热门信息失败")
+	}
+	return &videoPopular, nil
 }

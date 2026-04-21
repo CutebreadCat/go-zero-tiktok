@@ -6,6 +6,9 @@ import (
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 
+	"fmt"
+	"strings"
+
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
@@ -70,13 +73,25 @@ func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pag
 
 func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]types.VideoBaseinfo, error) {
 	logger := logx.WithContext(ctx)
-
 	if len(videoIDs) == 0 {
 		return []types.VideoBaseinfo{}, nil
 	}
-
 	var videos []types.VideoBaseinfo
-	if err := db.WithContext(ctx).Where("video_id IN ?", videoIDs).Find(&videos).Error; err != nil {
+	// 1. 【新增】手动给每个 ID 加上单引号
+	// 比如把 v123 变成 'v123'
+	quotedIDs := make([]string, len(videoIDs))
+	for i, id := range videoIDs {
+		quotedIDs[i] = fmt.Sprintf("'%s'", id)
+	}
+	// 用逗号连接：'v123','v456','v789'
+	idsForOrder := strings.Join(quotedIDs, ",")
+
+	// 2. 执行查询
+	// 直接把拼好带引号的字符串塞进 SQL
+	if err := db.WithContext(ctx).
+		Where("video_id IN ?", videoIDs).
+		Order(fmt.Sprintf("FIELD(video_id, %s)", idsForOrder)). // ✅ 修正：使用处理后的 idsForOrder
+		Find(&videos).Error; err != nil {
 		logger.Errorf("get videos by ids failed: %v", err)
 		return nil, xerr.New(1002, "获取视频失败")
 	}
@@ -109,5 +124,37 @@ func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, page
 		return nil, 0, xerr.New(1002, "获取作者视频失败")
 	}
 
+	return videos, total, nil
+}
+
+func GetVideosByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32, videoIDs []string) ([]types.VideoBaseinfo, int64, error) {
+	logger := logx.WithContext(ctx)
+
+	if pageNum <= 0 {
+		pageNum = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	query := db.WithContext(ctx).Model(&types.VideoBaseinfo{})
+	if len(videoIDs) != 0 {
+		query = query.Where("video_id IN ?", videoIDs)
+	} else {
+		query = query.Order("visit_count DESC")
+	}
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		logger.Errorf("get videos by visit count count failed: %v", err)
+		return nil, 0, xerr.New(1002, "获取热门视频总数失败")
+	}
+
+	var videos []types.VideoBaseinfo
+	offset := (pageNum - 1) * pageSize
+	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&videos).Error; err != nil {
+		logger.Errorf("get videos by visit count failed: %v", err)
+		return nil, 0, xerr.New(1002, "获取热门视频失败")
+	}
 	return videos, total, nil
 }

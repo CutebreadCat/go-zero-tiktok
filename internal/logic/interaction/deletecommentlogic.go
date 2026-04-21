@@ -9,6 +9,7 @@ import (
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -31,8 +32,11 @@ func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentRequest) (res
 	if req.CommentID == "" {
 		return nil, xerr.New(400, "评论ID不能为空")
 	}
-
-	if err := l.svcCtx.Dal.Comment.DeleteCommentByID(l.ctx, req.CommentID); err != nil {
+	userid, err := myutils.GetUserIDFromContext(l.ctx)
+	if err != nil {
+		return nil, xerr.New(1002, "获取用户ID失败，请稍后重试")
+	}
+	if err := l.svcCtx.Dal.Comment.DeleteCommentByID(l.ctx, req.CommentID, userid); err != nil {
 		return nil, xerr.New(1002, "删除评论失败，请稍后重试")
 	}
 

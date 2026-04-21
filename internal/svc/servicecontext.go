@@ -6,6 +6,7 @@ package svc
 import (
 	"go_zero-tiktok/internal/config"
 	"go_zero-tiktok/internal/dal"
+	repository "go_zero-tiktok/internal/dal/repository"
 	"go_zero-tiktok/internal/mw/ali"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -17,7 +18,7 @@ type ServiceContext struct {
 	Config config.Config
 	DB     *gorm.DB
 	Rdb    *redis.Redis
-	Dal    *dal.Repositories
+	Dal    *repository.Repositories
 }
 
 func NewServiceContext(config config.Config) *ServiceContext {
@@ -32,6 +33,6 @@ func NewServiceContext(config config.Config) *ServiceContext {
 		Config: config,
 		DB:     dal.Db,
 		Rdb:    dal.Rdb,
-		Dal:    dal.NewRepositories(dal.Db, dal.Rdb),
+		Dal:    repository.NewRepositories(dal.Db, dal.Rdb),
 	}
 }

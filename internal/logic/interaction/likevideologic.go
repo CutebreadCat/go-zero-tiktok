@@ -5,6 +5,7 @@ package interaction
 
 import (
 	"context"
+	"time"
 
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
@@ -61,6 +62,14 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 			StatusMsg:  "ok",
 		},
 	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+		if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, req.VideoID, 1); err != nil {
+			logx.Errorf("increment visit count failed for video %s: %v", req.VideoID, err)
+		}
+
+	}()
 
 	return
 }

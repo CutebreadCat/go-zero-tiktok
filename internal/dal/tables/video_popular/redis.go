@@ -2,12 +2,9 @@ package video_popular
 
 import (
 	"context"
-	"errors"
 
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
-
-	goRedis "github.com/redis/go-redis/v9"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -23,39 +20,10 @@ type PopularVideoWithHeat struct {
 	Video     types.VideoBaseinfo `json:"video"`
 }
 
-func GetVideoVisitCountByIDInHash(ctx context.Context, rdb *redis.Redis, videoIDs []string) ([]map[string]string, error) {
+func SetPopularVideoToRedis(ctx context.Context, rdb *redis.Redis, video types.VideoPopular) error {
 	logger := logx.WithContext(ctx)
 
-	if len(videoIDs) == 0 {
-		return nil, nil
-	}
-
-	var videos []map[string]string
-	for _, videoID := range videoIDs {
-		popularVideoHashKey := popularVideosHashKey + ":" + videoID
-		visitCountStr, err := rdb.Hgetall(popularVideoHashKey)
-		if err != nil {
-			if errors.Is(err, goRedis.Nil) {
-				logger.Errorf("video %s not found in Redis, skipping.", videoID)
-				return nil, goRedis.Nil
-			}
-			logger.Errorf("get video visit count from redis failed: %v", err)
-			return nil, xerr.New(1002, "获取视频访问次数失败")
-		}
-		videos = append(videos, visitCountStr)
-	}
-
-	return videos, nil
-}
-
-func SetPopularVideoToRedis(ctx context.Context, rdb *redis.Redis, video types.VideoBaseinfo, visitCount int64) error {
-	logger := logx.WithContext(ctx)
-
-	if visitCount < 0 {
-		visitCount = 0
-	}
-
-	if ok, err := rdb.Zadd(popularVideosRankKey, visitCount, video.VideoID); !ok {
+	if ok, err := rdb.Zadd(popularVideosRankKey, video.VisitCount, video.VideoID); !ok {
 		logger.Errorf("set popular video to redis failed: %v", err)
 		return xerr.New(1002, "设置热门视频到Redis失败")
 	}
@@ -96,6 +64,7 @@ func GetVideoVisitCountFromRedis(ctx context.Context, rdb *redis.Redis, pageSize
 	for _, pair := range pairs {
 		videoId := pair.Key
 		result = append(result, videoId)
+
 	}
 
 	return result, nil

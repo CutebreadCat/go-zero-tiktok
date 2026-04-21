@@ -28,3 +28,17 @@ var (
 	ErrInternalError = New(1004, "服务器内部错误")
 	ErrNotFound      = New(404, "资源未找到")
 )
+
+type ApiResponse struct {
+	Code int         `json:"code"`
+	Msg  string      `json:"msg"`
+	Data interface{} `json:"data,omitempty"` // omitempty 表示如果 data 为空则不显示该字段
+}
+
+// 辅助函数：将 CodeError 转换为 ApiResponse
+func (e *CodeError) ToResponse() *ApiResponse {
+	return &ApiResponse{
+		Code: e.Code,
+		Msg:  e.Msg,
+	}
+}

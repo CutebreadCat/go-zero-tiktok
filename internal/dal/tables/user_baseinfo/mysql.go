@@ -38,9 +38,8 @@ func GetUserByID(ctx context.Context, db *gorm.DB, userID string) (*types.UserBa
 			logger.Errorf("get user by id not found: %v", err)
 			return nil, xerr.New(400, "用户不存在")
 		}
-
 		logger.Errorf("get user by id failed: %v", err)
-		return nil, errors.New("获取用户失败")
+		return nil, xerr.New(400, "获取用户失败")
 	}
 
 	return &user, nil
@@ -55,12 +54,13 @@ func GetUserByUsername(ctx context.Context, db *gorm.DB, username string) (*type
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logger.Errorf("get user by username not found: %v", err)
 			return nil, xerr.New(400, "用户不存在")
+		} else {
+			logger.Errorf("get user by username failed: %v", err)
+
+			return nil, xerr.New(400, "获取用户失败")
+
 		}
-
-		logger.Errorf("get user by username failed: %v", err)
-		return nil, errors.New("获取用户失败")
 	}
-
 	return &user, nil
 }
 
@@ -70,9 +70,9 @@ func UpdateUserPhotoByID(ctx context.Context, db *gorm.DB, userID string, photoU
 	result := db.WithContext(ctx).Model(&types.UserBaseinfo{}).Where("user_id = ?", userID).Update("photo_url", photoURL)
 	if result.Error != nil {
 		logger.Errorf("update user photo failed: %v", result.Error)
-		return errors.New("更新用户头像失败")
-	}
 
+		return xerr.New(400, "更新用户头像失败")
+	}
 	if result.RowsAffected == 0 {
 		err := gorm.ErrRecordNotFound
 		logger.Errorf("update user photo failed, user not found: %v", err)
@@ -92,8 +92,7 @@ func GetUsersByIDs(ctx context.Context, db *gorm.DB, userIDs []string) ([]types.
 	var users []types.UserBaseinfo
 	if err := db.WithContext(ctx).Where("user_id IN ?", userIDs).Find(&users).Error; err != nil {
 		logger.Errorf("get users by ids failed: %v", err)
-		return nil, errors.New("获取用户列表失败")
+		return nil, xerr.New(400, "获取用户列表失败")
 	}
-
 	return users, nil
 }

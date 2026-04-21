@@ -23,7 +23,7 @@ service tiktok-api {
 
 type (
   SubscribeRequest {
-    UserID       string `form:"user_id"`
+    
     ToUserID string `form:"to_user_id"`
     ActionType   int32  `form:"action_type"`
   }

@@ -28,22 +28,33 @@ func NewVideoPopularLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Vide
 }
 
 func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *types.VideoPopularResponse, err error) {
-	videoIDs, _, err := l.svcCtx.Dal.Popular.GetPopularVideoIDsByVisitCount(l.ctx, req.PageNum, req.PageSize)
+	videoPopulars, _, err := l.svcCtx.Dal.Popular.GetPopularVideoIDsByVisitCount(l.ctx, req.PageNum, req.PageSize)
 	if err != nil {
 		return nil, xerr.New(1002, "获取热门视频失败，请稍后重试")
+	}
+	videoIDs := make([]string, 0)
+	for _, videoPopular := range videoPopulars {
+		videoIDs = append(videoIDs, videoPopular.VideoID)
 	}
 
 	videos, err := l.svcCtx.Dal.Video.GetVideosByIDs(l.ctx, videoIDs)
 	if err != nil {
 		return nil, xerr.New(1002, "获取热门视频详情失败，请稍后重试")
 	}
-
+	Items := make([]types.Item, 0)
+	for i := 0; i < len(videos); i++ {
+		item := types.Item{
+			Videos:        videos[i],
+			VideosPopular: videoPopulars[i],
+		}
+		Items = append(Items, item)
+	}
 	resp = &types.VideoPopularResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		Videos: videos,
+		Videos: Items,
 	}
 
 	return

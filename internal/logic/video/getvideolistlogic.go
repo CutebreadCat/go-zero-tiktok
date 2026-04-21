@@ -28,6 +28,7 @@ func NewGetVideoListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetV
 }
 
 func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *types.GetVideoListResponse, err error) {
+
 	if req.PageNum <= 0 {
 		req.PageNum = 1
 	}
@@ -38,9 +39,9 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 		return nil, xerr.New(400, "每页数量不能超过100")
 	}
 
-	videos, _, err := l.svcCtx.Dal.Video.SearchVideosByKeyword(l.ctx, "", req.PageNum, req.PageSize)
+	videos, _, err := l.svcCtx.Dal.Video.GetVideosByAuthorID(l.ctx, req.UserID, req.PageNum, req.PageSize)
 	if err != nil {
-		return nil, xerr.New(1002, "获取视频列表失败，请稍后重试")
+		return nil, xerr.New(1002, "获取用户发布视频列表失败，请稍后重试")
 	}
 
 	resp = &types.GetVideoListResponse{
@@ -50,6 +51,14 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 	if resp.Videos == nil {
 		resp.Videos = []types.VideoBaseinfo{}
 	}
+	go func(ctx context.Context) {
+		for _, video := range videos {
+			if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, video.VideoID, 1); err != nil {
+				logx.Errorf("increment visit count failed for video %s: %v", video.VideoID, err)
+			}
+		}
+
+	}(l.ctx)
 
 	return resp, nil
 }

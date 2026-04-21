@@ -1,8 +1,9 @@
 package token
 
 import (
-	"errors"
 	"time"
+
+	"go_zero-tiktok/internal/svc/xerr"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -32,7 +33,7 @@ func GenerateToken(secret, userID, tokenType string, expire time.Duration) (stri
 func ParseToken(secret, tokenString string) (*JwtClaims, error) {
 	parsedToken, err := jwt.ParseWithClaims(tokenString, &JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if token.Method != jwt.SigningMethodHS256 {
-			return nil, errors.New("unexpected signing method")
+			return nil, xerr.New(400, "unexpected signing method")
 		}
 
 		return []byte(secret), nil
@@ -43,7 +44,7 @@ func ParseToken(secret, tokenString string) (*JwtClaims, error) {
 
 	claims, ok := parsedToken.Claims.(*JwtClaims)
 	if !ok || !parsedToken.Valid {
-		return nil, errors.New("invalid token")
+		return nil, xerr.New(400, "invalid token")
 	}
 
 	return claims, nil

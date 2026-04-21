@@ -6,6 +6,7 @@ package interaction
 import (
 	"context"
 	"strings"
+	"time"
 
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
@@ -47,6 +48,9 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 		UserID:    userID,
 		VideoID:   req.VideoID,
 		Content:   commentText,
+		CreatedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		UpdatedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		DeletedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
 	}
 
 	if err := l.svcCtx.Dal.Comment.CreateComment(l.ctx, comment); err != nil {
@@ -57,6 +61,15 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "评论发布成功"},
 		CommentID: comment.CommentID,
 	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+
+		if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, req.VideoID, 1); err != nil {
+			logx.Errorf("increment visit count failed for video %s: %v", req.VideoID, err)
+		}
+
+	}()
 
 	return resp, nil
 }

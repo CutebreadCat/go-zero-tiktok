@@ -37,11 +37,15 @@ func main() {
 	httpx.SetErrorHandler(func(err error) (int, interface{}) {
 		var codeErr *xerr.CodeError
 		if errors.As(err, &codeErr) {
-			return http.StatusOK, codeErr
+			return http.StatusOK, codeErr.ToResponse()
 		}
 
 		// 兜底转换为统一业务错误，保证客户端总能收到可读错误信息
-		return http.StatusOK, xerr.New(1004, "服务繁忙，请稍后重试")
+
+		return http.StatusOK, &xerr.ApiResponse{
+			Code: 1004, // 服务器内部错误
+			Msg:  "服务器内部错误",
+		}
 	})
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()

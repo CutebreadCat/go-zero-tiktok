@@ -31,6 +31,7 @@ type (
   }
 
   GetVideoListRequest  {
+    UserID   string  `form:"user_id"`
     PageSize int32  `form:"page_size"`
     PageNum  int32  `form:"page_num"`
   }
@@ -58,6 +59,11 @@ type (
 
   VideoPopularResponse   {
     Base   BaseResponse `json:"base"`
-    Videos []VideoBaseinfo      `json:"videos"`
+    videos []Item        `json:items"`
+    
   }
+   Item  {
+  Videos VideoBaseinfo      `json:"videos"`
+  VideosPopular VideoPopular      `json:"videos_popular"`
+}
 )

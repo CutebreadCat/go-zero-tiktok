@@ -94,13 +94,19 @@ type GetSubscriberListResponse struct {
 }
 
 type GetVideoListRequest struct {
-	PageSize int32 `form:"page_size"`
-	PageNum  int32 `form:"page_num"`
+	UserID   string `form:"user_id"`
+	PageSize int32  `form:"page_size"`
+	PageNum  int32  `form:"page_num"`
 }
 
 type GetVideoListResponse struct {
 	Base   BaseResponse    `json:"base"`
 	Videos []VideoBaseinfo `json:"videos"`
+}
+
+type Item struct {
+	Videos        VideoBaseinfo `json:"videos"`
+	VideosPopular VideoPopular  `json:"videos_popular"`
 }
 
 type LikeVideoRequest struct {
@@ -160,7 +166,6 @@ type RegisterResponse struct {
 }
 
 type SubscribeRequest struct {
-	UserID     string `form:"user_id"`
 	ToUserID   string `form:"to_user_id"`
 	ActionType int32  `form:"action_type"`
 }
@@ -233,8 +238,8 @@ type VideoPopularRequest struct {
 }
 
 type VideoPopularResponse struct {
-	Base   BaseResponse    `json:"base"`
-	Videos []VideoBaseinfo `json:"videos"`
+	Base   BaseResponse `json:"base"`
+	Videos []Item       `json:items"`
 }
 
 type VideoSearchRequest struct {
