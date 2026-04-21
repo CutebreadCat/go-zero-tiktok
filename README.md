@@ -1,3 +1,4 @@
+```
 go_zero-tiktok/
 ├── api/ -- 接口定义目录
 │   ├── communication.api 
@@ -49,3 +50,4 @@ go_zero-tiktok/
 ├── go.mod
 ├── go.sum
 └── tiktok.go --主函数入口
+```
