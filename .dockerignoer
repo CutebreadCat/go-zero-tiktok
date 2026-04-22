@@ -1,0 +1,12 @@
+# ---版本控制---
+.gitgnore
+.git
+# ---docker相关文件---
+Dockerfile
+compose.yml
+# ---相关文档---
+/docs
+*.md
+# ---测试数据及其api
+/testdata
+/api

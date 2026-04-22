@@ -1,6 +1,6 @@
 syntax = "v1"
 
-import "video.api"
+import "./video.api"
 
 @server(
   group: video

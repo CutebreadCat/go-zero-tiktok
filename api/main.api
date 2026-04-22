@@ -1,9 +1,9 @@
 syntax = "v1"
 
-import "communication/video.api"
-import "interaction/video.api"
+import "communication/communication.api"
+import "interaction/interaction.api"
 import "user/user.api"
 import "user/user_auth.api"
-import "video/video.api"    
+import "video/video.api"
 import "video/video_auth.api"
 import "model.api"

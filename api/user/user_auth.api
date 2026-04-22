@@ -1,6 +1,6 @@
 syntax = "v1"
 
-import "user.api"
+import "./user.api"
 
 @server(
   group: user

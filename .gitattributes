@@ -1,0 +1,13 @@
+* text=auto eof =lf
+
+*.go text eol=lf
+
+# 防止二进制文件乱码
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary

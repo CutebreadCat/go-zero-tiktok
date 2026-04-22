@@ -1,6 +1,6 @@
 syntax = "v1"
 
-import "model.api"
+import "../model.api"
 
 @server(
     group: interaction
