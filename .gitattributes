@@ -1,4 +1,4 @@
-* text=auto eof =lf
+* text=auto eol=lf
 
 *.go text eol=lf
 
@@ -11,3 +11,5 @@
 *.pdf binary
 *.zip binary
 *.tar.gz binary
+
+.github/workflows/build.yml merge=ours

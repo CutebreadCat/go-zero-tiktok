@@ -9,7 +9,7 @@ import (
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/utils"
+	myutils "go_zero-tiktok/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
