@@ -44,13 +44,14 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 	}
 
 	comment := &types.CommentBaseinfo{
-		CommentID: myutils.GenerateCommentID(),
-		UserID:    userID,
-		VideoID:   req.VideoID,
-		Content:   commentText,
-		CreatedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		UpdatedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		DeletedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		CommentID:       myutils.GenerateCommentID(),
+		UserID:          userID,
+		VideoID:         req.VideoID,
+		Content:         commentText,
+		CreatedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		UpdatedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		DeletedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		ParentCommentID: "",
 	}
 
 	if err := l.svcCtx.Dal.Comment.CreateComment(l.ctx, comment); err != nil {

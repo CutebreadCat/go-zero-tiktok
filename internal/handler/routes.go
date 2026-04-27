@@ -50,9 +50,19 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: interaction.DeleteCommentHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodPost,
+				Path:    "/comment/like",
+				Handler: interaction.LikeCommentHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/comment/list",
 				Handler: interaction.GetCommentListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/comment/parent",
+				Handler: interaction.CommentPareantCommentHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodPost,

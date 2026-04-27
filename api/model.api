@@ -56,10 +56,10 @@ type (
     UpdatedAt     string `json:"updated_at" gorm:"autoUpdateTime"`
     DeletedAt     string `json:"deleted_at"`
     LikeCount     int32  `json:"like_count" gorm:"default:0;type:int"`
+    ParentCommentID string `json:"parent_comment_id" gorm:"type:char(64) default:''"` // 父评论 ID，空字符串表示没有父评论
   }
-
-  ParentComment {
-    CommentID       string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
-    ParentCommentID string `json:"parent_comment_id" gorm:"type:varchar(64)"`     // 修复字段名映射
+  CommentLiker {
+    UserID  string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
+    CommentID string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
   }
 )

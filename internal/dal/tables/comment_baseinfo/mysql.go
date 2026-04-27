@@ -3,9 +3,11 @@ package comment_baseinfo
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/internal/utils"
 
 	"fmt"
 
@@ -84,4 +86,61 @@ func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, page
 	}
 
 	return comments, total, nil
+}
+func LikeComment(ctx context.Context, db *gorm.DB, commentID string, userID string) error {
+	logger := logx.WithContext(ctx)
+
+	like := types.CommentLiker{
+		UserID:    userID,
+		CommentID: commentID,
+	}
+
+	if err := db.WithContext(ctx).Create(&like).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			logger.Errorf("like comment failed: user %s already liked comment %s", userID, commentID)
+			return xerr.New(400, "已经点赞过该评论了")
+		}
+		logger.Errorf("like comment failed: %v", err)
+		return xerr.New(400, "点赞评论失败,服务器内部出现错误")
+	}
+
+	return nil
+
+}
+
+func UnlikeComment(ctx context.Context, db *gorm.DB, commentID string, userID string) error {
+	logger := logx.WithContext(ctx)
+	result := db.WithContext(ctx).Where("user_id = ? AND comment_id = ?", userID, commentID).Delete(&types.CommentLiker{})
+	if result.Error != nil {
+		logger.Errorf("unlike comment failed: %v", result.Error)
+		return xerr.New(400, "取消点赞评论失败,服务器内部出现错误")
+	}
+
+	if result.RowsAffected == 0 {
+		err := gorm.ErrRecordNotFound
+		logger.Errorf("unlike comment failed: %v", err)
+		return xerr.New(400, "取消点赞评论失败,没有找到点赞记录")
+	}
+	return nil
+}
+func CommentPareantComment(ctx context.Context, db *gorm.DB, parentCommentID string, commentText string, userID string, videoID string) (string, error) {
+	logger := logx.WithContext(ctx)
+
+	comment := &types.CommentBaseinfo{
+		CommentID:       myutils.GenerateCommentID(),
+		UserID:          userID,
+		VideoID:         videoID,
+		Content:         commentText,
+		ParentCommentID: parentCommentID,
+		CreatedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		UpdatedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
+		DeletedAt:       "",
+	}
+
+	if err := db.WithContext(ctx).Create(comment).Error; err != nil {
+		logger.Errorf("create comment failed: %v", err)
+		return "", xerr.New(400, "创建评论失败")
+	}
+
+	return "", nil
 }

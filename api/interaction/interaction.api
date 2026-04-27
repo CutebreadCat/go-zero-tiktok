@@ -23,6 +23,12 @@ service tiktok-api {
 
   @handler DeleteCommentHandler
   post /comment/delete (DeleteCommentRequest) returns (DeleteCommentResponse)
+
+  @handler LikeCommentHandler
+  post /comment/like (LikeCommentRequest) returns (LikeCommentResponse)
+
+  @handler CommentPareantCommentHandler
+  post /comment/parent (CommentPareantCommentRequest) returns (CommentPareantCommentResponse)
 }
 
 type (
@@ -74,5 +80,23 @@ type (
 
   DeleteCommentResponse  {
     Base BaseResponse `json:"base_response"`
+  }
+
+  LikeCommentRequest  {
+    CommentID string `form:"comment_id"`
+    Liketype  int32  `form:"like_type"`
+  }
+
+  LikeCommentResponse  {
+    Base BaseResponse `json:"base_response"`
+  }
+
+  CommentPareantCommentRequest  {
+    ParentCommentID string `form:"parent_comment_id"`
+    CommentText string `form:"comment_text"`
+  }
+  CommentPareantCommentResponse  {
+    Base BaseResponse `json:"base_response"`
+    CommentID string              `json:"comment_id"`
   }
 )

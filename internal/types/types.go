@@ -9,14 +9,30 @@ type BaseResponse struct {
 }
 
 type CommentBaseinfo struct {
+	CommentID       string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
+	UserID          string `json:"user_id" gorm:"not null;type:varchar(64)"`
+	VideoID         string `json:"video_id" gorm:"not null;type:varchar(64)"`
+	Content         string `json:"content" gorm:"not null;type:varchar(1024)"` // 增加评论内容长度
+	CreatedAt       string `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt       string `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt       string `json:"deleted_at"`
+	LikeCount       int32  `json:"like_count" gorm:"default:0;type:int"`
+	ParentCommentID string `json:"parent_comment_id" gorm:"type:char(64) default:''"` // 父评论 ID，空字符串表示没有父评论
+}
+
+type CommentLiker struct {
+	UserID    string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
 	CommentID string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
-	UserID    string `json:"user_id" gorm:"not null;type:varchar(64)"`
-	VideoID   string `json:"video_id" gorm:"not null;type:varchar(64)"`
-	Content   string `json:"content" gorm:"not null;type:varchar(1024)"` // 增加评论内容长度
-	CreatedAt string `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt string `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt string `json:"deleted_at"`
-	LikeCount int32  `json:"like_count" gorm:"default:0;type:int"`
+}
+
+type CommentPareantCommentRequest struct {
+	ParentCommentID string `form:"parent_comment_id"`
+	CommentText     string `form:"comment_text"`
+}
+
+type CommentPareantCommentResponse struct {
+	Base      BaseResponse `json:"base_response"`
+	CommentID string       `json:"comment_id"`
 }
 
 type CommentVideoRequest struct {
@@ -109,6 +125,15 @@ type Item struct {
 	VideosPopular VideoPopular  `json:"videos_popular"`
 }
 
+type LikeCommentRequest struct {
+	CommentID string `form:"comment_id"`
+	Liketype  int32  `form:"like_type"`
+}
+
+type LikeCommentResponse struct {
+	Base BaseResponse `json:"base_response"`
+}
+
 type LikeVideoRequest struct {
 	VideoID    string `form:"video_id"`
 	ActionType int32  `form:"action_type"`
@@ -128,11 +153,6 @@ type LoginResponse struct {
 	UserID       string       `json:"user_id"`
 	AccessToken  string       `json:"access_token"`
 	RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
-}
-
-type ParentComment struct {
-	CommentID       string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
-	ParentCommentID string `json:"parent_comment_id" gorm:"type:varchar(64)"` // 修复字段名映射
 }
 
 type PublishVideoRequest struct {
