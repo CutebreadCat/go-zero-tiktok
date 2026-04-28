@@ -10,4 +10,9 @@ import "./user.api"
 service tiktok-api {
   @handler PostUserPhotoHandler
   put /user/avatar/upload (UserphotoRequest) returns (UserphotoResponse)
+   @handler GetMfaqrcodeHandler
+  get /user/mfa/qrcode (MfaqrcodeRequest) returns (MfaqrcodeResponse)
+  @handler BindMfaHandler
+  post /user/mfa/bind (BindMfaqrcodeRequest) returns (BindMfaqrcodeResponse)
+
 }

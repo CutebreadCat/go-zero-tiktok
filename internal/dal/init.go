@@ -81,6 +81,8 @@ func InitTables() error {
 		&types.CommentBaseinfo{},
 		&types.VideoLiker{},
 		&types.UserFollow{},
+		&types.CommentLiker{},
+		&types.User_mfa{},
 	)
 	if err != nil {
 		log.Printf("数据表初始化失败: %v", err)

@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"go_zero-tiktok/internal/logic/user"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
+
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {

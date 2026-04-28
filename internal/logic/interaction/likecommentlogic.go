@@ -44,14 +44,14 @@ func (l *LikeCommentLogic) LikeComment(req *types.LikeCommentRequest) (resp *typ
 		return nil, xerr.New(400, "无效的点赞类型")
 	}
 	if err = l.svcCtx.Dal.Comment.LikeComment(l.ctx, req.CommentID, userId, req.Liketype); err != nil {
-		logx.Errorf("点赞失败: %v", err)
+		logx.Errorf("操作失败: %v", err)
 
-		return nil, xerr.New(500, "点赞失败")
+		return nil, err
 	}
 	resp = &types.LikeCommentResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,
-			StatusMsg:  "点赞成功",
+			StatusMsg:  "操作成功",
 		},
 	}
 	return resp, nil

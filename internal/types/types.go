@@ -8,6 +8,15 @@ type BaseResponse struct {
 	StatusMsg  string `json:"status_msg"`
 }
 
+type BindMfaqrcodeRequest struct {
+	Mfa_secret string `json:"mfa_secret"`
+	Mfa_code   string `json:"mfa_code"`
+}
+
+type BindMfaqrcodeResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
 type CommentBaseinfo struct {
 	CommentID       string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
 	UserID          string `json:"user_id" gorm:"not null;type:varchar(64)"`
@@ -17,7 +26,7 @@ type CommentBaseinfo struct {
 	UpdatedAt       string `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt       string `json:"deleted_at"`
 	LikeCount       int32  `json:"like_count" gorm:"default:0;type:int"`
-	ParentCommentID string `json:"parent_comment_id" gorm:"type:char(64) default:''"` // 父评论 ID，空字符串表示没有父评论
+	ParentCommentID string `json:"parent_comment_id" gorm:"type:char(64);default:''"` // 父评论 ID，空字符串表示没有父评论
 }
 
 type CommentLiker struct {
@@ -146,6 +155,7 @@ type LikeVideoResponse struct {
 type LoginRequest struct {
 	Username string `form:"username"`
 	Password string `form:"password"`
+	MfaCode  string `form:"mfa_code"`
 }
 
 type LoginResponse struct {
@@ -153,6 +163,16 @@ type LoginResponse struct {
 	UserID       string       `json:"user_id"`
 	AccessToken  string       `json:"access_token"`
 	RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+}
+
+type MfaqrcodeRequest struct {
+	Mfa_ticket string `form:"mfa_ticket"`
+}
+
+type MfaqrcodeResponse struct {
+	Base       BaseResponse `json:"base"`
+	QRCodeURL  string       `json:"qr_code"`
+	Mfa_secret string       `json:"mfa_secret"`
 }
 
 type PublishVideoRequest struct {
@@ -217,6 +237,14 @@ type UserInfoRequest struct {
 type UserInfoResponse struct {
 	Base BaseResponse `json:"base"`
 	User UserBaseinfo `json:"user"`
+}
+
+type User_mfa struct {
+	UserID             string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
+	MFASecret          string `json:"mfa_secret" gorm:"not null;type:varchar(255)"`
+	MFAEnabled         bool   `json:"mfa_enabled" gorm:"default:false;type:boolean"`
+	PasswordHash       string `json:"password_hash" gorm:"not null;type:varchar(255)"`
+	MFA_Pending_secret string `json:"mfa_pending_secret" gorm:"type:varchar(255)"`
 }
 
 type UserphotoRequest struct {

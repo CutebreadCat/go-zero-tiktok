@@ -115,6 +115,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/user/avatar/upload",
 				Handler: user.PostUserPhotoHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/user/mfa/bind",
+				Handler: user.BindMfaHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/user/mfa/qrcode",
+				Handler: user.GetMfaqrcodeHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)

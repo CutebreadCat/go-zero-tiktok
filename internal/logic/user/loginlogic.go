@@ -14,6 +14,8 @@ import (
 	"go_zero-tiktok/internal/svc/xerr"
 	"net/http"
 
+	mfa_code "go_zero-tiktok/internal/mw/mfa_code"
+
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -47,7 +49,31 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		logx.Errorf("invalid username or password")
 		return nil, xerr.New(http.StatusBadRequest, "用户名或密码错误")
 	}
+	var mfa_ok bool
+	mfa_ok, err = l.svcCtx.Dal.User.CheckExistsMFA(l.ctx, user.UserID)
+	if err != nil {
+		logx.Errorf("check mfa failed: %v", err)
+		return nil, xerr.New(http.StatusInternalServerError, "检查 MFA 失败")
+	}
+	if mfa_ok {
+		logx.Infof("user %d has mfa enabled, require mfa verification", user.UserID)
+		if req.MfaCode == "" {
+			return nil, xerr.New(http.StatusBadRequest, "MFA 代码不能为空")
+		}
+		var secret string
+		if secret, err = l.svcCtx.Dal.User.FindUserMFASecret(l.ctx, user.UserID); err != nil {
+			logx.Errorf("find user mfa secret failed: %v", err)
+			return nil, xerr.New(http.StatusInternalServerError, "获取 MFA 密钥失败")
+		}
+		err := mfa_code.ValidateMfaCode(l.ctx, secret, req.MfaCode)
+		if err != nil {
+			logx.Errorf("validate mfa code failed: %v", err)
+			return nil, xerr.New(http.StatusInternalServerError, "验证 MFA 失败")
+		}
 
+		logx.Infof("mfa verification passed for user %d", user.UserID)
+
+	}
 	accessToken, err := token.GenerateAccessToken(l.svcCtx.Config.Auth.AccessSecret, user.UserID)
 	if err != nil {
 		logx.Errorf("generate access token failed: %v", err)

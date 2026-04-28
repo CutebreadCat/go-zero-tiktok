@@ -50,7 +50,7 @@ func (r *CommentRepo) CommentParentComent(ctx context.Context, userID string, co
 	}
 	// 验证父评论是否存在
 	var parentComment types.CommentBaseinfo
-	if err := r.db.WithContext(ctx).Where("comment_id = ?", parentCommentID).First(&parentComment).Error; err != nil {
+	if err := r.db.Model(&types.CommentBaseinfo{}).Where("comment_id = ?", parentCommentID).First(&parentComment).Error; err != nil {
 		log.Printf("parent comment not found: %v", err)
 		return "", xerr.New(400, "父评论不存在")
 	}

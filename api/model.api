@@ -56,10 +56,17 @@ type (
     UpdatedAt     string `json:"updated_at" gorm:"autoUpdateTime"`
     DeletedAt     string `json:"deleted_at"`
     LikeCount     int32  `json:"like_count" gorm:"default:0;type:int"`
-    ParentCommentID string `json:"parent_comment_id" gorm:"type:char(64) default:''"` // 父评论 ID，空字符串表示没有父评论
+    ParentCommentID string `json:"parent_comment_id" gorm:"type:char(64);default:''"` // 父评论 ID，空字符串表示没有父评论
   }
   CommentLiker {
     UserID  string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
     CommentID string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
+  }
+  User_mfa{
+    UserID string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
+    MFASecret string `json:"mfa_secret" gorm:"not null;type:varchar(255)"`
+    MFAEnabled bool `json:"mfa_enabled" gorm:"default:false;type:boolean"`
+    PasswordHash string `json:"password_hash" gorm:"not null;type:varchar(255)"`
+    MFA_Pending_secret string `json:"mfa_pending_secret" gorm:"type:varchar(255)"`
   }
 )
