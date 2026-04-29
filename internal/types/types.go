@@ -9,8 +9,8 @@ type BaseResponse struct {
 }
 
 type BindMfaqrcodeRequest struct {
-	Mfa_secret string `json:"mfa_secret"`
-	Mfa_code   string `json:"mfa_code"`
+	Mfa_secret string `form:"mfa_secret"`
+	Mfa_code   string `form:"mfa_code"`
 }
 
 type BindMfaqrcodeResponse struct {

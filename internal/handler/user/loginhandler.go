@@ -11,6 +11,7 @@ import (
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
@@ -18,6 +19,7 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.LoginRequest
 		if err := httpx.Parse(r, &req); err != nil {
+			logx.Errorf("parse login request failed: %v", err)
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}

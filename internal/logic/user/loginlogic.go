@@ -61,7 +61,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 			return nil, xerr.New(http.StatusBadRequest, "MFA 代码不能为空")
 		}
 		var secret string
-		if secret, err = l.svcCtx.Dal.User.FindUserMFASecret(l.ctx, user.UserID); err != nil {
+		if secret, err = l.svcCtx.Dal.User.FindUserPendMFASecret(l.ctx, user.UserID); err != nil {
 			logx.Errorf("find user mfa secret failed: %v", err)
 			return nil, xerr.New(http.StatusInternalServerError, "获取 MFA 密钥失败")
 		}
