@@ -92,3 +92,6 @@ func (r *UserBaseinfoRepo) EnableUserMFA(ctx context.Context, userID string) err
 func (r *UserBaseinfoRepo) FindUserMFASecret(ctx context.Context, userID string) (string, error) {
 	return userbasetable.FindUserMFASecret(ctx, r.db, userID)
 }
+func (r *UserBaseinfoRepo) FindUserPendMFASecret(ctx context.Context, userID string) (string, error) {
+	return userbasetable.FindUserPendMFASecret(ctx, r.db, userID)
+}

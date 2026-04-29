@@ -80,8 +80,8 @@ type (
     mfa_secret string `json:"mfa_secret"`
   }
   BindMfaqrcodeRequest {
-     mfa_secret string `json:"mfa_secret"`
-     mfa_code string `json:"mfa_code"`
+     mfa_secret string `form:"mfa_secret"`
+     mfa_code string `form:"mfa_code"`
   }
   BindMfaqrcodeResponse {
     Base BaseResponse `json:"base"`

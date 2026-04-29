@@ -138,7 +138,7 @@ func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID string,
 func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID string) (string, error) {
 	logger := logx.WithContext(ctx)
 	var userMFA types.User_mfa
-	err := db.WithContext(ctx).Where("user_id = ?", userID).First(&userMFA).Error
+	err := db.WithContext(ctx).Model(&types.User_mfa{}).Where("user_id = ?", userID).First(&userMFA).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logger.Infof("user mfa not found for user_id: %s", userID)
@@ -148,4 +148,19 @@ func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID string) (string,
 		return "", xerr.New(400, "获取用户MFA密钥失败")
 	}
 	return userMFA.MFA_Pending_secret, nil
+}
+
+func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID string) (string, error) {
+	logger := logx.WithContext(ctx)
+	var userMFA types.User_mfa
+	err := db.WithContext(ctx).Model(&types.User_mfa{}).Where("user_id = ?", userID).First(&userMFA).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Infof("user mfa not found for user_id: %s", userID)
+			return "", xerr.New(400, "用户MFA信息不存在")
+		}
+		logger.Errorf("find user mfa secret failed: %v", err)
+		return "", xerr.New(400, "获取用户MFA密钥失败")
+	}
+	return userMFA.MFASecret, nil
 }
