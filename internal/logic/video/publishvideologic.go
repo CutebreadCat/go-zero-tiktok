@@ -8,7 +8,7 @@ import (
 	"context"
 	"time"
 
-	"go_zero-tiktok/internal/mw/ali"
+	"go_zero-tiktok/internal/infra/storage/aliyun"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
@@ -49,7 +49,7 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 	}
 	objectKey := authorID + "/" + VideoID + "/" + filename
 	var Videourl string
-	if Videourl, err = ali.UploadBytesToOSS(bytes.NewReader(videoBytes), objectKey); err != nil {
+	if Videourl, err = aliyun.UploadBytesToOSS(bytes.NewReader(videoBytes), objectKey); err != nil {
 		log.Printf("failed to upload video to OSS: %v", err)
 		return nil, xerr.New(1004, "视频上传失败，请稍后重试")
 	}

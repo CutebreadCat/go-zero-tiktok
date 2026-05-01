@@ -10,7 +10,7 @@ import (
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
-	mfa "go_zero-tiktok/internal/mw/mfa_code"
+	mfa "go_zero-tiktok/internal/middleware/mfa"
 	myutils "go_zero-tiktok/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"

@@ -6,7 +6,7 @@ package user
 import (
 	"context"
 
-	"go_zero-tiktok/internal/mw/token"
+	"go_zero-tiktok/internal/middleware/token"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
@@ -14,7 +14,7 @@ import (
 	"go_zero-tiktok/internal/svc/xerr"
 	"net/http"
 
-	mfa_code "go_zero-tiktok/internal/mw/mfa_code"
+	mfa_code "go_zero-tiktok/internal/middleware/mfa"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -56,7 +56,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		return nil, xerr.New(http.StatusInternalServerError, "检查 MFA 失败")
 	}
 	if mfa_ok {
-		logx.Infof("user %d has mfa enabled, require mfa verification", user.UserID)
+		logx.Infof("user %s has mfa enabled, require mfa verification", user.UserID)
 		if req.MfaCode == "" {
 			return nil, xerr.New(http.StatusBadRequest, "MFA 代码不能为空")
 		}
@@ -71,7 +71,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 			return nil, xerr.New(http.StatusInternalServerError, "验证 MFA 失败")
 		}
 
-		logx.Infof("mfa verification passed for user %d", user.UserID)
+		logx.Infof("mfa verification passed for user %s", user.UserID)
 
 	}
 	accessToken, err := token.GenerateAccessToken(l.svcCtx.Config.Auth.AccessSecret, user.UserID)

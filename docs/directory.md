@@ -32,9 +32,11 @@ go_zero-tiktok/
 │   │   ├── interaction/
 │   │   ├── user/
 │   │   └── video/
-│   ├── mw/ --中间件层
-│   │   ├── ali/
-│   │   └── token/
+│   ├── infra/ -- external infrastructure
+│   │   └── storage/aliyun/ -- aliyun oss
+│   ├── middleware/ -- middleware layer
+│   │   ├── mfa/ -- mfa verification
+│   │   └── token/ -- auth token
 │   ├── svc/ --依赖注入层(?)
 │   └── types/
 ├── testdata/ 测试数据存放列表

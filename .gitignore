@@ -26,9 +26,9 @@ go.work.sum
 
 # env file
 .env
-/internal/mw/ali/aliconfig.yaml
+/internal/infra/storage/aliyun/aliconfig.yaml
 /testdata
-
+/.gocache
 # Editor/IDE
 # .idea/
 # .vscode/

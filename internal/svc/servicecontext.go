@@ -7,7 +7,7 @@ import (
 	"go_zero-tiktok/internal/config"
 	"go_zero-tiktok/internal/dal"
 	repository "go_zero-tiktok/internal/dal/repository"
-	"go_zero-tiktok/internal/mw/ali"
+	"go_zero-tiktok/internal/infra/storage/aliyun"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -26,8 +26,8 @@ func NewServiceContext(config config.Config) *ServiceContext {
 	dal.InitRedis(config.Redis)
 
 	// 初始化阿里云配置
-	ali.GetAliConfig()
-	ali.AliInit()
+	aliyun.GetAliConfig()
+	aliyun.AliInit()
 
 	return &ServiceContext{
 		Config: config,

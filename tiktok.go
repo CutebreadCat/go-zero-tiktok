@@ -10,6 +10,7 @@ import (
 
 	"go_zero-tiktok/internal/config"
 	"go_zero-tiktok/internal/handler"
+	"go_zero-tiktok/internal/middleware/token"
 	"go_zero-tiktok/internal/svc"
 
 	"go_zero-tiktok/internal/svc/xerr"
@@ -28,7 +29,7 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	server := rest.MustNewServer(c.RestConf)
+	server := rest.MustNewServer(c.RestConf, token.WithAuth(c.Auth.AccessSecret))
 	defer server.Stop()
 
 	ctx := svc.NewServiceContext(c)

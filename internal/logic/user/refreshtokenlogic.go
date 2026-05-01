@@ -6,7 +6,7 @@ package user
 import (
 	"context"
 
-	"go_zero-tiktok/internal/mw/token"
+	"go_zero-tiktok/internal/middleware/token"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"

@@ -1,7 +1,7 @@
 ```
 go_zero-tiktok/
 ├── api/ -- 接口定义目录
-│   ├── communication.api 
+│   ├── communication.api
 │   ├── interaction.api
 │   ├── main.api
 │   ├── model.api
@@ -9,7 +9,7 @@ go_zero-tiktok/
 │   ├── user_auth.api
 │   ├── video.api
 │   └── video_auth.api
-├── docs/ --相关文档说明
+├── docs/ -- 相关文档说明
 │   ├── directory.md
 │   └── main.json
 ├── etc/ -- 配置文件目录
@@ -17,37 +17,37 @@ go_zero-tiktok/
 ├── internal/ -- 项目内部代码目录
 │   ├── config/ -- 配置文件相关
 │   │   └── config.go
-│   ├── dal/  --数据库操作相关
-│   │   ├── repository/  --聚合层，也对相关数据操作进行一层封装，方便后续扩展，也是复杂操作的内聚
-│   │   └── tables/  -- 数据库表相关，基础的 crud
-│   ├── handler/  --入口层，这个层次主要进行数据的解析和请求的处理，方便将纯净的数据传入 logic 层
+│   ├── dal/ -- 数据库操作相关
+│   │   ├── repository/ -- 聚合层，对相关数据操作进行封装，方便后续扩展
+│   │   └── tables/ -- 数据库表相关，基础 CRUD
+│   ├── handler/ -- 入口层，负责解析请求并将纯净数据传入 logic 层
 │   │   ├── communication/
 │   │   ├── interaction/
 │   │   ├── user/
 │   │   └── video/
-│   ├── logic/ -- 业务逻辑层，这个层次主要进行相关的业务逻辑的处理，进行复杂的判断等操作
+│   ├── infra/ -- 外部基础设施层
+│   │   └── storage/
+│   │       └── aliyun/ -- 阿里云 OSS
+│   ├── logic/ -- 业务逻辑层
 │   │   ├── communication/
 │   │   ├── interaction/
 │   │   ├── user/
 │   │   └── video/
-│   ├── mw/ --中间件层
-│   │   ├── ali/ --阿里云中间件
-│   │   └── token/ --鉴权认证
-│   ├── svc/
-│   └── types/
+│   ├── middleware/ -- 中间件层
+│   │   ├── mfa/ -- MFA 校验
+│   │   ├── token/ -- 鉴权认证
+│   │   └── useragentmiddleware.go
+│   ├── svc/ -- 依赖注入层
+│   ├── types/
+│   └── utils/ -- 常用工具
 ├── testdata/
 │   ├── images/
 │   ├── user1/
 │   ├── user2/
 │   └── videos/
-├── utils/ --常用工具
-│   ├── decode.go
-│   ├── encryption.go
-│   ├── id.go
-│   └── time.go
 ├── Dockerfile
 ├── compose.yml
 ├── go.mod
 ├── go.sum
-└── tiktok.go --主函数入口
+└── tiktok.go -- 主函数入口
 ```

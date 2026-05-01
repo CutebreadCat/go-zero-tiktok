@@ -11,9 +11,9 @@ import (
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 
-	"go_zero-tiktok/internal/mw/ali"
+	"go_zero-tiktok/internal/infra/storage/aliyun"
 
-	"go_zero-tiktok/internal/mw/token"
+	"go_zero-tiktok/internal/middleware/token"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -53,14 +53,14 @@ func (l *PostUserPhotoLogic) PostUserPhoto(req *types.UserphotoRequest, file mul
 
 	if userinfo.PhotoURL != "" && userinfo.PhotoURL != "https://example.com/default_photo.jpg" {
 		logx.WithContext(l.ctx).Infof("用户已有头像，开始删除旧头像")
-		if err := ali.DeleteFileFromOSS(objectKey); err != nil {
+		if err := aliyun.DeleteFileFromOSS(objectKey); err != nil {
 			logx.WithContext(l.ctx).Errorf("删除用户旧头像失败: %v", err)
 			return nil, xerr.New(1004, "头像更新失败，请稍后重试")
 		}
 
 	}
 
-	photoURL, err := ali.UploadBytesToOSS(file, objectKey)
+	photoURL, err := aliyun.UploadBytesToOSS(file, objectKey)
 	if err != nil {
 		logx.WithContext(l.ctx).Errorf("上传用户头像失败: %v", err)
 		return nil, xerr.New(1004, "上传头像失败，请稍后重试")
