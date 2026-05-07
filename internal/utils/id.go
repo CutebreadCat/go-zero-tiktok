@@ -36,6 +36,9 @@ func GenerateCommentID() string {
 	return fmt.Sprintf("c%d", snowflakeNode.Generate().Int64())
 }
 
+func GenerateRoomID() string {
+	return fmt.Sprintf("r%d", snowflakeNode.Generate().Int64())
+}
 func GetUserIDFromContext(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", xerr.New(500, "上下文为空")

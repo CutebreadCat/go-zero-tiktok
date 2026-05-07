@@ -1,0 +1,65 @@
+syntax = "v1"
+
+import "../model.api"
+
+@server(
+    group: chat
+    tags:"chat"
+    jwt: Auth
+)
+
+service tiktok-api {
+    @handler CreateChatRoomHandler
+    post /chat/room/create (CreateChatRoomRequest) returns (CreateChatRoomResponse)
+    @handler GetChatRoomsHandler
+    get /chat/rooms (GetChatRoomsRequest) returns (GetChatRoomsResponse)
+    @handler WsChatHandler
+    get /chat/ws (WsChatRequest) returns (WsChatResponse)
+    @handler GetMessagesHandler
+    get /chat/messages (GetMessagesRequest) returns (GetMessagesResponse)
+    @handler JoinChatRoomHandler
+    post /chat/room/join (JoinChatRoomRequest) returns (JoinChatRoomResponse)
+}
+
+type (
+    CreateChatRoomRequest {
+        RoomName string `form:"room_name"`
+        Types int32 `form:"types"` // 0: 私聊, 1: 群聊
+        UserIDs []string `form:"user_ids"` 
+    }
+
+    CreateChatRoomResponse {
+        Base BaseResponse `json:"base_response"`
+        RoomID string `json:"room_id"`
+    }
+
+    GetChatRoomsRequest {}
+
+    GetChatRoomsResponse {
+        Base BaseResponse `json:"base_response"`
+        RoomsId []string `json:"chat_rooms"`
+    }
+
+    WsChatRequest {}
+
+    WsChatResponse {}
+
+    GetMessagesRequest {
+        RoomID string `form:"room_id"`
+        PageNumber int32 `form:"page_number"`
+        PageSize int32 `form:"page_size"`
+    }
+
+    GetMessagesResponse {
+        Base BaseResponse `json:"base_response"`
+        Messages []MessageChat `json:"messages"`
+    }
+
+    JoinChatRoomRequest {
+        RoomID string `form:"room_id"`
+    }
+
+    JoinChatRoomResponse {
+        Base BaseResponse `json:"base_response"`
+    }
+)

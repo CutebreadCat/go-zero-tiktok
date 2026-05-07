@@ -1,0 +1,50 @@
+// Code scaffolded by goctl. Safe to edit.
+// goctl 1.10.1
+
+package chat
+
+import (
+	"context"
+
+	chattable "go_zero-tiktok/internal/dal/tables/chat"
+	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/internal/utils"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type GetChatRoomsLogic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+func NewGetChatRoomsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetChatRoomsLogic {
+	return &GetChatRoomsLogic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *GetChatRoomsLogic) GetChatRooms(req *types.GetChatRoomsRequest) (resp *types.GetChatRoomsResponse, err error) {
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
+	if err != nil {
+		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
+	}
+	rooms, err := chattable.GetJoinRooms(l.ctx, l.svcCtx.DB, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = &types.GetChatRoomsResponse{
+		Base: types.BaseResponse{
+			StatusCode: 0,
+			StatusMsg:  "ok",
+		},
+		RoomsId: rooms,
+	}
+	return resp, nil
+}
