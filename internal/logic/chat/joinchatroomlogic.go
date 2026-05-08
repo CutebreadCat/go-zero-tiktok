@@ -6,7 +6,6 @@ package chat
 import (
 	"context"
 
-	chattable "go_zero-tiktok/internal/dal/tables/chat"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
@@ -37,7 +36,7 @@ func (l *JoinChatRoomLogic) JoinChatRoom(req *types.JoinChatRoomRequest) (resp *
 	if req.RoomID == "" {
 		return nil, xerr.New(400, "聊天室ID不能为空")
 	}
-	if err := chattable.JoinChatRoom(l.ctx, l.svcCtx.DB, userID, req.RoomID); err != nil {
+	if err := l.svcCtx.Dal.Chat.JoinChatRoom(l.ctx, userID, req.RoomID); err != nil {
 		return nil, err
 	}
 

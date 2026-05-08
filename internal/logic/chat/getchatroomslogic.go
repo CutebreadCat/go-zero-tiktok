@@ -6,7 +6,6 @@ package chat
 import (
 	"context"
 
-	chattable "go_zero-tiktok/internal/dal/tables/chat"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
@@ -34,7 +33,7 @@ func (l *GetChatRoomsLogic) GetChatRooms(req *types.GetChatRoomsRequest) (resp *
 	if err != nil {
 		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
 	}
-	rooms, err := chattable.GetJoinRooms(l.ctx, l.svcCtx.DB, userID)
+	rooms, err := l.svcCtx.Dal.Chat.GetJoinRooms(l.ctx, userID)
 	if err != nil {
 		return nil, err
 	}

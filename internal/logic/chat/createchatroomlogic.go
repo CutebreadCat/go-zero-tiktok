@@ -7,7 +7,6 @@ import (
 	"context"
 	"strings"
 
-	chattable "go_zero-tiktok/internal/dal/tables/chat"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
@@ -61,7 +60,7 @@ func (l *CreateChatRoomLogic) CreateChatRoom(req *types.CreateChatRoomRequest) (
 			Leix:     req.Types,
 			RoomName: req.RoomName,
 		}
-		if err := chattable.CreateChatRoom(l.ctx, l.svcCtx.DB, chatRow); err != nil {
+		if err := l.svcCtx.Dal.Chat.CreateChatRoom(l.ctx, chatRow); err != nil {
 			return nil, err
 		}
 	}

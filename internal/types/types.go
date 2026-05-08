@@ -204,8 +204,9 @@ type LoginResponse struct {
 }
 
 type MessageChat struct {
+	ID        string `json:"id" gorm:"primaryKey;type:varchar(64)"`
 	RoomID    string `json:"room_id" gorm:"not null;type:varchar(64)"`
-	SenderID  string `json:"sender_id" gorm:"not null;primaryKey;type:varchar(64)"`
+	SenderID  string `json:"sender_id" gorm:"not null;type:varchar(64)"`
 	Content   string `json:"content" gorm:"not null;type:varchar(1024)"`
 	CreatedAt string `json:"created_at" gorm:"autoCreateTime"`
 }

@@ -17,6 +17,14 @@ func CreateChatRoom(ctx context.Context, db *gorm.DB, chat *types.User_chat) err
 	return nil
 }
 
+func CreateChatMessage(ctx context.Context, db *gorm.DB, message *types.MessageChat) error {
+	if err := db.Model(message).Create(message).Error; err != nil {
+		log.Printf("CreateChatMessage error: %v", err)
+		return xerr.New(500, "创建消息失败")
+	}
+	return nil
+}
+
 func GetChatRoomMessage(ctx context.Context, db *gorm.DB, room_id string, page_size int, page_num int) ([]*types.MessageChat, error) {
 	var messages []*types.MessageChat
 	if err := db.Model(&types.MessageChat{}).Where("room_id = ?", room_id).Find(&messages).Scopes(func(db *gorm.DB) *gorm.DB {
@@ -57,4 +65,20 @@ func JoinChatRoom(ctx context.Context, db *gorm.DB, user_id string, room_id stri
 		return xerr.New(500, "加入聊天室失败")
 	}
 	return nil
+}
+
+func StoreChatMessage(ctx context.Context, db *gorm.DB, message *types.MessageChat) error {
+	if err := db.Model(message).Create(message).Error; err != nil {
+		log.Printf("StoreChatMessage error: %v", err)
+		return xerr.New(500, "存储消息失败")
+	}
+	return nil
+}
+func GetChatRoomUsers(ctx context.Context, db *gorm.DB, room_id string) ([]string, error) {
+	var usersid []string
+	if err := db.Model(&types.User_chat{}).Where("room_id = ?", room_id).Pluck("user_id", &usersid).Error; err != nil {
+		log.Printf("GetChatRoomUsers error: %v", err)
+		return nil, xerr.New(404, "聊天室用户未找到")
+	}
+	return usersid, nil
 }

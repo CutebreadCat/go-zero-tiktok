@@ -14,6 +14,7 @@ type Repositories struct {
 	Comment    *CommentRepo
 	VideoLiker *VideoLikerRepo
 	UserFollow *UserFollowRepo
+	Chat       *ChatRepo
 }
 
 func NewRepositories(db *gorm.DB, rdb *redis.Redis) *Repositories {
@@ -24,6 +25,7 @@ func NewRepositories(db *gorm.DB, rdb *redis.Redis) *Repositories {
 		Comment:    NewCommentRepo(db),
 		VideoLiker: NewVideoLikerRepo(db, rdb),
 		UserFollow: NewUserFollowRepo(db),
+		Chat:       NewChatRepo(db),
 	}
 }
 
