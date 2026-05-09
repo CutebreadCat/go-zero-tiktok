@@ -5,12 +5,11 @@ package chat
 
 import (
 	"net/http"
-	"sync"
 
 	"go_zero-tiktok/internal/svc"
 	myutils "go_zero-tiktok/internal/utils"
 
-	mywebsocket "go_zero-tiktok/internal/websocket"
+	mywebsocket "go_zero-tiktok/internal/domain/websocket"
 
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -58,16 +57,8 @@ func WsChatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		// 5. 创建 Client 并注册到 Hub
-		client := &mywebsocket.Client{
-			Hub:    svcCtx.Hub,
-			UserID: userid,
-			Send:   make(chan any, 256),
-			Rooms:  make(map[string]bool),
-			Conn:   conn,
-			Cmu:    sync.Mutex{},
-		}
-
-		svcCtx.Hub.AddClient(ctx, client)
+		client := mywebsocket.NewClient(svcCtx.Hub, userid, conn)
+		svcCtx.Hub.Presence().AddClient(ctx, client)
 
 		// 6. 启动读写协程
 		go client.ReadLoop()

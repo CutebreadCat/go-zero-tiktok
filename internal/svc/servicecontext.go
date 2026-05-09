@@ -7,10 +7,10 @@ import (
 	"go_zero-tiktok/internal/config"
 	"go_zero-tiktok/internal/dal"
 	repository "go_zero-tiktok/internal/dal/repository"
+	"go_zero-tiktok/internal/domain/websocket"
 	"go_zero-tiktok/internal/infra/storage/aliyun"
-	"go_zero-tiktok/internal/websocket"
 
-	"go_zero-tiktok/internal/cache"
+	"go_zero-tiktok/internal/infra/cache"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -44,6 +44,6 @@ func NewServiceContext(config config.Config) *ServiceContext {
 		Rdb:    dal.Rdb,
 		Dal:    dalRepo,
 		Cache:  c,
-		Hub:    websocket.NewHub(c, dalRepo.Chat),
+		Hub:    websocket.NewHub(c, c, c, dalRepo.Chat, dalRepo.Chat),
 	}
 }

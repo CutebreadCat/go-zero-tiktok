@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-const OnlineExpireSeconds = 24 * 3600 // 24小时
 func (c *RedisCache) OnlineKey(userID string) string {
 	return "presence:" + userID
 }
@@ -19,8 +18,9 @@ func (c *RedisCache) SetOnline(ctx context.Context, userID string, url string) e
 		return err
 	}
 
-	c.client.Expire(c.OnlineKey(userID), OnlineExpireSeconds) // 设置过期时间，确保离线状态会自动清除
+	c.client.Expire(c.OnlineKey(userID), OnlineExpireSeconds)
 
+	log.Printf("✅ 用户 %s 在线，设置在线状态成功！", userID)
 	return nil
 }
 
@@ -30,6 +30,7 @@ func (c *RedisCache) SetOffline(ctx context.Context, userID string, url string) 
 		log.Printf("❌ 无法设置离线状态 (userID: %s): %v", userID, err)
 		return err
 	}
+
 	log.Printf("✅ 用户 %s 离线，设置离线状态成功！", userID)
 	return nil
 }
@@ -42,12 +43,20 @@ func (c *RedisCache) HeartBeat(ctx context.Context, userID string, url string) e
 		return err
 	}
 
-	// 2. 【关键补充】一定要记得给整个 Key 续命！
-	// 否则 24 小时后，即使有心跳，Key 也会过期消失
+	// 2. 续命用户在线状态
 	if err := c.client.Expire(c.OnlineKey(userID), OnlineExpireSeconds); err != nil {
 		log.Printf("❌ 用户 %s 心跳续命 TTL 失败：%v", userID, err)
 		return err
 	}
 
 	return nil
+}
+
+func (c *RedisCache) IsOnline(ctx context.Context, userID string) (bool, error) {
+	count, err := c.client.Zcard(c.OnlineKey(userID))
+	if err != nil {
+		log.Printf("❌ 无法获取在线状态 (userID: %s): %v", userID, err)
+		return false, err
+	}
+	return count > 0, nil
 }

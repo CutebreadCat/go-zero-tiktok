@@ -6,13 +6,12 @@ package chat
 import (
 	"context"
 	"net/http"
-	"sync"
 
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
-	mywebsocket "go_zero-tiktok/internal/websocket"
+	mywebsocket "go_zero-tiktok/internal/domain/websocket"
 
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -31,6 +30,7 @@ func NewWsChatLogic(ctx context.Context, svcCtx *svc.ServiceContext) *WsChatLogi
 		svcCtx: svcCtx,
 	}
 }
+
 func (l *WsChatLogic) WsChat(req *types.WsChatRequest) (err error) {
 	// todo: add your logic here and delete this line
 	var userid string
@@ -51,16 +51,9 @@ func (l *WsChatLogic) WsChat(req *types.WsChatRequest) (err error) {
 		l.Logger.Errorf("升级WebSocket连接失败: %v", err)
 		return err
 	}
-	client := &mywebsocket.Client{
-		Hub:    l.svcCtx.Hub,
-		UserID: userid,
-		Send:   make(chan any, 256),
-		Rooms:  make(map[string]bool),
-		Conn:   conn,
-		Cmu:    sync.Mutex{},
-	}
-	l.svcCtx.Hub.AddClient(l.ctx, client)
+	client := mywebsocket.NewClient(l.svcCtx.Hub, userid, conn)
+	l.svcCtx.Hub.Presence().AddClient(l.ctx, client)
 	go client.ReadLoop()
 	go client.WriteLoop()
-	return
+	return nil
 }
