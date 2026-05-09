@@ -14,7 +14,7 @@ service tiktok-api {
     @handler GetChatRoomsHandler
     get /chat/rooms (GetChatRoomsRequest) returns (GetChatRoomsResponse)
     @handler WsChatHandler
-    get /chat/ws (WsChatRequest) returns (WsChatResponse)
+    get /chat/ws (WsChatRequest) 
     @handler GetMessagesHandler
     get /chat/messages (GetMessagesRequest) returns (GetMessagesResponse)
     @handler JoinChatRoomHandler
@@ -42,7 +42,7 @@ type (
 
     WsChatRequest {}
 
-    WsChatResponse {}
+  
 
     GetMessagesRequest {
         RoomID string `form:"room_id"`

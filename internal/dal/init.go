@@ -83,6 +83,8 @@ func InitTables() error {
 		&types.UserFollow{},
 		&types.CommentLiker{},
 		&types.User_mfa{},
+		&types.MessageChat{},
+		&types.User_chat{},
 	)
 	if err != nil {
 		log.Printf("数据表初始化失败: %v", err)

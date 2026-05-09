@@ -14,6 +14,286 @@
   },
   "basePath": "/",
   "paths": {
+    "/chat/messages": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "chat"
+        ],
+        "summary": "GetMessagesHandler",
+        "operationId": "chatGetMessagesHandler",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "room_id",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_number",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base_response": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "room_id",
+                      "sender_id",
+                      "content",
+                      "created_at"
+                    ],
+                    "properties": {
+                      "content": {
+                        "type": "string"
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "room_id": {
+                        "type": "string"
+                      },
+                      "sender_id": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/room/create": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "chat"
+        ],
+        "summary": "CreateChatRoomHandler",
+        "operationId": "chatCreateChatRoomHandler",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "room_name",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "0: 私聊, 1: 群聊",
+            "name": "types",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "name": "user_ids",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base_response": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "room_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/room/join": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "chat"
+        ],
+        "summary": "JoinChatRoomHandler",
+        "operationId": "chatJoinChatRoomHandler",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "room_id",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base_response": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/rooms": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "chat"
+        ],
+        "summary": "GetChatRoomsHandler",
+        "operationId": "chatGetChatRoomsHandler",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base_response": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "chat_rooms": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/ws": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "chat"
+        ],
+        "summary": "WsChatHandler",
+        "operationId": "chatWsChatHandler",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
     "/comment/delete": {
       "post": {
         "consumes": [
@@ -1075,7 +1355,7 @@
     "/user/mfa/bind": {
       "post": {
         "consumes": [
-          "application/json"
+          "application/x-www-form-urlencoded"
         ],
         "produces": [
           "application/json"
@@ -1090,24 +1370,16 @@
         "operationId": "userBindMfaHandler",
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "required": [
-                "mfa_secret",
-                "mfa_code"
-              ],
-              "properties": {
-                "mfa_code": {
-                  "type": "string"
-                },
-                "mfa_secret": {
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string",
+            "name": "mfa_secret",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "mfa_code",
+            "in": "formData",
+            "required": true
           }
         ],
         "responses": {
@@ -1718,7 +1990,7 @@
       }
     }
   },
-  "x-date": "2026-04-29 13:23:50",
+  "x-date": "2026-05-09 13:19:17",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

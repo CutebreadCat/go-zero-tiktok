@@ -356,6 +356,3 @@ type VideoSearchResponse struct {
 
 type WsChatRequest struct {
 }
-
-type WsChatResponse struct {
-}
