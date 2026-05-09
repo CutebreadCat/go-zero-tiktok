@@ -31,14 +31,13 @@ func NewWsChatLogic(ctx context.Context, svcCtx *svc.ServiceContext) *WsChatLogi
 		svcCtx: svcCtx,
 	}
 }
-
-func (l *WsChatLogic) WsChat(req *types.WsChatRequest) (resp *types.WsChatResponse, err error) {
+func (l *WsChatLogic) WsChat(req *types.WsChatRequest) (err error) {
 	// todo: add your logic here and delete this line
 	var userid string
 	userid, err = myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
 		l.Logger.Errorf("获取用户ID失败: %v", err)
-		return nil, err
+		return err
 	}
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -50,7 +49,7 @@ func (l *WsChatLogic) WsChat(req *types.WsChatRequest) (resp *types.WsChatRespon
 	conn, err := upgrader.Upgrade(l.ctx.Value("httpResponseWriter").(http.ResponseWriter), l.ctx.Value("httpRequest").(*http.Request), nil)
 	if err != nil {
 		l.Logger.Errorf("升级WebSocket连接失败: %v", err)
-		return nil, err
+		return err
 	}
 	client := &mywebsocket.Client{
 		Hub:    l.svcCtx.Hub,
@@ -61,7 +60,7 @@ func (l *WsChatLogic) WsChat(req *types.WsChatRequest) (resp *types.WsChatRespon
 		Cmu:    sync.Mutex{},
 	}
 	l.svcCtx.Hub.AddClient(l.ctx, client)
-	go client.ReadLoop(l.ctx)
+	go client.ReadLoop()
 	go client.WriteLoop()
 	return
 }

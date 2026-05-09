@@ -18,10 +18,12 @@ type Message struct {
 
 var pongWait = 60 * time.Second
 
-func (c *Client) ReadLoop(ctx context.Context) {
+func (c *Client) ReadLoop() {
+	ctx, hand := context.WithTimeout(context.Background(), time.Hour*24)
 	defer func() {
 		c.Hub.RemoveClient(ctx, c)
 		c.Conn.Close()
+		hand()
 	}()
 	c.Conn.SetReadLimit(512)
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
