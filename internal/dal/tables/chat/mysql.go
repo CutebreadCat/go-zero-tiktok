@@ -53,12 +53,22 @@ func JoinChatRoom(ctx context.Context, db *gorm.DB, user_id string, room_id stri
 		log.Printf("JoinChatRoom error: %v", err)
 		return xerr.New(500, "查询加入聊天室失败")
 	}
-	if existingChat.Leix == 0 {
+	var roomInfo types.User_chat
+	if err := db.Model(&types.User_chat{}).Where("room_id = ?", room_id).First(&roomInfo).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return xerr.New(404, "聊天室不存在")
+		}
+		log.Printf("JoinChatRoom error: %v", err)
+		return xerr.New(500, "查询聊天室信息失败")
+	}
+	if roomInfo.Leix == 0 {
 		return xerr.New(400, "这是私人聊天室,你不能加入")
 	}
 	chat := &types.User_chat{
-		UserID: user_id,
-		RoomID: room_id,
+		UserID:   user_id,
+		RoomID:   room_id,
+		Leix:     roomInfo.Leix,
+		RoomName: roomInfo.RoomName,
 	}
 	if err := db.Model(chat).Create(chat).Error; err != nil {
 		log.Printf("JoinChatRoom error: %v", err)

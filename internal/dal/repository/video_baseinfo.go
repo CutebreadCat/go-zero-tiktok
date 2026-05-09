@@ -36,3 +36,4 @@ func (r *VideoBaseinfoRepo) GetVideosByAuthorID(ctx context.Context, authorID st
 func (r *VideoBaseinfoRepo) GetVideosByVisitCount(ctx context.Context, pageNum, pageSize int32, videoIDs []string) ([]types.VideoBaseinfo, int64, error) {
 	return videobasetable.GetVideosByVisitCount(ctx, r.db, pageNum, pageSize, videoIDs)
 }
+

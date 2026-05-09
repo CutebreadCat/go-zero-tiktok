@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"go_zero-tiktok/internal/svc"
+	myutils "go_zero-tiktok/internal/utils"
 
 	mywebsocket "go_zero-tiktok/internal/websocket"
 
@@ -45,7 +46,12 @@ func WsChatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 
 		// 4. 升级成功，获取 UserID (根据你的鉴权方式调整)
 		// 假设你是从 Token 或者 Query 中获取的
-		userid := r.URL.Query().Get("userId")
+		userid, err := myutils.GetUserIDFromContext(ctx) // 你需要实现这个函数来从请求中提取用户ID
+		if err != nil {
+			logx.Errorf("Failed to get user ID from context: %v", err)
+			conn.Close() // 获取用户ID失败，关闭 WebSocket 连接
+			return
+		}
 		if userid == "" {
 			conn.Close() // 如果没有用户ID，关闭 WebSocket 连接
 			return
@@ -64,7 +70,7 @@ func WsChatHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		svcCtx.Hub.AddClient(ctx, client)
 
 		// 6. 启动读写协程
-		go client.ReadLoop(ctx)
+		go client.ReadLoop()
 		go client.WriteLoop()
 
 		// 7. Handler 结束，连接已由 Client 的 goroutine 接管
