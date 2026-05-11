@@ -40,9 +40,23 @@ services:
     restart: always
     volumes:
       - mysql-data:/var/lib/mysql
+  kafka:
+    image: apache/kafka:4.0.0
+    ports:
+      - "9092:9092"
+    environment:
+      # 1. 关键配置：允许客户端通过 PLAINTEXT 协议连接（开发环境必备）
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      # 2. 关键配置：这里必须改成你的宿主机 IP，否则外部客户端连不上
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
+      # 3. 自动创建 Topic 开关 (官方镜像默认是 true，写上更保险)
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
 
+    volumes:
+      - kafka_data:/var/lib/kafka/data
 volumes:
   redis-data:
   mysql-data:
-
-  
+  kafka_data:
