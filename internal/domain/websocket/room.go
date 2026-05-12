@@ -6,21 +6,8 @@ import (
 	"sync"
 )
 
-// RoomRepository 是房间数据的仓储依赖抽象
-type RoomRepository interface {
-	GetJoinRooms(ctx context.Context, userID string) ([]string, error)
-	GetChatRoomUsers(ctx context.Context, roomID string) ([]string, error)
-}
+// ==================== RoomManager 实现 ====================
 
-// RoomManager 管理房间成员关系
-type RoomManager interface {
-	LoadRooms(ctx context.Context, client *Client)
-	IsMember(client *Client, roomID string) bool
-	RemoveFromRooms(ctx context.Context, client *Client)
-	BroadcastToRoom(roomID string, message any)
-}
-
-// roomManager 是 RoomManager 的实现
 type roomManager struct {
 	mu    sync.RWMutex
 	rooms map[string]map[*Client]bool

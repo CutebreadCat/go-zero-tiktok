@@ -15,32 +15,28 @@ import (
 
 var pongWait = 60 * time.Second
 
-// MessageCache 是消息缓存的依赖抽象
-type MessageCache interface {
-	AddMessage(ctx context.Context, message *types.MessageChat) (string, error)
-	IncrUnread(ctx context.Context, userID, roomID string) error
-	GetUnreadMessages(ctx context.Context, userID, roomID string, count int64) ([]cache.CacheMessage, error)
-	GetUnreadCount(ctx context.Context, userID, roomID string) (int64, error)
-	ClearUnread(ctx context.Context, userID, roomID string) error
-}
+const (
+	MessageTopic = "chat-messages"
+)
 
-// MessageRepository 是消息持久化的依赖抽象
-type MessageRepository interface {
-	StoreChatMessage(ctx context.Context, message *types.MessageChat) error
-}
+// ==================== MessageManager 实现 ====================
 
-// MessageManager 管理消息的处理和分发
-type MessageManager interface {
-	HandleMessage(ctx context.Context, client *Client, msg *types.MessageChat)
-	HandleGetUnread(ctx context.Context, client *Client, roomID string)
-}
-
-// messageManager 是 MessageManager 的实现
 type messageManager struct {
 	cache    MessageCache
 	repo     MessageRepository
 	roomRepo RoomRepository
 	rooms    RoomManager
+	writer   MessageWriter
+}
+
+func NewMessageManager(cache MessageCache, repo MessageRepository, roomRepo RoomRepository, rooms RoomManager, writer MessageWriter) MessageManager {
+	return &messageManager{
+		cache:    cache,
+		repo:     repo,
+		roomRepo: roomRepo,
+		rooms:    rooms,
+		writer:   writer,
+	}
 }
 
 func (mm *messageManager) HandleMessage(ctx context.Context, client *Client, msg *types.MessageChat) {
@@ -49,31 +45,18 @@ func (mm *messageManager) HandleMessage(ctx context.Context, client *Client, msg
 		return
 	}
 
-	go func() {
-		if _, err := mm.cache.AddMessage(ctx, msg); err != nil {
-			log.Printf("Failed to add message to cache for room %s: %v", msg.RoomID, err)
-		}
-	}()
-
-	// 广播消息，包装成带 typek 的格式
+	// 1. 立即广播（实时）
 	broadcastMsg := Message{
 		Message: *msg,
 		Typek:   "message",
 	}
 	mm.rooms.BroadcastToRoom(msg.RoomID, broadcastMsg)
 
-	if err := mm.repo.StoreChatMessage(ctx, msg); err != nil {
-		log.Printf("Failed to store message from user %s in room %s: %v", client.UserID, msg.RoomID, err)
+	// 2. 异步：发送到 MQ 做持久化 + 更新未读
+	event := NewMessageEvent(MessageTopic, msg.RoomID, client.UserID, msg.Content)
+	if err := mm.writer.SendMessage(ctx, event); err != nil {
+		log.Printf("Failed to send message event for user %s in room %s: %v", client.UserID, msg.RoomID, err)
 	}
-	go mm.UpdateUnreadCount(ctx, client.UserID, msg.RoomID)
-}
-
-// UnreadResponse 未读消息响应
-type UnreadResponse struct {
-	Typek    string               `json:"typek"`
-	RoomID   string               `json:"room_id"`
-	Count    int64                `json:"count"`
-	Messages []cache.CacheMessage `json:"messages"`
 }
 
 func (mm *messageManager) HandleGetUnread(ctx context.Context, client *Client, roomID string) {
@@ -82,35 +65,50 @@ func (mm *messageManager) HandleGetUnread(ctx context.Context, client *Client, r
 		return
 	}
 
-	// 获取未读消息数量
-	count, err := mm.cache.GetUnreadCount(ctx, client.UserID, roomID)
+	// 发送 MQ 事件，让消费端异步处理
+	event := NewUnreadEvent(MessageTopic, roomID, client.UserID)
+	if err := mm.writer.SendMessage(ctx, event); err != nil {
+		log.Printf("Failed to send unread event for user %s in room %s: %v", client.UserID, roomID, err)
+	}
+}
+
+func (mm *messageManager) HandleMessageByUserID(ctx context.Context, userID string, msg *types.MessageChat) {
+	// 1. 添加到缓存
+	if _, err := mm.cache.AddMessage(ctx, msg); err != nil {
+		log.Printf("Failed to add message to cache for room %s: %v", msg.RoomID, err)
+	}
+
+	// 2. 持久化到数据库
+	if err := mm.repo.StoreChatMessage(ctx, msg); err != nil {
+		log.Printf("Failed to store message from user %s in room %s: %v", userID, msg.RoomID, err)
+	}
+
+	// 3. 更新未读计数
+	mm.UpdateUnreadCount(ctx, userID, msg.RoomID)
+}
+
+func (mm *messageManager) HandleGetUnreadByUserID(ctx context.Context, userID, roomID string) {
+	count, err := mm.cache.GetUnreadCount(ctx, userID, roomID)
 	if err != nil {
-		log.Printf("Failed to get unread count for user %s in room %s: %v", client.UserID, roomID, err)
+		log.Printf("Failed to get unread count for user %s in room %s: %v", userID, roomID, err)
 		return
 	}
 
-	// 获取未读消息列表
 	var messages []cache.CacheMessage
 	if count > 0 {
-		messages, err = mm.cache.GetUnreadMessages(ctx, client.UserID, roomID, count)
+		messages, err = mm.cache.GetUnreadMessages(ctx, userID, roomID, count)
 		if err != nil {
-			log.Printf("Failed to get unread messages for user %s in room %s: %v", client.UserID, roomID, err)
+			log.Printf("Failed to get unread messages for user %s in room %s: %v", userID, roomID, err)
 			return
 		}
 	}
 
-	// 发送给客户端
-	resp := UnreadResponse{
-		Typek:    "unread_messages",
-		RoomID:   roomID,
-		Count:    count,
-		Messages: messages,
-	}
-	client.Send <- resp
+	log.Printf("未读消息: user=%s, room=%s, count=%d", userID, roomID, count)
+	_ = messages // 这里可以通过其他方式发送给用户
 
 	// 清除未读计数
-	if err := mm.cache.ClearUnread(ctx, client.UserID, roomID); err != nil {
-		log.Printf("Failed to clear unread for user %s in room %s: %v", client.UserID, roomID, err)
+	if err := mm.cache.ClearUnread(ctx, userID, roomID); err != nil {
+		log.Printf("Failed to clear unread for user %s in room %s: %v", userID, roomID, err)
 	}
 }
 

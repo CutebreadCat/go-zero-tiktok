@@ -2,20 +2,31 @@ package mq
 
 import (
 	"context"
+	"log"
 
-	"go_zero-tiktok/internal/domain/mq"
+	mqcontract "go_zero-tiktok/internal/shared/mq"
 )
+
+// CommitFunc 提交 Offset 的回调函数类型
+// 由 Partition 层封装，WorkerPool 在消息处理成功后调用
+type CommitFunc func()
+
+// Job WorkerPool 的任务单元，包含业务消息和提交回调
+type Job struct {
+	Msg    *mqcontract.Event
+	Commit CommitFunc
+}
 
 type WorkerPool struct {
 	workers int
-	queue   chan *mq.Event
-	handler mq.ConsumerHandler
+	queue   chan Job
+	handler mqcontract.ConsumerHandler
 }
 
-func NewWorkerPool(workers int, queueSize int, h mq.ConsumerHandler) *WorkerPool {
+func NewWorkerPool(workers int, queueSize int, h mqcontract.ConsumerHandler) *WorkerPool {
 	return &WorkerPool{
 		workers: workers,
-		queue:   make(chan *mq.Event, queueSize),
+		queue:   make(chan Job, queueSize),
 		handler: h,
 	}
 }
@@ -27,14 +38,22 @@ func (p *WorkerPool) Start(ctx context.Context) {
 				select {
 				case <-ctx.Done():
 					return
-				case msg := <-p.queue:
-					_ = p.handler.Consume(ctx, msg)
+				case job := <-p.queue:
+					err := p.handler.Consume(ctx, job.Msg)
+					if err != nil {
+						log.Printf("消息处理失败: %v", err)
+						continue
+					}
+					if job.Commit != nil {
+						job.Commit()
+					}
 				}
 			}
 		}()
 	}
 }
 
-func (p *WorkerPool) Submit(e *mq.Event) {
-	p.queue <- e
+// Submit 提交任务，包含业务消息和提交 Offset 的回调
+func (p *WorkerPool) Submit(e *mqcontract.Event, commit CommitFunc) {
+	p.queue <- Job{Msg: e, Commit: commit}
 }
