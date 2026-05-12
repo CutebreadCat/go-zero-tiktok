@@ -8,9 +8,8 @@ import (
 	"go_zero-tiktok/internal/dal"
 	repository "go_zero-tiktok/internal/dal/repository"
 	"go_zero-tiktok/internal/domain/websocket"
-	"go_zero-tiktok/internal/infra/storage/aliyun"
-
 	"go_zero-tiktok/internal/infra/cache"
+	"go_zero-tiktok/internal/infra/storage/aliyun"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -18,13 +17,13 @@ import (
 )
 
 type ServiceContext struct {
-	Config config.Config
-	DB     *gorm.DB
-
-	Cache *cache.RedisCache
-	Rdb   *redis.Redis
-	Dal   *repository.Repositories
-	Hub   *websocket.Hub
+	Config   config.Config
+	DB       *gorm.DB
+	Cache    *cache.RedisCache
+	Rdb      *redis.Redis
+	Dal      *repository.Repositories
+	Hub      *websocket.Hub
+	MQ       *MQComponents
 }
 
 func NewServiceContext(config config.Config) *ServiceContext {
@@ -38,12 +37,19 @@ func NewServiceContext(config config.Config) *ServiceContext {
 	c := cache.NewRedisCache(dal.Rdb)
 	dalRepo := repository.NewRepositories(dal.Db, dal.Rdb)
 
+	// 创建 Hub（先不注入 writer）
+	hub := websocket.NewHub(c, c, c, dalRepo.Chat, dalRepo.Chat)
+
+	// 初始化 MQ 并注入 writer
+	mq := InitMQ(config.Kafka, hub, c)
+
 	return &ServiceContext{
 		Config: config,
 		DB:     dal.Db,
 		Rdb:    dal.Rdb,
 		Dal:    dalRepo,
 		Cache:  c,
-		Hub:    websocket.NewHub(c, c, c, dalRepo.Chat, dalRepo.Chat),
+		Hub:    hub,
+		MQ:     mq,
 	}
 }

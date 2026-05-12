@@ -8,19 +8,22 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// ==================== 核心结构体 ====================
+// ==================== 模型定义 ====================
 
+// Message WebSocket 消息结构
 type Message struct {
 	Message types.MessageChat `json:"message"`
 	Typek   string            `json:"typek"`
 }
 
+// Hub 核心管理器
 type Hub struct {
 	presence PresenceManager
 	rooms    RoomManager
 	messages MessageManager
 }
 
+// Client WebSocket 客户端
 type Client struct {
 	Hub    *Hub
 	UserID string
@@ -30,9 +33,20 @@ type Client struct {
 	Cmu    sync.Mutex
 }
 
+// ==================== Hub 方法 ====================
+
 func (h *Hub) Presence() PresenceManager { return h.presence }
 func (h *Hub) Rooms() RoomManager        { return h.rooms }
 func (h *Hub) Messages() MessageManager  { return h.messages }
+
+// SetWriter 注入消息写入器（MQ Producer）
+func (h *Hub) SetWriter(writer MessageWriter) {
+	if mm, ok := h.messages.(*messageManager); ok {
+		mm.writer = writer
+	}
+}
+
+// ==================== 构造函数 ====================
 
 func NewHub(pc PresenceCache, rc RoomCache, mc MessageCache, rr RoomRepository, mr MessageRepository) *Hub {
 	rm := &roomManager{

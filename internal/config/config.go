@@ -13,6 +13,13 @@ type Config struct {
 	DataSource string          `json:"DataSource"`
 	Redis      redis.RedisConf `json:"Redis"`
 	Auth       AuthConfig      `json:"Auth"`
+	Kafka      KafkaConfig     `json:"Kafka"`
+}
+
+type KafkaConfig struct {
+	Brokers []string `json:"Brokers"`
+	Topic   string   `json:"Topic"`
+	GroupID string   `json:"GroupId"`
 }
 
 type AuthConfig struct {

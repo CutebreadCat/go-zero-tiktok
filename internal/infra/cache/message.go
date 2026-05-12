@@ -89,26 +89,54 @@ func (r *RedisCache) GetUnreadCount(ctx context.Context, userID, roomID string) 
 func (r *RedisCache) GetUnreadMessages(ctx context.Context, userID, roomID string, count int64) ([]CacheMessage, error) {
 	messagekey := r.streamkey(roomID)
 
-	var msgs []redis.XMessage
-	_, err := r.client.Do(&msgs, "XREVRANGE", messagekey, "+", "-", "COUNT", count)
+	// 使用 Do 方法执行 XREVRANGE 命令
+	result, err := r.client.Do("XREVRANGE", messagekey, "+", "-", "COUNT", count)
 	if err != nil {
 		log.Printf("Failed to get messages from stream: %v", err)
 		return nil, err
 	}
-	var messages []CacheMessage
-	for _, msg := range msgs {
-		var cacheMsg CacheMessage
-		data, ok := msg.Values["data"].(string)
-		if !ok {
-			log.Printf("Failed to assert message data type")
-			continue
-		}
-		if err := json.Unmarshal([]byte(data), &cacheMsg); err != nil {
-			log.Printf("Failed to unmarshal message: %v", err)
-			continue
-		}
-		messages = append(messages, cacheMsg)
+
+	// 解析返回结果
+	// XREVRANGE 返回的是 []interface{}，每个元素是 [id, [field, value, ...]]
+	resultSlice, ok := result.([]interface{})
+	if !ok {
+		log.Printf("Failed to parse XREVRANGE result type: %T", result)
+		return nil, nil
 	}
+
+	var messages []CacheMessage
+	for _, item := range resultSlice {
+		msgSlice, ok := item.([]interface{})
+		if !ok || len(msgSlice) < 2 {
+			continue
+		}
+
+		// msgSlice[0] 是消息 ID，msgSlice[1] 是字段值对
+		fields, ok := msgSlice[1].([]interface{})
+		if !ok {
+			continue
+		}
+
+		// 遍历字段值对，找到 "data" 字段
+		for i := 0; i < len(fields)-1; i += 2 {
+			fieldName, ok := fields[i].(string)
+			if !ok || fieldName != "data" {
+				continue
+			}
+			data, ok := fields[i+1].(string)
+			if !ok {
+				continue
+			}
+			var cacheMsg CacheMessage
+			if err := json.Unmarshal([]byte(data), &cacheMsg); err != nil {
+				log.Printf("Failed to unmarshal message: %v", err)
+				continue
+			}
+			messages = append(messages, cacheMsg)
+		}
+	}
+
+	// 反转消息顺序（XREVRANGE 返回的是从新到旧，我们需要从旧到新）
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}
