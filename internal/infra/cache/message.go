@@ -8,8 +8,6 @@ import (
 	"log"
 
 	strconv "strconv"
-
-	"github.com/redis/go-redis/v9"
 )
 
 func (r *RedisCache) streamkey(roomID string) string {
@@ -71,12 +69,14 @@ func (r *RedisCache) GetUnreadCount(ctx context.Context, userID, roomID string) 
 
 	count, err := r.client.Get(key)
 	if err != nil {
-		if err == redis.Nil {
-			return 0, nil
-		}
 		log.Printf("Failed to get unread count for user %s in room %s: %v", userID, roomID, err)
 		return 0, err
 	}
+
+	if count == "" {
+		return 0, nil
+	}
+
 	countInt, err := strconv.ParseInt(count, 10, 64)
 	if err != nil {
 		log.Printf("Failed to parse unread count for user %s in room %s: %v", userID, roomID, err)

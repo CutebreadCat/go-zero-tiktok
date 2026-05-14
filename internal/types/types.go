@@ -208,7 +208,7 @@ type MessageChat struct {
 	RoomID    string `json:"room_id" gorm:"not null;type:varchar(64)"`
 	SenderID  string `json:"sender_id" gorm:"not null;type:varchar(64)"`
 	Content   string `json:"content" gorm:"not null;type:varchar(1024)"`
-	CreatedAt string `json:"created_at" gorm:"autoCreateTime"`
+	CreatedAt string `json:"created_at" `
 }
 
 type MfaqrcodeRequest struct {

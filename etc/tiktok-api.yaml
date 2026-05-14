@@ -20,3 +20,8 @@ Redis:
 Auth:
   AccessSecret: "your_access_secret" # 这个必须和代码里的配置对应
   AccessExpire: 3600                 # 这里对应你的 accesstokenexpire
+
+Kafka:
+  Brokers: ["kafka:9092"]  # Kafka broker 地址
+  Topic: "chat-messages"   # Kafka 主题名称
+  GroupID: "tiktok-consumers-v2" # Kafka 消息消费者组 ID

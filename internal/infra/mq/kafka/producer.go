@@ -16,16 +16,20 @@ type KafakaProducer struct {
 	writer *kafka.Writer
 }
 
-// NewProducer 创建 Kafka Producer（独立构造函数）
+// NewProducer 创建 Kafka Producer（异步模式，批量发送）
 func NewProducer(brokers []string, topic string) *KafakaProducer {
 	return &KafakaProducer{
 		writer: kafka.NewWriter(kafka.WriterConfig{
 			Brokers:      brokers,
 			Topic:        topic,
-			Balancer:     &kafka.Hash{},
+			Balancer:     &kafka.LeastBytes{},
 			WriteTimeout: 10 * time.Second,
 			ReadTimeout:  10 * time.Second,
 			RequiredAcks: int(kafka.RequireOne),
+			Async:        true,                   // 异步模式
+			BatchSize:    10,                     // 每 100 条消息批量发送
+			BatchBytes:   1048576,                // 1MB 批量大小
+			BatchTimeout: 100 * time.Millisecond, // 100ms 超时自动 flush
 		}),
 	}
 }
@@ -34,31 +38,21 @@ func (k *KafakaProducer) SendMessage(ctx context.Context, m *mqcontract.Event) e
 	var payload []byte
 	var err error
 	if payload, err = k.MashalMessage(m); err != nil {
-		log.Printf("Failed to marshal message:%v", err)
+		log.Printf("Failed to marshal message: %v", err)
 		return err
 	}
-	for i := 0; i < 3; i++ {
-		err := k.writer.WriteMessages(ctx, kafka.Message{
-			Key:   m.Msg.Key,
-			Value: payload,
-			Topic: m.Msg.Topic,
-		})
-		if err != nil {
-			if err == kafka.LeaderNotAvailable {
-				log.Printf("Leader not available for topic %s, retrying... (%d/3)", m.Msg.Topic, i+1)
-				time.Sleep(2 * time.Second)
-				continue
-			} else {
-				log.Printf("Failed to send kafka message to topic %s: %v", m.Msg.Topic, err)
-				return err
-			}
 
-		} else {
-			break
-		}
+	log.Printf("🚀 Writing message to Kafka, topic=%s, key=%s", m.Msg.Topic, string(m.Msg.Key))
+	err = k.writer.WriteMessages(ctx, kafka.Message{
+		Key:   m.Msg.Key,
+		Value: payload,
+	})
+	if err != nil {
+		log.Printf("❌ Failed to write kafka message: %v", err)
+		return err
 	}
+	log.Printf("✅ Message written to Kafka successfully")
 	return nil
-
 }
 
 func (k *KafakaProducer) MashalMessage(m *mqcontract.Event) ([]byte, error) {

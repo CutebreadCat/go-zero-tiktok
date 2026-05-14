@@ -54,8 +54,11 @@ func (mm *messageManager) HandleMessage(ctx context.Context, client *Client, msg
 
 	// 2. 异步：发送到 MQ 做持久化 + 更新未读
 	event := NewMessageEvent(MessageTopic, msg.RoomID, client.UserID, msg.Content)
+	log.Printf("Sending message event to Kafka: %+v", event)
 	if err := mm.writer.SendMessage(ctx, event); err != nil {
 		log.Printf("Failed to send message event for user %s in room %s: %v", client.UserID, msg.RoomID, err)
+	} else {
+		log.Printf("Message event sent to Kafka for user %s in room %s", client.UserID, msg.RoomID)
 	}
 }
 
@@ -64,7 +67,23 @@ func (mm *messageManager) HandleGetUnread(ctx context.Context, client *Client, r
 		log.Printf("User %s is not a member of room %s, ignoring get_unread", client.UserID, roomID)
 		return
 	}
+	count, err := mm.cache.GetUnreadCount(ctx, client.UserID, roomID)
+	if err != nil {
+		log.Printf("Failed to get unread count for user %s in room %s: %v", client.UserID, roomID, err)
+		return
+	}
 
+	var messages []cache.CacheMessage
+	if count > 0 {
+		messages, err = mm.cache.GetUnreadMessages(ctx, client.UserID, roomID, count)
+		if err != nil {
+			log.Printf("Failed to get unread messages for user %s in room %s: %v", client.UserID, roomID, err)
+			return
+		}
+	}
+	for _, message := range messages {
+		client.Send <- message
+	}
 	// 发送 MQ 事件，让消费端异步处理
 	event := NewUnreadEvent(MessageTopic, roomID, client.UserID)
 	if err := mm.writer.SendMessage(ctx, event); err != nil {
@@ -73,14 +92,25 @@ func (mm *messageManager) HandleGetUnread(ctx context.Context, client *Client, r
 }
 
 func (mm *messageManager) HandleMessageByUserID(ctx context.Context, userID string, msg *types.MessageChat) {
+	log.Printf("HandleMessageByUserID called, userID: %s, msg: %+v", userID, msg)
+
+	// 生成消息 ID（如果为空）
+	if msg.ID == "" {
+		msg.ID = uuid.New().String()
+	}
+
 	// 1. 添加到缓存
 	if _, err := mm.cache.AddMessage(ctx, msg); err != nil {
 		log.Printf("Failed to add message to cache for room %s: %v", msg.RoomID, err)
+	} else {
+		log.Printf("Message added to cache for room %s", msg.RoomID)
 	}
 
 	// 2. 持久化到数据库
 	if err := mm.repo.StoreChatMessage(ctx, msg); err != nil {
 		log.Printf("Failed to store message from user %s in room %s: %v", userID, msg.RoomID, err)
+	} else {
+		log.Printf("Message stored to database for room %s", msg.RoomID)
 	}
 
 	// 3. 更新未读计数
@@ -88,23 +118,8 @@ func (mm *messageManager) HandleMessageByUserID(ctx context.Context, userID stri
 }
 
 func (mm *messageManager) HandleGetUnreadByUserID(ctx context.Context, userID, roomID string) {
-	count, err := mm.cache.GetUnreadCount(ctx, userID, roomID)
-	if err != nil {
-		log.Printf("Failed to get unread count for user %s in room %s: %v", userID, roomID, err)
-		return
-	}
 
-	var messages []cache.CacheMessage
-	if count > 0 {
-		messages, err = mm.cache.GetUnreadMessages(ctx, userID, roomID, count)
-		if err != nil {
-			log.Printf("Failed to get unread messages for user %s in room %s: %v", userID, roomID, err)
-			return
-		}
-	}
-
-	log.Printf("未读消息: user=%s, room=%s, count=%d", userID, roomID, count)
-	_ = messages // 这里可以通过其他方式发送给用户
+	log.Printf("未读消息: user=%s, room=%s", userID, roomID)
 
 	// 清除未读计数
 	if err := mm.cache.ClearUnread(ctx, userID, roomID); err != nil {
@@ -126,6 +141,13 @@ func (mm *messageManager) UpdateUnreadCount(ctx context.Context, senderID, roomI
 			}
 		}
 	}
+}
+
+func (mm *messageManager) SendUnreadToUser(ctx context.Context, user *Client, messages []cache.CacheMessage) bool {
+	for _, message := range messages {
+		user.Send <- message
+	}
+	return false
 }
 
 // ==================== Client 读写循环 ====================

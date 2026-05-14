@@ -3,16 +3,16 @@ package mqcontract
 import "context"
 
 type Router struct {
-	unreadHandler ConsumerHandler
-	aiHandler     ConsumerHandler
-	roomHandler   ConsumerHandler
+	unreadHandler  ConsumerHandler
+	messageHandler ConsumerHandler
+	roomHandler    ConsumerHandler
 }
 
-func NewRouter(unreadHandler, aiHandler, roomHandler ConsumerHandler) *Router {
+func NewRouter(unreadHandler, messageHandler, roomHandler ConsumerHandler) *Router {
 	return &Router{
-		unreadHandler: unreadHandler,
-		aiHandler:     aiHandler,
-		roomHandler:   roomHandler,
+		unreadHandler:  unreadHandler,
+		messageHandler: messageHandler,
+		roomHandler:    roomHandler,
 	}
 }
 
@@ -21,7 +21,7 @@ func (r *Router) Route(e *Event) ConsumerHandler {
 	case "get_unread":
 		return r.unreadHandler
 	case "message":
-		return r.aiHandler
+		return r.messageHandler
 	case "room":
 		return r.roomHandler
 	default:

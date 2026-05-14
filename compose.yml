@@ -16,8 +16,12 @@ services:
       - GOPROXY=https://goproxy.cn,direct
       - GOSUMDB=sum.golang.org
     depends_on:
-      - redis
-      - mysql
+      redis:
+        condition: service_started
+      mysql:
+        condition: service_started
+      kafka:
+        condition: service_healthy
     restart: always
 
   redis:
@@ -45,17 +49,33 @@ services:
     ports:
       - "9092:9092"
     environment:
-      # 1. 关键配置：允许客户端通过 PLAINTEXT 协议连接（开发环境必备）
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      # 2. 关键配置：这里必须改成你的宿主机 IP，否则外部客户端连不上
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
-      # 3. 自动创建 Topic 开关 (官方镜像默认是 true，写上更保险)
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-
+      # KRaft 模式配置
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
+      # 监听器配置
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      # 自动创建 Topic
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      # Group 协调器配置
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS=1
+      # 消费者组超时配置（给容器启动更多缓冲时间）
+      - KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS=6000
+      - KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS=60000
     volumes:
       - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 volumes:
   redis-data:
   mysql-data:

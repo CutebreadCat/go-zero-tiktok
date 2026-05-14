@@ -37,6 +37,7 @@ func (r *ChatRepo) JoinChatRoom(ctx context.Context, userID string, roomID strin
 	return chattable.JoinChatRoom(ctx, r.db, userID, roomID)
 }
 func (r *ChatRepo) StoreChatMessage(ctx context.Context, message *types.MessageChat) error {
+
 	return chattable.StoreChatMessage(ctx, r.db, message)
 }
 func (r *ChatRepo) GetChatRoomUsers(ctx context.Context, roomID string) ([]string, error) {

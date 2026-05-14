@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"context"
-
 	"log"
 
 	mqcontract "go_zero-tiktok/internal/shared/mq"
@@ -19,7 +18,8 @@ func NewMessageHandler(messages MessageManager) *MessageHandler {
 }
 
 func (h *MessageHandler) Consume(ctx context.Context, e *mqcontract.Event) error {
-	event, ok := e.Data.(MessageEvent)
+	log.Printf("Consume called, event type: %s, data type: %T, data: %+v", e.Type, e.Data, e.Data)
+	event, ok := e.Data.(*MessageEvent)
 	if !ok {
 		log.Printf("Invalid event data type: %T", e.Data)
 		return nil
@@ -46,7 +46,7 @@ func NewUnreadHandler(messages MessageManager) *UnreadHandler {
 }
 
 func (h *UnreadHandler) Consume(ctx context.Context, e *mqcontract.Event) error {
-	event, ok := e.Data.(UnreadEvent)
+	event, ok := e.Data.(*UnreadEvent)
 	if !ok {
 		log.Printf("Invalid event data type: %T", e.Data)
 		return nil
@@ -67,7 +67,7 @@ func NewRoomHandler(rooms RoomManager) *RoomHandler {
 }
 
 func (h *RoomHandler) Consume(ctx context.Context, e *mqcontract.Event) error {
-	event, ok := e.Data.(RoomEvent)
+	event, ok := e.Data.(*RoomEvent)
 	if !ok {
 		log.Printf("Invalid event data type: %T", e.Data)
 		return nil
