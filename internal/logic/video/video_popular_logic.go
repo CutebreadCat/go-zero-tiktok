@@ -41,11 +41,15 @@ func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *
 	if err != nil {
 		return nil, xerr.New(1002, "获取热门视频详情失败，请稍后重试")
 	}
+
+	videoResponses := l.svcCtx.Dal.Video.VideosToResponse(videos)
+	videoPopularResponses := l.svcCtx.Dal.Popular.VideoPopularsToResponse(videoPopulars)
+
 	Items := make([]types.Item, 0)
-	for i := 0; i < len(videos); i++ {
+	for i := 0; i < len(videoResponses); i++ {
 		item := types.Item{
-			Videos:        videos[i],
-			VideosPopular: videoPopulars[i],
+			Videos:        videoResponses[i],
+			VideosPopular: videoPopularResponses[i],
 		}
 		Items = append(Items, item)
 	}

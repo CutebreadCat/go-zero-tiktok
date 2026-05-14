@@ -4,16 +4,15 @@
 package video
 
 import (
+	"context"
 	"io"
+	"log"
 	"net/http"
 
 	"go_zero-tiktok/internal/logic/video"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
-	"log"
-
-	"context"
 
 	"github.com/zeromicro/go-zero/rest/httpx"
 )

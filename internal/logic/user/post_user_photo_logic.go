@@ -44,9 +44,8 @@ func (l *PostUserPhotoLogic) PostUserPhoto(req *types.UserphotoRequest, file mul
 	objectKey := "user_photos/" + userid + "/" + "profile_photo.jpg"
 	logx.WithContext(l.ctx).Infof("生成的对象键: %s", objectKey)
 
-	var userinfo *types.UserBaseinfo
-
-	if userinfo, err = l.svcCtx.Dal.User.GetUserByID(l.ctx, userid); err != nil {
+	userinfo, err := l.svcCtx.Dal.User.GetUserByID(l.ctx, userid)
+	if err != nil {
 		logx.WithContext(l.ctx).Errorf("用户不存在: %v", err)
 		return nil, xerr.New(404, "用户不存在，无法上传头像")
 	}

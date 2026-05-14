@@ -51,7 +51,7 @@ func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *typ
 
 	resp = &types.GetFansListResponse{
 		BaseResponse: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		FansList:     fansList,
+		FansList:     l.svcCtx.Dal.User.UsersToResponse(fansList),
 		FansCount:    int32(total),
 	}
 

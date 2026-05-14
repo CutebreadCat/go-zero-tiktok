@@ -5,7 +5,6 @@ package user
 
 import (
 	"context"
-	"time"
 
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
@@ -40,25 +39,15 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 		return nil, xerr.New(409, "用户名已存在，请更换后重试")
 	}
 
-	user := &types.UserBaseinfo{
-		UserID:    myutils.GenerateUserID(),
-		Username:  req.Username,
-		Password:  myutils.HashPassword(req.Password),
-		PhotoURL:  "",
-		CreatedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		UpdatedAt: myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		DeletedAt: "",
-	}
-
-	if err := l.svcCtx.Dal.User.CreateUser(l.ctx, user); err != nil {
+	userID := myutils.GenerateUserID()
+	if err := l.svcCtx.Dal.User.CreateUserFromParams(l.ctx, userID, req.Username, myutils.HashPassword(req.Password), ""); err != nil {
 		logx.Errorf("failed to create user: %v", err)
-
 		return nil, xerr.New(1002, "注册失败，请稍后重试")
 	}
 
 	resp = &types.RegisterResponse{
 		Base:   types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		UserID: user.UserID,
+		UserID: userID,
 	}
 
 	return

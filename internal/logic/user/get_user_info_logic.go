@@ -47,7 +47,7 @@ func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.
 
 	resp = &types.UserInfoResponse{
 		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		User: *user,
+		User: l.svcCtx.Dal.User.UserToResponse(user),
 	}
 
 	return

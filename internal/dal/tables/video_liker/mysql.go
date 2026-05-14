@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"go_zero-tiktok/internal/svc/xerr"
-	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
@@ -20,12 +19,12 @@ func LikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) error {
 		return xerr.New(400, "用户ID或视频ID为空")
 	}
 
-	like := &types.VideoLiker{
+	like := &VideoLiker{
 		UserID:  userID,
 		VideoID: videoID,
 	}
 
-	var existed types.VideoLiker
+	var existed VideoLiker
 	err := db.WithContext(ctx).Where("user_id = ? AND video_id = ?", userID, videoID).First(&existed).Error
 	if err == nil {
 		return xerr.New(400, "重复点赞")
@@ -46,7 +45,7 @@ func LikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) error {
 func CancelLikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) error {
 	logger := logx.WithContext(ctx)
 
-	result := db.WithContext(ctx).Where("user_id = ? AND video_id = ?", userID, videoID).Delete(&types.VideoLiker{})
+	result := db.WithContext(ctx).Where("user_id = ? AND video_id = ?", userID, videoID).Delete(&VideoLiker{})
 	if result.Error != nil {
 		logger.Errorf("cancel like video failed: %v", result.Error)
 		return result.Error
@@ -71,7 +70,7 @@ func GetLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID string, p
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.VideoLiker{}).Where("user_id = ?", userID)
+	query := db.WithContext(ctx).Model(&VideoLiker{}).Where("user_id = ?", userID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -79,7 +78,7 @@ func GetLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID string, p
 		return nil, 0, xerr.New(1002, "获取点赞视频ID总数失败")
 	}
 
-	var likerRows []types.VideoLiker
+	var likerRows []VideoLiker
 	offset := (pageNumber - 1) * pageSize
 	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&likerRows).Error; err != nil {
 		logger.Errorf("get liked video ids failed: %v", err)
@@ -97,8 +96,8 @@ func GetLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID string, p
 func GetAllLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID string) ([]string, error) {
 	logger := logx.WithContext(ctx)
 
-	var likerRows []types.VideoLiker
-	if err := db.WithContext(ctx).Model(&types.VideoLiker{}).Where("user_id = ?", userID).Find(&likerRows).Error; err != nil {
+	var likerRows []VideoLiker
+	if err := db.WithContext(ctx).Model(&VideoLiker{}).Where("user_id = ?", userID).Find(&likerRows).Error; err != nil {
 		logger.Errorf("get all liked video ids failed: %v", err)
 		return nil, xerr.New(1002, "获取全部点赞视频ID失败")
 	}

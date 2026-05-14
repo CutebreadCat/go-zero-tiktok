@@ -3,10 +3,8 @@ package comment_baseinfo
 import (
 	"context"
 	"errors"
-	"time"
 
 	"go_zero-tiktok/internal/svc/xerr"
-	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
 	"fmt"
@@ -15,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateComment(ctx context.Context, db *gorm.DB, comment *types.CommentBaseinfo) error {
+func CreateComment(ctx context.Context, db *gorm.DB, comment *CommentBaseinfo) error {
 	logger := logx.WithContext(ctx)
 
 	if comment == nil {
@@ -34,7 +32,7 @@ func CreateComment(ctx context.Context, db *gorm.DB, comment *types.CommentBasei
 
 func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID string, userID string) error {
 	logger := logx.WithContext(ctx)
-	var comment types.CommentBaseinfo
+	var comment CommentBaseinfo
 	if err := db.WithContext(ctx).Where("comment_id = ?", commentID).First(&comment).Error; err != nil {
 		logger.Errorf("delete comment failed: %v", err)
 		return xerr.New(400, "评论不存在")
@@ -60,7 +58,7 @@ func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID string, userI
 	return nil
 }
 
-func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, pageNumber, pageSize int32) ([]types.CommentBaseinfo, int64, error) {
+func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, pageNumber, pageSize int32) ([]CommentBaseinfo, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNumber <= 0 {
@@ -70,7 +68,7 @@ func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, page
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.CommentBaseinfo{}).Where("video_id = ?", videoID)
+	query := db.WithContext(ctx).Model(&CommentBaseinfo{}).Where("video_id = ?", videoID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -78,7 +76,7 @@ func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, page
 		return nil, 0, xerr.New(400, "获取评论总数失败")
 	}
 
-	var comments []types.CommentBaseinfo
+	var comments []CommentBaseinfo
 	offset := (pageNumber - 1) * pageSize
 	if err := query.Order("created_at DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&comments).Error; err != nil {
 		logger.Errorf("get comments by video id failed: %v", err)
@@ -90,7 +88,7 @@ func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, page
 func LikeComment(ctx context.Context, db *gorm.DB, commentID string, userID string) error {
 	logger := logx.WithContext(ctx)
 
-	like := types.CommentLiker{
+	like := CommentLiker{
 		UserID:    userID,
 		CommentID: commentID,
 	}
@@ -110,7 +108,7 @@ func LikeComment(ctx context.Context, db *gorm.DB, commentID string, userID stri
 
 func UnlikeComment(ctx context.Context, db *gorm.DB, commentID string, userID string) error {
 	logger := logx.WithContext(ctx)
-	result := db.WithContext(ctx).Where("user_id = ? AND comment_id = ?", userID, commentID).Delete(&types.CommentLiker{})
+	result := db.WithContext(ctx).Where("user_id = ? AND comment_id = ?", userID, commentID).Delete(&CommentLiker{})
 	if result.Error != nil {
 		logger.Errorf("unlike comment failed: %v", result.Error)
 		return xerr.New(400, "取消点赞评论失败,服务器内部出现错误")
@@ -126,15 +124,12 @@ func UnlikeComment(ctx context.Context, db *gorm.DB, commentID string, userID st
 func CommentPareantComment(ctx context.Context, db *gorm.DB, parentCommentID string, commentText string, userID string, videoID string) (string, error) {
 	logger := logx.WithContext(ctx)
 
-	comment := &types.CommentBaseinfo{
+	comment := &CommentBaseinfo{
 		CommentID:       myutils.GenerateCommentID(),
 		UserID:          userID,
 		VideoID:         videoID,
 		Content:         commentText,
 		ParentCommentID: parentCommentID,
-		CreatedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		UpdatedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		DeletedAt:       "",
 	}
 
 	if err := db.WithContext(ctx).Create(comment).Error; err != nil {
@@ -142,5 +137,5 @@ func CommentPareantComment(ctx context.Context, db *gorm.DB, parentCommentID str
 		return "", xerr.New(400, "创建评论失败")
 	}
 
-	return "", nil
+	return comment.CommentID, nil
 }

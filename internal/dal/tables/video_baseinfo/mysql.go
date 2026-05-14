@@ -2,32 +2,30 @@ package video_baseinfo
 
 import (
 	"context"
-
-	"go_zero-tiktok/internal/svc/xerr"
-	"go_zero-tiktok/internal/types"
-
 	"fmt"
 	"strings"
+
+	"go_zero-tiktok/internal/svc/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
 
-func CreateVideo(ctx context.Context, db *gorm.DB, video *types.VideoBaseinfo) error {
+func CreateVideo(ctx context.Context, db *gorm.DB, video *VideoBaseinfo) error {
 	logger := logx.WithContext(ctx)
 
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.WithContext(ctx).Model(&types.VideoBaseinfo{}).Create(video).Error; err != nil {
+		if err := tx.WithContext(ctx).Model(&VideoBaseinfo{}).Create(video).Error; err != nil {
 			return xerr.New(1002, "创建视频失败")
 		}
 
-		popular := &types.VideoPopular{
+		popular := &VideoPopular{
 			VideoID:      video.VideoID,
 			VisitCount:   0,
 			LikeCount:    0,
 			CommentCount: 0,
 		}
-		if err := tx.WithContext(ctx).Model(&types.VideoPopular{}).Create(popular).Error; err != nil {
+		if err := tx.WithContext(ctx).Model(&VideoPopular{}).Create(popular).Error; err != nil {
 			return xerr.New(1002, "创建热门视频记录失败")
 		}
 
@@ -40,7 +38,7 @@ func CreateVideo(ctx context.Context, db *gorm.DB, video *types.VideoBaseinfo) e
 	return nil
 }
 
-func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNum <= 0 {
@@ -50,7 +48,7 @@ func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pag
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.VideoBaseinfo{})
+	query := db.WithContext(ctx).Model(&VideoBaseinfo{})
 	if keyword != "" {
 		query = query.Where("title LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
 	}
@@ -61,7 +59,7 @@ func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pag
 		return nil, 0, xerr.New(1002, "搜索视频总数失败")
 	}
 
-	var videos []types.VideoBaseinfo
+	var videos []VideoBaseinfo
 	offset := (pageNum - 1) * pageSize
 	if err := query.Order("created_at DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&videos).Error; err != nil {
 		logger.Errorf("search videos failed: %v", err)
@@ -71,12 +69,12 @@ func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pag
 	return videos, total, nil
 }
 
-func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]types.VideoBaseinfo, error) {
+func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]VideoBaseinfo, error) {
 	logger := logx.WithContext(ctx)
 	if len(videoIDs) == 0 {
-		return []types.VideoBaseinfo{}, nil
+		return []VideoBaseinfo{}, nil
 	}
-	var videos []types.VideoBaseinfo
+	var videos []VideoBaseinfo
 	// 1. 【新增】手动给每个 ID 加上单引号
 	// 比如把 v123 变成 'v123'
 	quotedIDs := make([]string, len(videoIDs))
@@ -99,7 +97,7 @@ func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]type
 	return videos, nil
 }
 
-func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNum <= 0 {
@@ -109,7 +107,7 @@ func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, page
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.VideoBaseinfo{}).Where("author_id = ?", authorID)
+	query := db.WithContext(ctx).Model(&VideoBaseinfo{}).Where("author_id = ?", authorID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -117,7 +115,7 @@ func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, page
 		return nil, 0, xerr.New(1002, "获取作者视频总数失败")
 	}
 
-	var videos []types.VideoBaseinfo
+	var videos []VideoBaseinfo
 	offset := (pageNum - 1) * pageSize
 	if err := query.Order("created_at DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&videos).Error; err != nil {
 		logger.Errorf("get videos by author failed: %v", err)
@@ -127,7 +125,7 @@ func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, page
 	return videos, total, nil
 }
 
-func GetVideosByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32, videoIDs []string) ([]types.VideoBaseinfo, int64, error) {
+func GetVideosByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32, videoIDs []string) ([]VideoBaseinfo, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNum <= 0 {
@@ -137,7 +135,7 @@ func GetVideosByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize i
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.VideoBaseinfo{})
+	query := db.WithContext(ctx).Model(&VideoBaseinfo{})
 	if len(videoIDs) != 0 {
 		query = query.Where("video_id IN ?", videoIDs)
 	} else {
@@ -150,7 +148,7 @@ func GetVideosByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize i
 		return nil, 0, xerr.New(1002, "获取热门视频总数失败")
 	}
 
-	var videos []types.VideoBaseinfo
+	var videos []VideoBaseinfo
 	offset := (pageNum - 1) * pageSize
 	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&videos).Error; err != nil {
 		logger.Errorf("get videos by visit count failed: %v", err)

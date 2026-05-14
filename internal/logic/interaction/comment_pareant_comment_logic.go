@@ -30,7 +30,6 @@ func NewCommentPareantCommentLogic(ctx context.Context, svcCtx *svc.ServiceConte
 }
 
 func (l *CommentPareantCommentLogic) CommentPareantComment(req *types.CommentPareantCommentRequest) (resp *types.CommentPareantCommentResponse, err error) {
-	// todo: add your logic here and delete this line
 	UserId, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
 		log.Fatalln("获取用户id失败")

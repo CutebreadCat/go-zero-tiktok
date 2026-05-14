@@ -7,12 +7,11 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
-
-	"go_zero-tiktok/internal/svc/xerr"
-	myutils "go_zero-tiktok/internal/utils"
 )
 
 type LikeCommentLogic struct {

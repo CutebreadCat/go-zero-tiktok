@@ -5,13 +5,12 @@ import (
 	"errors"
 
 	"go_zero-tiktok/internal/svc/xerr"
-	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
 
-func CreateUser(ctx context.Context, db *gorm.DB, user *types.UserBaseinfo) error {
+func CreateUser(ctx context.Context, db *gorm.DB, user *UserBaseinfo) error {
 	logger := logx.WithContext(ctx)
 
 	if user == nil {
@@ -24,11 +23,11 @@ func CreateUser(ctx context.Context, db *gorm.DB, user *types.UserBaseinfo) erro
 		logger.Errorf("create user failed: %v", err)
 		return errors.New("创建用户失败")
 	}
-	Usermaf := &types.User_mfa{
+	Usermaf := &UserMFA{
 		UserID:             user.UserID,
 		PasswordHash:       user.Password,
 		MFASecret:          "",
-		MFA_Pending_secret: "",
+		MFAPendingSecret: "",
 	}
 	if err := db.WithContext(ctx).Create(Usermaf).Error; err != nil {
 		logger.Errorf("create user mfa failed: %v", err)
@@ -38,10 +37,10 @@ func CreateUser(ctx context.Context, db *gorm.DB, user *types.UserBaseinfo) erro
 	return nil
 }
 
-func GetUserByID(ctx context.Context, db *gorm.DB, userID string) (*types.UserBaseinfo, error) {
+func GetUserByID(ctx context.Context, db *gorm.DB, userID string) (*UserBaseinfo, error) {
 	logger := logx.WithContext(ctx)
 
-	var user types.UserBaseinfo
+	var user UserBaseinfo
 	err := db.WithContext(ctx).Where("user_id = ?", userID).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -55,10 +54,10 @@ func GetUserByID(ctx context.Context, db *gorm.DB, userID string) (*types.UserBa
 	return &user, nil
 }
 
-func GetUserByUsername(ctx context.Context, db *gorm.DB, username string) (*types.UserBaseinfo, error) {
+func GetUserByUsername(ctx context.Context, db *gorm.DB, username string) (*UserBaseinfo, error) {
 	logger := logx.WithContext(ctx)
 
-	var user types.UserBaseinfo
+	var user UserBaseinfo
 	err := db.WithContext(ctx).Where("username = ?", username).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -77,7 +76,7 @@ func GetUserByUsername(ctx context.Context, db *gorm.DB, username string) (*type
 func UpdateUserPhotoByID(ctx context.Context, db *gorm.DB, userID string, photoURL string) error {
 	logger := logx.WithContext(ctx)
 
-	result := db.WithContext(ctx).Model(&types.UserBaseinfo{}).Where("user_id = ?", userID).Update("photo_url", photoURL)
+	result := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).Update("photo_url", photoURL)
 	if result.Error != nil {
 		logger.Errorf("update user photo failed: %v", result.Error)
 
@@ -92,14 +91,14 @@ func UpdateUserPhotoByID(ctx context.Context, db *gorm.DB, userID string, photoU
 	return nil
 }
 
-func GetUsersByIDs(ctx context.Context, db *gorm.DB, userIDs []string) ([]types.UserBaseinfo, error) {
+func GetUsersByIDs(ctx context.Context, db *gorm.DB, userIDs []string) ([]UserBaseinfo, error) {
 	logger := logx.WithContext(ctx)
 
 	if len(userIDs) == 0 {
-		return []types.UserBaseinfo{}, nil
+		return []UserBaseinfo{}, nil
 	}
 
-	var users []types.UserBaseinfo
+	var users []UserBaseinfo
 	if err := db.WithContext(ctx).Where("user_id IN ?", userIDs).Find(&users).Error; err != nil {
 		logger.Errorf("get users by ids failed: %v", err)
 		return nil, xerr.New(400, "获取用户列表失败")
@@ -109,7 +108,7 @@ func GetUsersByIDs(ctx context.Context, db *gorm.DB, userIDs []string) ([]types.
 
 func CheckUserExistsMFA(ctx context.Context, db *gorm.DB, userID string) (bool, error) {
 	logger := logx.WithContext(ctx)
-	var userMFA types.User_mfa
+	var userMFA UserMFA
 	err := db.WithContext(ctx).Where("user_id = ?", userID).First(&userMFA).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -123,7 +122,7 @@ func CheckUserExistsMFA(ctx context.Context, db *gorm.DB, userID string) (bool, 
 }
 func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID string, secret string) error {
 	logger := logx.WithContext(ctx)
-	result := db.WithContext(ctx).Model(&types.User_mfa{}).Where("user_id = ?", userID).Update("mfa_pending_secret", secret)
+	result := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).Update("mfa_pending_secret", secret)
 	if result.Error != nil {
 		logger.Errorf("update user mfa secret failed: %v", result.Error)
 		return xerr.New(400, "更新用户MFA密钥失败")
@@ -137,8 +136,8 @@ func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID string,
 }
 func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID string) (string, error) {
 	logger := logx.WithContext(ctx)
-	var userMFA types.User_mfa
-	err := db.WithContext(ctx).Model(&types.User_mfa{}).Where("user_id = ?", userID).First(&userMFA).Error
+	var userMFA UserMFA
+	err := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).First(&userMFA).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logger.Infof("user mfa not found for user_id: %s", userID)
@@ -147,13 +146,13 @@ func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID string) (string,
 		logger.Errorf("find user mfa secret failed: %v", err)
 		return "", xerr.New(400, "获取用户MFA密钥失败")
 	}
-	return userMFA.MFA_Pending_secret, nil
+	return userMFA.MFAPendingSecret, nil
 }
 
 func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID string) (string, error) {
 	logger := logx.WithContext(ctx)
-	var userMFA types.User_mfa
-	err := db.WithContext(ctx).Model(&types.User_mfa{}).Where("user_id = ?", userID).First(&userMFA).Error
+	var userMFA UserMFA
+	err := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).First(&userMFA).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logger.Infof("user mfa not found for user_id: %s", userID)

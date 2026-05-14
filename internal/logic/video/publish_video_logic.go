@@ -6,15 +6,13 @@ package video
 import (
 	"bytes"
 	"context"
-	"time"
+	"log"
 
 	"go_zero-tiktok/internal/infra/storage/aliyun"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
-
-	"log"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -54,19 +52,7 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 		return nil, xerr.New(1004, "视频上传失败，请稍后重试")
 	}
 
-	video := &types.VideoBaseinfo{
-		VideoID:     VideoID,
-		AuthorID:    authorID,
-		VideoURL:    Videourl,
-		CoverURL:    "",
-		Title:       req.Title,
-		Description: req.Description,
-		CreatedAt:   myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		UpdatedAt:   myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		DeletedAt:   "",
-	}
-
-	if err := l.svcCtx.Dal.Video.CreateVideo(l.ctx, video); err != nil {
+	if err := l.svcCtx.Dal.Video.CreateVideoFromParams(l.ctx, VideoID, authorID, Videourl, "", req.Title, req.Description); err != nil {
 		log.Printf("创建视频记录失败: %v", err)
 		return nil, xerr.New(1002, "发布视频失败，请稍后重试")
 	}
@@ -75,7 +61,7 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		VideoID: video.VideoID,
+		VideoID: VideoID,
 	}
 
 	return

@@ -31,8 +31,11 @@ func NewGetMfaqrcodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetM
 }
 
 func (l *GetMfaqrcodeLogic) GetMfaqrcode(req *types.MfaqrcodeRequest) (resp *types.MfaqrcodeResponse, err error) {
-	// todo: add your logic here and delete this line
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
+	if err != nil {
+		logx.Errorf("failed to get user id from context, error: %v", err)
+		return nil, err
+	}
 	secret, url, err := mfa.GenerateSecret(l.ctx, userID)
 	if err != nil {
 		logx.Errorf("failed to generate mfa secret for user_id: %s, error: %v", userID, err)

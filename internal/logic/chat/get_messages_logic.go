@@ -56,7 +56,7 @@ func (l *GetMessagesLogic) GetMessages(req *types.GetMessagesRequest) (resp *typ
 		if message == nil {
 			continue
 		}
-		resp.Messages = append(resp.Messages, *message)
+		resp.Messages = append(resp.Messages, l.svcCtx.Dal.Chat.MessageToResponse(message))
 	}
 
 	return resp, nil

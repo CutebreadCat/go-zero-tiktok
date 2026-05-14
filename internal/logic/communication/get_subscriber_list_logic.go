@@ -51,7 +51,7 @@ func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListR
 
 	resp = &types.GetSubscriberListResponse{
 		BaseResponse:    types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		SubscriberList:  subscriberList,
+		SubscriberList:  l.svcCtx.Dal.User.UsersToResponse(subscriberList),
 		SubscriberCount: int32(total),
 	}
 

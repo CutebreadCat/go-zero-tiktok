@@ -44,12 +44,14 @@ func (l *VideoSearchLogic) VideoSearch(req *types.VideoSearchRequest) (resp *typ
 		return nil, xerr.New(1002, "搜索视频失败，请稍后重试")
 	}
 
+	videoResponses := l.svcCtx.Dal.Video.VideosToResponse(videos)
+
 	resp = &types.VideoSearchResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,
 			StatusMsg:  "查询成功",
 		},
-		Videos: videos,
+		Videos: videoResponses,
 	}
 
 	if resp.Videos == nil {

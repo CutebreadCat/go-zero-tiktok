@@ -54,13 +54,7 @@ func (l *CreateChatRoomLogic) CreateChatRoom(req *types.CreateChatRoomRequest) (
 		userSet[uid] = struct{}{}
 	}
 	for uid := range userSet {
-		chatRow := &types.User_chat{
-			UserID:   uid,
-			RoomID:   roomID,
-			Leix:     req.Types,
-			RoomName: req.RoomName,
-		}
-		if err := l.svcCtx.Dal.Chat.CreateChatRoom(l.ctx, chatRow); err != nil {
+		if err := l.svcCtx.Dal.Chat.CreateChatRoomFromParams(l.ctx, uid, roomID, req.Types, req.RoomName); err != nil {
 			return nil, err
 		}
 	}

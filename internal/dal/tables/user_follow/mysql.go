@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"go_zero-tiktok/internal/svc/xerr"
-	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
@@ -24,7 +23,7 @@ func FollowUser(ctx context.Context, db *gorm.DB, followerID, userID string) err
 	}
 
 	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var relation types.UserFollow
+		var relation UserFollow
 		err := tx.Where("follower_id = ? AND user_id = ?", followerID, userID).First(&relation).Error
 		if err == nil {
 			return xerr.New(400, "重复关注")
@@ -48,13 +47,13 @@ func FollowUser(ctx context.Context, db *gorm.DB, followerID, userID string) err
 			status = 1
 		}
 
-		if err := tx.Create(&types.UserFollow{FollowerID: followerID, UserID: userID, Status: status}).Error; err != nil {
+		if err := tx.Create(&UserFollow{FollowerID: followerID, UserID: userID, Status: status}).Error; err != nil {
 			logger.Errorf("create follow relation failed: %v", err)
 			return xerr.New(1002, "创建用户关注关系失败")
 		}
 
 		if mutual {
-			if err := tx.Model(&types.UserFollow{}).
+			if err := tx.Model(&UserFollow{}).
 				Where("follower_id = ? AND user_id = ?", userID, followerID).
 				Update("status", 1).Error; err != nil {
 				logger.Errorf("update reverse follow status failed: %v", err)
@@ -76,7 +75,7 @@ func UnfollowUser(ctx context.Context, db *gorm.DB, followerID, userID string) e
 	}
 
 	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("follower_id = ? AND user_id = ?", followerID, userID).Delete(&types.UserFollow{})
+		result := tx.Where("follower_id = ? AND user_id = ?", followerID, userID).Delete(&UserFollow{})
 		if result.Error != nil {
 			logger.Errorf("delete follow relation failed: %v", result.Error)
 			return xerr.New(1002, "取消关注失败")
@@ -85,7 +84,7 @@ func UnfollowUser(ctx context.Context, db *gorm.DB, followerID, userID string) e
 			return xerr.New(400, "未关注该用户")
 		}
 
-		if err := tx.Model(&types.UserFollow{}).
+		if err := tx.Model(&UserFollow{}).
 			Where("follower_id = ? AND user_id = ?", userID, followerID).
 			Update("status", 0).Error; err != nil {
 			logger.Errorf("downgrade reverse follow status failed: %v", err)
@@ -105,7 +104,7 @@ func CreateUserFollow(ctx context.Context, db *gorm.DB, followerID, userID strin
 		return xerr.New(400, "关注者ID或用户ID为空")
 	}
 
-	relation := &types.UserFollow{
+	relation := &UserFollow{
 		FollowerID: followerID,
 		UserID:     userID,
 		Status:     0,
@@ -123,7 +122,7 @@ func UpdateUserFollowStatus(ctx context.Context, db *gorm.DB, followerID, userID
 	logger := logx.WithContext(ctx)
 
 	result := db.WithContext(ctx).
-		Model(&types.UserFollow{}).
+		Model(&UserFollow{}).
 		Where("follower_id = ? AND user_id = ?", followerID, userID).
 		Update("status", status)
 	if result.Error != nil {
@@ -143,7 +142,7 @@ func UpdateUserFollowStatus(ctx context.Context, db *gorm.DB, followerID, userID
 func GetFollowingISSubriber(ctx context.Context, db *gorm.DB, followerID, userID string) (bool, error) {
 	logger := logx.WithContext(ctx)
 
-	var relation types.UserFollow
+	var relation UserFollow
 	err := db.WithContext(ctx).Where("follower_id = ? AND user_id = ?", followerID, userID).First(&relation).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -155,7 +154,7 @@ func GetFollowingISSubriber(ctx context.Context, db *gorm.DB, followerID, userID
 	return true, nil
 }
 
-func GetFollowingByFollowerID(ctx context.Context, db *gorm.DB, followerID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
+func GetFollowingByFollowerID(ctx context.Context, db *gorm.DB, followerID string, pageNumber, pageSize int32) ([]UserFollow, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNumber <= 0 {
@@ -165,7 +164,7 @@ func GetFollowingByFollowerID(ctx context.Context, db *gorm.DB, followerID strin
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.UserFollow{}).Where("follower_id = ?", followerID)
+	query := db.WithContext(ctx).Model(&UserFollow{}).Where("follower_id = ?", followerID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -173,7 +172,7 @@ func GetFollowingByFollowerID(ctx context.Context, db *gorm.DB, followerID strin
 		return nil, 0, xerr.New(1002, "统计关注列表失败")
 	}
 
-	var relations []types.UserFollow
+	var relations []UserFollow
 	offset := (pageNumber - 1) * pageSize
 	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&relations).Error; err != nil {
 		logger.Errorf("get following list failed: %v", err)
@@ -183,7 +182,7 @@ func GetFollowingByFollowerID(ctx context.Context, db *gorm.DB, followerID strin
 	return relations, total, nil
 }
 
-func GetFansByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
+func GetFansByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]UserFollow, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNumber <= 0 {
@@ -193,7 +192,7 @@ func GetFansByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.UserFollow{}).Where("user_id = ?", userID)
+	query := db.WithContext(ctx).Model(&UserFollow{}).Where("user_id = ?", userID)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -201,7 +200,7 @@ func GetFansByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber
 		return nil, 0, xerr.New(1002, "统计粉丝列表失败")
 	}
 
-	var relations []types.UserFollow
+	var relations []UserFollow
 	offset := (pageNumber - 1) * pageSize
 	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&relations).Error; err != nil {
 		logger.Errorf("get fans list failed: %v", err)
@@ -211,7 +210,7 @@ func GetFansByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber
 	return relations, total, nil
 }
 
-func GetFriendByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
+func GetFriendByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]UserFollow, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNumber <= 0 {
@@ -221,7 +220,7 @@ func GetFriendByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumb
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.UserFollow{}).Where("user_id = ? AND status = ?", userID, 1)
+	query := db.WithContext(ctx).Model(&UserFollow{}).Where("user_id = ? AND status = ?", userID, 1)
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -229,7 +228,7 @@ func GetFriendByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumb
 		return nil, 0, xerr.New(1002, "统计好友列表失败")
 	}
 
-	var relations []types.UserFollow
+	var relations []UserFollow
 	offset := (pageNumber - 1) * pageSize
 	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&relations).Error; err != nil {
 		logger.Errorf("get friends list failed: %v", err)

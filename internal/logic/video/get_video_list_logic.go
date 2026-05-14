@@ -44,9 +44,11 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 		return nil, xerr.New(1002, "获取用户发布视频列表失败，请稍后重试")
 	}
 
+	videoResponses := l.svcCtx.Dal.Video.VideosToResponse(videos)
+
 	resp = &types.GetVideoListResponse{
 		Base:   types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
-		Videos: videos,
+		Videos: videoResponses,
 	}
 	if resp.Videos == nil {
 		resp.Videos = []types.VideoBaseinfo{}

@@ -44,12 +44,27 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 		return nil, xerr.New(1002, "获取点赞视频信息失败，请稍后重试")
 	}
 
+	// 将数据库模型转换为响应类型
+	videoList := make([]types.VideoBaseinfo, 0, len(videos))
+	for _, video := range videos {
+		videoList = append(videoList, types.VideoBaseinfo{
+			VideoID:     video.VideoID,
+			AuthorID:    video.AuthorID,
+			VideoURL:    video.VideoURL,
+			CoverURL:    video.CoverURL,
+			Title:       video.Title,
+			Description: video.Description,
+			CreatedAt:   myutils.TimeToStr(video.CreatedAt, ""),
+			UpdatedAt:   myutils.TimeToStr(video.UpdatedAt, ""),
+		})
+	}
+
 	resp = &types.GetLikeListResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		VideoList: videos,
+		VideoList: videoList,
 		LikeCount: int32(total),
 	}
 

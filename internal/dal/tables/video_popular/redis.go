@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc/xerr"
-	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -15,12 +14,7 @@ const (
 	popularVideosHashKey = "popular_videos:hash"
 )
 
-type PopularVideoWithHeat struct {
-	HeatScore int64               `json:"heat_score"`
-	Video     types.VideoBaseinfo `json:"video"`
-}
-
-func SetPopularVideoToRedis(ctx context.Context, rdb *redis.Redis, video types.VideoPopular) error {
+func SetPopularVideoToRedis(ctx context.Context, rdb *redis.Redis, video VideoPopular) error {
 	logger := logx.WithContext(ctx)
 
 	if ok, err := rdb.Zadd(popularVideosRankKey, video.VisitCount, video.VideoID); !ok {

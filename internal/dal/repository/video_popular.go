@@ -40,6 +40,25 @@ func (r *VideoPopularRepo) UpdateVideoLikeCount(ctx context.Context, videoID str
 	return videopopulartable.UpdateVideoLikeCount(ctx, r.db, videoID, delta)
 }
 
-func (r *VideoPopularRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error) {
+func (r *VideoPopularRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]videopopulartable.VideoPopular, int64, error) {
 	return videopopulartable.GetPopularVideoIDsByVisitCount(ctx, r.db, pageNum, pageSize)
+}
+
+// VideoPopularToResponse 将数据库模型转换为API响应类型
+func (r *VideoPopularRepo) VideoPopularToResponse(popular *videopopulartable.VideoPopular) types.VideoPopular {
+	return types.VideoPopular{
+		VideoID:      popular.VideoID,
+		VisitCount:   popular.VisitCount,
+		LikeCount:    popular.LikeCount,
+		CommentCount: popular.CommentCount,
+	}
+}
+
+// VideoPopularsToResponse 将数据库模型切片转换为API响应类型切片
+func (r *VideoPopularRepo) VideoPopularsToResponse(populars []videopopulartable.VideoPopular) []types.VideoPopular {
+	result := make([]types.VideoPopular, 0, len(populars))
+	for _, p := range populars {
+		result = append(result, r.VideoPopularToResponse(&p))
+	}
+	return result
 }

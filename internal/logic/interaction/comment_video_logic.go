@@ -43,24 +43,14 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 		return nil, xerr.New(400, "评论内容不能为空")
 	}
 
-	comment := &types.CommentBaseinfo{
-		CommentID:       myutils.GenerateCommentID(),
-		UserID:          userID,
-		VideoID:         req.VideoID,
-		Content:         commentText,
-		CreatedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		UpdatedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		DeletedAt:       myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05"),
-		ParentCommentID: "",
-	}
-
-	if err := l.svcCtx.Dal.Comment.CreateComment(l.ctx, comment); err != nil {
+	commentID := myutils.GenerateCommentID()
+	if err := l.svcCtx.Dal.Comment.CreateCommentFromParams(l.ctx, commentID, userID, req.VideoID, commentText, ""); err != nil {
 		return nil, xerr.New(1002, "发布评论失败，请稍后重试")
 	}
 
 	resp = &types.CommentVideoResponse{
 		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "评论发布成功"},
-		CommentID: comment.CommentID,
+		CommentID: commentID,
 	}
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)

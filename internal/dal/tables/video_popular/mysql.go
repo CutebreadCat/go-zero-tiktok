@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc/xerr"
-	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
@@ -13,7 +12,7 @@ import (
 func CreatePopularVideo(ctx context.Context, db *gorm.DB, videoID string) error {
 	logger := logx.WithContext(ctx)
 
-	record := &types.VideoPopular{
+	record := &VideoPopular{
 		VideoID:      videoID,
 		VisitCount:   0,
 		LikeCount:    0,
@@ -36,7 +35,7 @@ func IncreaseVideoVisitCount(ctx context.Context, db *gorm.DB, videoID string, d
 	}
 
 	result := db.WithContext(ctx).
-		Model(&types.VideoPopular{}).
+		Model(&VideoPopular{}).
 		Where("video_id = ?", videoID).
 		Update("visit_count", gorm.Expr("visit_count + ?", delta))
 	if result.Error != nil {
@@ -55,7 +54,7 @@ func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID string, delt
 	logger := logx.WithContext(ctx)
 
 	result := db.WithContext(ctx).
-		Model(&types.VideoPopular{}).
+		Model(&VideoPopular{}).
 		Where("video_id = ?", videoID).
 		Update("like_count", gorm.Expr("CASE WHEN like_count + ? < 0 THEN 0 ELSE like_count + ? END", delta, delta))
 	if result.Error != nil {
@@ -71,7 +70,7 @@ func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID string, delt
 	return nil
 }
 
-func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]types.VideoPopular, int64, error) {
+func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]VideoPopular, int64, error) {
 	logger := logx.WithContext(ctx)
 
 	if pageNum <= 0 {
@@ -81,7 +80,7 @@ func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, p
 		pageSize = 10
 	}
 
-	query := db.WithContext(ctx).Model(&types.VideoPopular{})
+	query := db.WithContext(ctx).Model(&VideoPopular{})
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
@@ -89,7 +88,7 @@ func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, p
 		return nil, 0, xerr.New(1002, "获取热门视频总数失败")
 	}
 
-	var rows []types.VideoPopular
+	var rows []VideoPopular
 	offset := (pageNum - 1) * pageSize
 	if err := query.Order("visit_count DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&rows).Error; err != nil {
 		logger.Errorf("get popular videos failed: %v", err)
@@ -103,7 +102,7 @@ func IncrVideoVisitCountInDB(ctx context.Context, db *gorm.DB, videoID string) e
 	logger := logx.WithContext(ctx)
 
 	result := db.WithContext(ctx).
-		Model(&types.VideoPopular{}).
+		Model(&VideoPopular{}).
 		Where("video_id = ?", videoID).
 		Update("visit_count", gorm.Expr("visit_count + 1"))
 	if result.Error != nil {
@@ -118,9 +117,9 @@ func IncrVideoVisitCountInDB(ctx context.Context, db *gorm.DB, videoID string) e
 	return nil
 }
 
-func GetVideoPopularByVideoID(ctx context.Context, db *gorm.DB, videoID string) (*types.VideoPopular, error) {
+func GetVideoPopularByVideoID(ctx context.Context, db *gorm.DB, videoID string) (*VideoPopular, error) {
 	logger := logx.WithContext(ctx)
-	var videoPopular types.VideoPopular
+	var videoPopular VideoPopular
 	if err := db.WithContext(ctx).Where("video_id = ?", videoID).First(&videoPopular).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			logger.Errorf("video %s not found in DB", videoID)

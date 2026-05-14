@@ -46,9 +46,15 @@ func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (
 		return nil, xerr.New(1002, "获取评论列表失败，请稍后重试")
 	}
 
+	// 将数据库模型转换为响应类型
+	commentList := make([]types.CommentBaseinfo, 0, len(comments))
+	for _, comment := range comments {
+		commentList = append(commentList, l.svcCtx.Dal.Comment.CommentToResponse(&comment))
+	}
+
 	resp = &types.GetCommentListResponse{
 		Base:         types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
-		CommentList:  comments,
+		CommentList:  commentList,
 		CommentCount: int32(total),
 	}
 	if resp.CommentList == nil {
