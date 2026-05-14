@@ -43,7 +43,7 @@ func NewMessageEvent(topic string, roomID, senderID, content string) *mqcontract
 			Topic: topic,
 			Key:   []byte(roomID),
 		},
-		Data: MessageEvent{
+		Data: &MessageEvent{
 			RoomID:   roomID,
 			SenderID: senderID,
 			Content:  content,
@@ -59,7 +59,7 @@ func NewUnreadEvent(topic string, roomID, userID string) *mqcontract.Event {
 			Topic: topic,
 			Key:   []byte(roomID),
 		},
-		Data: UnreadEvent{
+		Data: &UnreadEvent{
 			RoomID: roomID,
 			UserID: userID,
 		},
@@ -74,7 +74,7 @@ func NewRoomEvent(topic, action, roomID, userID string) *mqcontract.Event {
 			Topic: topic,
 			Key:   []byte(roomID),
 		},
-		Data: RoomEvent{
+		Data: &RoomEvent{
 			Action: action,
 			RoomID: roomID,
 			UserID: userID,

@@ -30,28 +30,37 @@ func NewPartition(reader Readder, pool *mq.WorkerPool) *Partition {
 }
 
 func (p *Partition) Start(ctx context.Context) {
+	log.Printf("🚀 Partition fetcher starting...")
 	go func() {
+		log.Printf("✅ Partition fetcher goroutine started")
 		for {
 			select {
 			case <-ctx.Done():
+				log.Printf("🛑 Partition fetcher stopped: %v", ctx.Err())
 				return
 			default:
 				event, err := p.reader.Fetch(ctx)
 				if err != nil {
-					log.Printf("拉取消息失败: %v", err)
-					time.Sleep(time.Second) // 避免疯狂重试
+					if err == context.DeadlineExceeded {
+						continue
+					}
+					log.Printf("❌ Partition fetch error: %v", err)
+					time.Sleep(2 * time.Second)
 					continue
 				}
 
-				// 封装提交 Offset 的回调函数
+				log.Printf("📨 Partition fetched message: key=%s, topic=%s", string(event.Msg.Key), event.Msg.Topic)
+
 				msg := event.Msg
 				commitFunc := func() {
-					if err := p.reader.Commit(ctx, msg); err != nil {
-						log.Printf("提交 Offset 失败: %v", err)
+					err := p.reader.Commit(ctx, msg)
+					if err != nil {
+						log.Printf("❌ Failed to commit message: %v", err)
+					} else {
+						log.Printf("✅ Message committed: key=%s", string(msg.Key))
 					}
 				}
 
-				// 将业务消息和提交回调一起丢给 WorkerPool
 				p.pool.Submit(event, commitFunc)
 			}
 		}

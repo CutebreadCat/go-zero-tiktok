@@ -2,7 +2,6 @@ package mq
 
 import (
 	"context"
-	"log"
 
 	mqcontract "go_zero-tiktok/internal/shared/mq"
 )
@@ -33,7 +32,7 @@ func NewWorkerPool(workers int, queueSize int, h mqcontract.ConsumerHandler) *Wo
 
 func (p *WorkerPool) Start(ctx context.Context) {
 	for i := 0; i < p.workers; i++ {
-		go func() {
+		go func(workerID int) {
 			for {
 				select {
 				case <-ctx.Done():
@@ -41,7 +40,6 @@ func (p *WorkerPool) Start(ctx context.Context) {
 				case job := <-p.queue:
 					err := p.handler.Consume(ctx, job.Msg)
 					if err != nil {
-						log.Printf("消息处理失败: %v", err)
 						continue
 					}
 					if job.Commit != nil {
@@ -49,7 +47,7 @@ func (p *WorkerPool) Start(ctx context.Context) {
 					}
 				}
 			}
-		}()
+		}(i)
 	}
 }
 
