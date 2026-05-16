@@ -127,3 +127,9 @@ func (r *UserBaseinfoRepo) FindUserMFASecret(ctx context.Context, userID string)
 func (r *UserBaseinfoRepo) FindUserPendMFASecret(ctx context.Context, userID string) (string, error) {
 	return userbasetable.FindUserPendMFASecret(ctx, r.db, userID)
 }
+func (r *UserBaseinfoRepo) UpdateUserJwchInfo(ctx context.Context, userID string, jwchID string, jwchPassword string) error {
+	return userbasetable.UpdateUserJwchInfo(ctx, r.db, userID, jwchID, jwchPassword)
+}
+func (r *UserBaseinfoRepo) GetUserJwchInfo(ctx context.Context, userID string) (string, string, error) {
+	return userbasetable.GetUserJwchInfo(ctx, r.db, userID)
+}

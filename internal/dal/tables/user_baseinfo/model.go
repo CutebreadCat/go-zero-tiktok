@@ -6,13 +6,15 @@ import (
 
 // UserBaseinfo 用户基础信息数据库模型
 type UserBaseinfo struct {
-	UserID    string     `gorm:"primaryKey;type:varchar(64);column:user_id"`
-	Username  string     `gorm:"unique;type:varchar(64);column:username"`
-	Password  string     `gorm:"not null;type:varchar(255);column:password"`
-	PhotoURL  string     `gorm:"not null;type:varchar(255);column:photo_url"`
-	CreatedAt time.Time  `gorm:"autoCreateTime;column:created_at"`
-	UpdatedAt time.Time  `gorm:"autoUpdateTime;column:updated_at"`
-	DeletedAt *time.Time `gorm:"column:deleted_at"`
+	UserID       string     `gorm:"primaryKey;type:varchar(64);column:user_id"`
+	Username     string     `gorm:"unique;type:varchar(64);column:username"`
+	Password     string     `gorm:"not null;type:varchar(255);column:password"`
+	PhotoURL     string     `gorm:"not null;type:varchar(255);column:photo_url"`
+	JwchID       string     `gorm:"default:null;type:varchar(10);column:jwch_id"`
+	JwchPassword string     `gorm:"default:null;type:varchar(15);column:jwch_password"`
+	CreatedAt    time.Time  `gorm:"autoCreateTime;column:created_at"`
+	UpdatedAt    time.Time  `gorm:"autoUpdateTime;column:updated_at"`
+	DeletedAt    *time.Time `gorm:"column:deleted_at"`
 }
 
 func (UserBaseinfo) TableName() string {

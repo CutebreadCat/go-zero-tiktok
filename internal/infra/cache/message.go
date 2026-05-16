@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go_zero-tiktok/internal/domain/websocket"
 	"go_zero-tiktok/internal/types"
 	"log"
 
@@ -16,17 +17,12 @@ func (r *RedisCache) streamkey(roomID string) string {
 func (r *RedisCache) Unreadkey(userid, roomid string) string {
 	return fmt.Sprintf("unread:%s:%s", userid, roomid)
 }
-
-type CacheMessage struct {
-	ID        string `json:"id"`
-	RoomID    string `json:"room_id"`
-	SenderID  string `json:"sender_id"`
-	Context   string `json:"context"`
-	CreatedAt string `json:"created_at"`
+func (r *RedisCache) AiChatKey(roomID, userid string) string {
+	return fmt.Sprintf("aichat:%s:%s", userid, roomID)
 }
 
 func (r *RedisCache) AddMessage(ctx context.Context, message *types.MessageChat) (string, error) {
-	cacheMsg := CacheMessage{
+	cacheMsg := websocket.CacheMessage{
 		ID:        message.ID,
 		RoomID:    message.RoomID,
 		SenderID:  message.SenderID,
@@ -86,7 +82,7 @@ func (r *RedisCache) GetUnreadCount(ctx context.Context, userID, roomID string) 
 
 }
 
-func (r *RedisCache) GetUnreadMessages(ctx context.Context, userID, roomID string, count int64) ([]CacheMessage, error) {
+func (r *RedisCache) GetMessages(ctx context.Context, userID, roomID string, count int64) ([]websocket.CacheMessage, error) {
 	messagekey := r.streamkey(roomID)
 
 	// 使用 Do 方法执行 XREVRANGE 命令
@@ -104,7 +100,7 @@ func (r *RedisCache) GetUnreadMessages(ctx context.Context, userID, roomID strin
 		return nil, nil
 	}
 
-	var messages []CacheMessage
+	var messages []websocket.CacheMessage
 	for _, item := range resultSlice {
 		msgSlice, ok := item.([]interface{})
 		if !ok || len(msgSlice) < 2 {
@@ -127,7 +123,7 @@ func (r *RedisCache) GetUnreadMessages(ctx context.Context, userID, roomID strin
 			if !ok {
 				continue
 			}
-			var cacheMsg CacheMessage
+			var cacheMsg websocket.CacheMessage
 			if err := json.Unmarshal([]byte(data), &cacheMsg); err != nil {
 				log.Printf("Failed to unmarshal message: %v", err)
 				continue
@@ -147,6 +143,47 @@ func (r *RedisCache) ClearUnread(ctx context.Context, userID, roomID string) err
 	_, err := r.client.Del(key)
 	if err != nil {
 		log.Printf("Failed to clear unread count for user %s in room %s: %v", userID, roomID, err)
+		return err
+	}
+	return nil
+}
+
+func (r *RedisCache) IncrAIMessage(ctx context.Context, userID, roomID string) error {
+	key := r.AiChatKey(roomID, userID)
+	_, err := r.client.Incr(key)
+	if err != nil {
+		log.Printf("Failed to increment unread count for user %s in room %s: %v", userID, roomID, err)
+		return err
+	}
+	return nil
+}
+func (r *RedisCache) GetAIMessageCount(ctx context.Context, userID, roomID string) (int64, error) {
+	key := r.AiChatKey(roomID, userID)
+
+	count, err := r.client.Get(key)
+	if err != nil {
+		log.Printf("Failed to get unread count for user %s in room %s: %v", userID, roomID, err)
+		return 0, err
+	}
+
+	if count == "" {
+		return 0, nil
+	}
+
+	countInt, err := strconv.ParseInt(count, 10, 64)
+	if err != nil {
+		log.Printf("Failed to parse unread count for user %s in room %s: %v", userID, roomID, err)
+		return 0, err
+	}
+	return countInt, nil
+
+}
+
+func (r *RedisCache) ClearAIMessage(ctx context.Context, userID, roomID string) error {
+	key := r.AiChatKey(roomID, userID)
+	_, err := r.client.Del(key)
+	if err != nil {
+		log.Printf("Failed to clear AI message count for user %s in room %s: %v", userID, roomID, err)
 		return err
 	}
 	return nil

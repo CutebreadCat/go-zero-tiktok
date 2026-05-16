@@ -3,7 +3,6 @@ package websocket
 import (
 	"context"
 
-	"go_zero-tiktok/internal/infra/cache"
 	mqcontract "go_zero-tiktok/internal/shared/mq"
 	"go_zero-tiktok/internal/types"
 )
@@ -14,7 +13,7 @@ import (
 type MessageCache interface {
 	AddMessage(ctx context.Context, message *types.MessageChat) (string, error)
 	IncrUnread(ctx context.Context, userID, roomID string) error
-	GetUnreadMessages(ctx context.Context, userID, roomID string, count int64) ([]cache.CacheMessage, error)
+	GetUnreadMessages(ctx context.Context, userID, roomID string, count int64) ([]CacheMessage, error)
 	GetUnreadCount(ctx context.Context, userID, roomID string) (int64, error)
 	ClearUnread(ctx context.Context, userID, roomID string) error
 }
@@ -41,8 +40,16 @@ type MessageManager interface {
 
 // UnreadResponse 未读消息响应
 type UnreadResponse struct {
-	Typek    string               `json:"typek"`
-	RoomID   string               `json:"room_id"`
-	Count    int64                `json:"count"`
-	Messages []cache.CacheMessage `json:"messages"`
+	Typek    string         `json:"typek"`
+	RoomID   string         `json:"room_id"`
+	Count    int64          `json:"count"`
+	Messages []CacheMessage `json:"messages"`
+}
+
+type CacheMessage struct {
+	ID        string `json:"id"`
+	RoomID    string `json:"room_id"`
+	SenderID  string `json:"sender_id"`
+	Context   string `json:"context"`
+	CreatedAt string `json:"created_at"`
 }

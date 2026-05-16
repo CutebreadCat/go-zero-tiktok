@@ -24,9 +24,9 @@ func CreateUser(ctx context.Context, db *gorm.DB, user *UserBaseinfo) error {
 		return errors.New("创建用户失败")
 	}
 	Usermaf := &UserMFA{
-		UserID:             user.UserID,
-		PasswordHash:       user.Password,
-		MFASecret:          "",
+		UserID:           user.UserID,
+		PasswordHash:     user.Password,
+		MFASecret:        "",
 		MFAPendingSecret: "",
 	}
 	if err := db.WithContext(ctx).Create(Usermaf).Error; err != nil {
@@ -162,4 +162,36 @@ func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID string) (str
 		return "", xerr.New(400, "获取用户MFA密钥失败")
 	}
 	return userMFA.MFASecret, nil
+}
+
+func UpdateUserJwchInfo(ctx context.Context, db *gorm.DB, userID string, jwchID string, jwchPassword string) error {
+	logger := logx.WithContext(ctx)
+	result := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).Updates(map[string]interface{}{
+		"jwch_id":       jwchID,
+		"jwch_password": jwchPassword,
+	})
+	if result.Error != nil {
+		logger.Errorf("update user jwch info failed: %v", result.Error)
+		return xerr.New(400, "更新用户教务处信息失败")
+	}
+	if result.RowsAffected == 0 {
+		err := gorm.ErrRecordNotFound
+		logger.Errorf("update user jwch info failed, user not found: %v", err)
+		return xerr.New(400, "没有进行更新")
+	}
+	return nil
+}
+func GetUserJwchInfo(ctx context.Context, db *gorm.DB, userID string) (string, string, error) {
+	logger := logx.WithContext(ctx)
+	var user UserBaseinfo
+	err := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Infof("user not found for user_id: %s", userID)
+			return "", "", xerr.New(400, "用户不存在")
+		}
+		logger.Errorf("get user jwch info failed: %v", err)
+		return "", "", xerr.New(400, "获取用户教务处信息失败")
+	}
+	return user.JwchID, user.JwchPassword, nil
 }
