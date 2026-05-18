@@ -8,7 +8,6 @@ import (
 
 	"go_zero-tiktok/internal/config"
 	"go_zero-tiktok/internal/domain/websocket"
-	"go_zero-tiktok/internal/infra/cache"
 	mykafka "go_zero-tiktok/internal/infra/mq/kafka"
 	mqcontract "go_zero-tiktok/internal/shared/mq"
 )
@@ -36,7 +35,7 @@ type MQComponents struct {
 }
 
 // InitMQ 初始化 MQ 组件
-func InitMQ(cfg config.KafkaConfig, hub *websocket.Hub, c *cache.RedisCache) *MQComponents {
+func InitMQ(cfg config.KafkaConfig, hub *websocket.Hub, aiChat *websocket.AIChat) *MQComponents {
 	log.Printf("🚀 初始化 MQ 组件...")
 	log.Printf("Kafka Producer 配置：Brokers=%v, Topic=%s", cfg.Brokers, cfg.Topic)
 	log.Printf("Kafka Consumer 配置：Brokers=%v, Topic=%s, GroupID=%s", cfg.Brokers, cfg.Topic, cfg.GroupID)
@@ -45,6 +44,7 @@ func InitMQ(cfg config.KafkaConfig, hub *websocket.Hub, c *cache.RedisCache) *MQ
 	mqcontract.RegisterEventFactory(websocket.EventTypeMessage, func() any { return &websocket.MessageEvent{} })
 	mqcontract.RegisterEventFactory(websocket.EventTypeUnread, func() any { return &websocket.UnreadEvent{} })
 	mqcontract.RegisterEventFactory(websocket.EventTypeRoom, func() any { return &websocket.RoomEvent{} })
+	mqcontract.RegisterEventFactory(websocket.EventTypeAIChat, func() any { return &websocket.AIChatEvent{} })
 
 	// 1. 创建 Kafka Producer
 	producer := mykafka.NewProducer(cfg.Brokers, cfg.Topic)
@@ -60,10 +60,11 @@ func InitMQ(cfg config.KafkaConfig, hub *websocket.Hub, c *cache.RedisCache) *MQ
 	// 4. 创建业务 Handler
 	messageHandler := websocket.NewMessageHandler(hub.Messages())
 	unreadHandler := websocket.NewUnreadHandler(hub.Messages())
-	log.Printf("✅ MessageHandler 和 UnreadHandler 创建成功")
+	aiChatHandler := websocket.NewAIChatHandler(aiChat, hub.Rooms())
+	log.Printf("✅ MessageHandler、UnreadHandler 和 AIChatHandler 创建成功")
 
 	// 5. 创建 Router 和 Consumer
-	router := mqcontract.NewRouter(unreadHandler, messageHandler, nil)
+	router := mqcontract.NewRouter(unreadHandler, messageHandler, nil, aiChatHandler)
 	consumer := &mqcontract.Consumer{Router: router}
 	log.Printf("✅ Router 和 Consumer 创建成功")
 

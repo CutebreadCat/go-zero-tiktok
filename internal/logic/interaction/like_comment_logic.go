@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package interaction
 
 import (
@@ -31,20 +28,15 @@ func NewLikeCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeC
 func (l *LikeCommentLogic) LikeComment(req *types.LikeCommentRequest) (resp *types.LikeCommentResponse, err error) {
 	userId, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		logx.Errorf("获取用户id失败: %v", err)
-		return nil, xerr.New(401, "用户未登录或登录已过期")
+		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
 	}
 	if userId == "" {
-		logx.Error("用户id为空")
-		return nil, xerr.New(401, "用户未登录或登录已过期")
+		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
 	}
 	if req.Liketype != 1 && req.Liketype != 0 {
-		logx.Errorf("无效的点赞类型: %d", req.Liketype)
-		return nil, xerr.New(400, "无效的点赞类型")
+		return nil, xerr.NewInvalidParam("无效的点赞类型")
 	}
 	if err = l.svcCtx.Dal.Comment.LikeComment(l.ctx, req.CommentID, userId, req.Liketype); err != nil {
-		logx.Errorf("操作失败: %v", err)
-
 		return nil, err
 	}
 	resp = &types.LikeCommentResponse{

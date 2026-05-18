@@ -8,6 +8,7 @@ import (
 
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
+	myutils "go_zero-tiktok/internal/utils"
 
 	"github.com/west2-online/jwch"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -43,7 +44,17 @@ func (l *JwchLoginLogic) JwchLogin(req *types.JwchLoginRequest) (resp *types.Jwc
 		}, nil
 	}
 	// 登录成功，更新数据库中的用户信息
-	err = l.svcCtx.Dal.User.UpdateUserJwchInfo(l.ctx, req.Username, req.Username, req.Password)
+	var userid string
+	userid, err = myutils.GetUserIDFromContext(l.ctx)
+	if err != nil {
+		return &types.JwchLoginResponse{
+			Base: types.BaseResponse{
+				StatusCode: 400,
+				StatusMsg:  "获取用户ID失败",
+			},
+		}, nil
+	}
+	err = l.svcCtx.Dal.User.UpdateUserJwchInfo(l.ctx, userid, req.Username, req.Password)
 	if err != nil {
 		return &types.JwchLoginResponse{
 			Base: types.BaseResponse{

@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package interaction
 
 import (
@@ -30,14 +27,14 @@ func NewDeleteCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Del
 
 func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentRequest) (resp *types.DeleteCommentResponse, err error) {
 	if req.CommentID == "" {
-		return nil, xerr.New(400, "评论ID不能为空")
+		return nil, xerr.NewInvalidParam("评论ID不能为空")
 	}
 	userid, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.New(1002, "获取用户ID失败，请稍后重试")
+		return nil, xerr.NewUnauthorized("获取用户ID失败")
 	}
 	if err := l.svcCtx.Dal.Comment.DeleteCommentByID(l.ctx, req.CommentID, userid); err != nil {
-		return nil, xerr.New(1002, "删除评论失败，请稍后重试")
+		return nil, err
 	}
 
 	resp = &types.DeleteCommentResponse{

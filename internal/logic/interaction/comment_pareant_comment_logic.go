@@ -1,11 +1,7 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package interaction
 
 import (
 	"context"
-	"log"
 
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
@@ -32,13 +28,11 @@ func NewCommentPareantCommentLogic(ctx context.Context, svcCtx *svc.ServiceConte
 func (l *CommentPareantCommentLogic) CommentPareantComment(req *types.CommentPareantCommentRequest) (resp *types.CommentPareantCommentResponse, err error) {
 	UserId, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		log.Fatalln("获取用户id失败")
-		return nil, xerr.New(401, "用户未登录或登录已过期")
+		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
 	}
 
 	var CommentId string
 	if CommentId, err = l.svcCtx.Dal.Comment.CommentParentComent(l.ctx, UserId, req.CommentText, req.ParentCommentID); err != nil {
-		log.Printf("comment parent comment failed: %v", err)
 		return nil, err
 	}
 	resp = &types.CommentPareantCommentResponse{

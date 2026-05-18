@@ -13,9 +13,10 @@ import (
 type MessageCache interface {
 	AddMessage(ctx context.Context, message *types.MessageChat) (string, error)
 	IncrUnread(ctx context.Context, userID, roomID string) error
-	GetUnreadMessages(ctx context.Context, userID, roomID string, count int64) ([]CacheMessage, error)
+	GetMessages(ctx context.Context, userID, roomID string, count int64) ([]CacheMessage, error)
 	GetUnreadCount(ctx context.Context, userID, roomID string) (int64, error)
 	ClearUnread(ctx context.Context, userID, roomID string) error
+	IncrAIMessage(ctx context.Context, userID, roomID string) error
 }
 
 // MessageRepository 消息持久化接口
@@ -34,6 +35,10 @@ type MessageManager interface {
 	HandleGetUnread(ctx context.Context, client *Client, roomID string)
 	HandleMessageByUserID(ctx context.Context, userID string, msg *types.MessageChat)
 	HandleGetUnreadByUserID(ctx context.Context, userID, roomID string)
+}
+type AiMessageManager interface {
+	CheckAndEnqueue(ctx context.Context, userID, roomID string, msg *types.MessageChat) (bool, error)
+	ExecuteAI(ctx context.Context, userID, roomID string) (Message, error)
 }
 
 // ==================== 模型定义 ====================

@@ -6,7 +6,6 @@ import (
 
 	"go_zero-tiktok/internal/svc/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
@@ -18,13 +17,11 @@ func userLikedVideosSetKey(userID string) string {
 
 func AddVideoLike(ctx context.Context, rdb *redis.Redis, userID, videoID string) error {
 	if rdb == nil {
-		logx.WithContext(ctx).Error("Redis client is not initialized")
-		return xerr.ErrRedisError
+		return xerr.Wrap(xerr.ErrRedisError, "redis client is not initialized")
 	}
 
 	if _, err := rdb.SaddCtx(ctx, userLikedVideosSetKey(userID), videoID); err != nil {
-		logx.WithContext(ctx).Errorf("add video like to redis failed: %v", err)
-		return err
+		return xerr.Wrap(err, "add video like to redis failed")
 	}
 
 	return nil
@@ -32,11 +29,11 @@ func AddVideoLike(ctx context.Context, rdb *redis.Redis, userID, videoID string)
 
 func RemoveVideoLike(ctx context.Context, rdb *redis.Redis, userID, videoID string) error {
 	if rdb == nil {
-		return xerr.ErrRedisError
+		return xerr.Wrap(xerr.ErrRedisError, "redis client is not initialized")
 	}
 
 	if _, err := rdb.SremCtx(ctx, userLikedVideosSetKey(userID), videoID); err != nil {
-		return err
+		return xerr.Wrap(err, "remove video like from redis failed")
 	}
 
 	return nil
@@ -44,7 +41,7 @@ func RemoveVideoLike(ctx context.Context, rdb *redis.Redis, userID, videoID stri
 
 func GetLikedVideoIDs(ctx context.Context, rdb *redis.Redis, userID string, pageNumber, pageSize int32) ([]string, int64, error) {
 	if rdb == nil {
-		return nil, 0, xerr.ErrRedisError
+		return nil, 0, xerr.Wrap(xerr.ErrRedisError, "redis client is not initialized")
 	}
 
 	if pageNumber <= 0 {
@@ -56,13 +53,12 @@ func GetLikedVideoIDs(ctx context.Context, rdb *redis.Redis, userID string, page
 
 	all, err := rdb.SmembersCtx(ctx, userLikedVideosSetKey(userID))
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, xerr.Wrap(err, "get liked video ids from redis failed")
 	}
 	if len(all) == 0 {
 		return nil, 0, nil
 	}
 
-	// Redis Set is unordered; sort to keep pagination stable.
 	sort.Strings(all)
 	total := int64(len(all))
 
@@ -80,12 +76,12 @@ func GetLikedVideoIDs(ctx context.Context, rdb *redis.Redis, userID string, page
 
 func ResetLikedVideoIDs(ctx context.Context, rdb *redis.Redis, userID string, videoIDs []string) error {
 	if rdb == nil {
-		return xerr.ErrRedisError
+		return xerr.Wrap(xerr.ErrRedisError, "redis client is not initialized")
 	}
 
 	key := userLikedVideosSetKey(userID)
 	if _, err := rdb.DelCtx(ctx, key); err != nil {
-		return err
+		return xerr.Wrap(err, "reset liked video ids in redis failed")
 	}
 	if len(videoIDs) == 0 {
 		return nil
@@ -96,7 +92,7 @@ func ResetLikedVideoIDs(ctx context.Context, rdb *redis.Redis, userID string, vi
 		values = append(values, id)
 	}
 	if _, err := rdb.SaddCtx(ctx, key, values...); err != nil {
-		return err
+		return xerr.Wrap(err, "reset liked video ids in redis failed")
 	}
 
 	return nil

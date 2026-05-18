@@ -1,10 +1,10 @@
 package ai
 
 import (
-	"os"
-
 	"context"
 	"fmt"
+	"go_zero-tiktok/internal/svc/xerr"
+	"os"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -19,19 +19,28 @@ type Agent struct {
 	model        string
 }
 
-func NewAgent(mcp *FuuMCP) *Agent {
+func NewAgent(ctx context.Context) (*Agent, error) {
+	mcp, err := NewFuuMCPClient(ctx)
+	if err != nil {
+		return nil, xerr.Wrap(err, "NewAgent.NewFuuMCPClient")
+	}
+	config := openai.DefaultConfig(os.Getenv("XIAOMI_AI_KEY"))
+	config.BaseURL = "https://token-plan-cn.xiaomimimo.com/v1"
 	return &Agent{
-		openaiClient: openai.NewClient(os.Getenv("XIAOMI_AI_KEY")),
+		openaiClient: openai.NewClientWithConfig(config),
 		mcpClient:    mcp,
 		model:        aimodel,
-	}
+	}, nil
 }
 func (a *Agent) Run(ctx context.Context, messages []openai.ChatCompletionMessage, jwchid, jwchpassword string) (string, error) {
 
 	auth, err := JwchLoginFunc(ctx, jwchid, jwchpassword)
+	if err != nil {
+		return "", xerr.Wrap(err, "Agent.Run.JwchLoginFunc")
+	}
 	tools, err := a.mcpClient.ListMCPTools(ctx)
 	if err != nil {
-		return "", err
+		return "", xerr.Wrap(err, "Agent.Run.ListMCPTools")
 	}
 
 	for i := 0; i < 10; i++ {
@@ -44,7 +53,7 @@ func (a *Agent) Run(ctx context.Context, messages []openai.ChatCompletionMessage
 			},
 		)
 		if err != nil {
-			return "", err
+			return "", xerr.Wrap(err, "Agent.Run.CreateChatCompletion")
 		}
 
 		msg := resp.Choices[0].Message
@@ -57,7 +66,7 @@ func (a *Agent) Run(ctx context.Context, messages []openai.ChatCompletionMessage
 		for _, tc := range msg.ToolCalls {
 			toolMsg, err := a.mcpClient.CallMCPTool(ctx, tc, &auth)
 			if err != nil {
-				return "", err
+				return "", xerr.Wrap(err, "Agent.Run.CallMCPTool")
 			}
 
 			messages = append(messages, *toolMsg)

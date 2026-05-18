@@ -2,7 +2,7 @@ package ai
 
 import (
 	"context"
-	"log"
+	"go_zero-tiktok/internal/svc/xerr"
 
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -20,13 +20,11 @@ func JwchLoginFunc(ctx context.Context, userid, password string) (JwchLogin, err
 	jwchClient.Password = password
 	err := jwchClient.Login()
 	if err != nil {
-		log.Printf("Failed to login to JWCH: %v", err)
-		return JwchLogin{}, err
+		return JwchLogin{}, xerr.Wrap(err, "JwchLoginFunc.Login")
 	}
 	user, cookie, err := jwchClient.GetIdentifierAndCookies()
 	if err != nil {
-		log.Printf("Failed to get identifier and cookies from JWCH: %v", err)
-		return JwchLogin{}, err
+		return JwchLogin{}, xerr.Wrap(err, "JwchLoginFunc.GetIdentifierAndCookies")
 	}
 	jwchcookie := myutils.ParseCookieTostring(cookie)
 	return JwchLogin{

@@ -1,13 +1,9 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package video
 
 import (
 	"context"
 
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -30,7 +26,7 @@ func NewVideoPopularLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Vide
 func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *types.VideoPopularResponse, err error) {
 	videoPopulars, _, err := l.svcCtx.Dal.Popular.GetPopularVideoIDsByVisitCount(l.ctx, req.PageNum, req.PageSize)
 	if err != nil {
-		return nil, xerr.New(1002, "获取热门视频失败，请稍后重试")
+		return nil, err
 	}
 	videoIDs := make([]string, 0)
 	for _, videoPopular := range videoPopulars {
@@ -39,7 +35,7 @@ func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *
 
 	videos, err := l.svcCtx.Dal.Video.GetVideosByIDs(l.ctx, videoIDs)
 	if err != nil {
-		return nil, xerr.New(1002, "获取热门视频详情失败，请稍后重试")
+		return nil, err
 	}
 
 	videoResponses := l.svcCtx.Dal.Video.VideosToResponse(videos)

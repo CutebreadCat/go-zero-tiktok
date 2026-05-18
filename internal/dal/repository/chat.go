@@ -7,10 +7,10 @@ import (
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
+	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
-// UserChatToResponse 将数据库模型转换为API响应类型
 func (r *ChatRepo) UserChatToResponse(chat *chattable.UserChat) types.User_chat {
 	return types.User_chat{
 		UserID:   chat.UserID,
@@ -20,7 +20,6 @@ func (r *ChatRepo) UserChatToResponse(chat *chattable.UserChat) types.User_chat 
 	}
 }
 
-// MessageToResponse 将数据库模型转换为API响应类型
 func (r *ChatRepo) MessageToResponse(msg *chattable.MessageChat) types.MessageChat {
 	return types.MessageChat{
 		ID:        msg.ID,
@@ -31,7 +30,6 @@ func (r *ChatRepo) MessageToResponse(msg *chattable.MessageChat) types.MessageCh
 	}
 }
 
-// MessagesToResponse 将数据库模型切片转换为API响应类型切片
 func (r *ChatRepo) MessagesToResponse(msgs []*chattable.MessageChat) []types.MessageChat {
 	result := make([]types.MessageChat, 0, len(msgs))
 	for _, msg := range msgs {
@@ -51,10 +49,12 @@ func NewChatRepo(db *gorm.DB) *ChatRepo {
 }
 
 func (r *ChatRepo) CreateChatRoom(ctx context.Context, chat *chattable.UserChat) error {
-	return chattable.CreateChatRoom(ctx, r.db, chat)
+	if err := chattable.CreateChatRoom(ctx, r.db, chat); err != nil {
+		return pkgerrors.WithMessage(err, "ChatRepo.CreateChatRoom")
+	}
+	return nil
 }
 
-// CreateChatRoomFromParams 通过参数创建聊天室，logic层不需要知道数据库模型
 func (r *ChatRepo) CreateChatRoomFromParams(ctx context.Context, userID, roomID string, leix int32, roomName string) error {
 	chat := &chattable.UserChat{
 		UserID:   userID,
@@ -62,14 +62,16 @@ func (r *ChatRepo) CreateChatRoomFromParams(ctx context.Context, userID, roomID 
 		Leix:     leix,
 		RoomName: roomName,
 	}
-	return chattable.CreateChatRoom(ctx, r.db, chat)
+	if err := chattable.CreateChatRoom(ctx, r.db, chat); err != nil {
+		return pkgerrors.WithMessage(err, "ChatRepo.CreateChatRoomFromParams")
+	}
+	return nil
 }
 
 func (r *ChatRepo) CreateChatMessage(ctx context.Context, message *types.MessageChat) error {
-	// 将 API 类型转换为数据库模型
 	createdAt, err := myutils.StrToTime(message.CreatedAt, "")
 	if err != nil {
-		return err
+		return pkgerrors.WithMessage(err, "ChatRepo.CreateChatMessage: parse created_at")
 	}
 	chatMsg := &chattable.MessageChat{
 		ID:        message.ID,
@@ -78,25 +80,39 @@ func (r *ChatRepo) CreateChatMessage(ctx context.Context, message *types.Message
 		Content:   message.Content,
 		CreatedAt: createdAt,
 	}
-	return chattable.CreateChatMessage(ctx, r.db, chatMsg)
+	if err := chattable.CreateChatMessage(ctx, r.db, chatMsg); err != nil {
+		return pkgerrors.WithMessage(err, "ChatRepo.CreateChatMessage")
+	}
+	return nil
 }
 
 func (r *ChatRepo) GetChatRoomMessage(ctx context.Context, roomID string, pageSize int, pageNum int) ([]*chattable.MessageChat, error) {
-	return chattable.GetChatRoomMessage(ctx, r.db, roomID, pageSize, pageNum)
+	msgs, err := chattable.GetChatRoomMessage(ctx, r.db, roomID, pageSize, pageNum)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "ChatRepo.GetChatRoomMessage")
+	}
+	return msgs, nil
 }
 
 func (r *ChatRepo) GetJoinRooms(ctx context.Context, userID string) ([]string, error) {
-	return chattable.GetJoinRooms(ctx, r.db, userID)
+	rooms, err := chattable.GetJoinRooms(ctx, r.db, userID)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "ChatRepo.GetJoinRooms")
+	}
+	return rooms, nil
 }
 
 func (r *ChatRepo) JoinChatRoom(ctx context.Context, userID string, roomID string) error {
-	return chattable.JoinChatRoom(ctx, r.db, userID, roomID)
+	if err := chattable.JoinChatRoom(ctx, r.db, userID, roomID); err != nil {
+		return pkgerrors.WithMessage(err, "ChatRepo.JoinChatRoom")
+	}
+	return nil
 }
+
 func (r *ChatRepo) StoreChatMessage(ctx context.Context, message *types.MessageChat) error {
-	// 将 API 类型转换为数据库模型
 	createdAt, err := myutils.StrToTime(message.CreatedAt, "")
 	if err != nil {
-		return err
+		return pkgerrors.WithMessage(err, "ChatRepo.StoreChatMessage: parse created_at")
 	}
 	chatMsg := &chattable.MessageChat{
 		ID:        message.ID,
@@ -105,8 +121,16 @@ func (r *ChatRepo) StoreChatMessage(ctx context.Context, message *types.MessageC
 		Content:   message.Content,
 		CreatedAt: createdAt,
 	}
-	return chattable.StoreChatMessage(ctx, r.db, chatMsg)
+	if err := chattable.StoreChatMessage(ctx, r.db, chatMsg); err != nil {
+		return pkgerrors.WithMessage(err, "ChatRepo.StoreChatMessage")
+	}
+	return nil
 }
+
 func (r *ChatRepo) GetChatRoomUsers(ctx context.Context, roomID string) ([]string, error) {
-	return chattable.GetChatRoomUsers(ctx, r.db, roomID)
+	users, err := chattable.GetChatRoomUsers(ctx, r.db, roomID)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "ChatRepo.GetChatRoomUsers")
+	}
+	return users, nil
 }

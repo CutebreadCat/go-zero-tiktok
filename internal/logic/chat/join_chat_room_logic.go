@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package chat
 
 import (
@@ -31,10 +28,10 @@ func NewJoinChatRoomLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Join
 func (l *JoinChatRoomLogic) JoinChatRoom(req *types.JoinChatRoomRequest) (resp *types.JoinChatRoomResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 	if req.RoomID == "" {
-		return nil, xerr.New(400, "聊天室ID不能为空")
+		return nil, xerr.NewInvalidParam("聊天室ID不能为空")
 	}
 	if err := l.svcCtx.Dal.Chat.JoinChatRoom(l.ctx, userID, req.RoomID); err != nil {
 		return nil, err

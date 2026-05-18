@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package chat
 
 import (
@@ -29,7 +26,7 @@ func NewGetMessagesLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMe
 
 func (l *GetMessagesLogic) GetMessages(req *types.GetMessagesRequest) (resp *types.GetMessagesResponse, err error) {
 	if req.RoomID == "" {
-		return nil, xerr.New(400, "聊天室ID不能为空")
+		return nil, xerr.NewInvalidParam("聊天室ID不能为空")
 	}
 	pageSize := int(req.PageSize)
 	pageNumber := int(req.PageNumber)

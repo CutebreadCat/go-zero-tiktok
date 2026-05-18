@@ -1,10 +1,8 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package video
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go_zero-tiktok/internal/svc"
@@ -36,12 +34,12 @@ func (l *VideoSearchLogic) VideoSearch(req *types.VideoSearchRequest) (resp *typ
 		req.PageSize = 10
 	}
 	if req.PageSize > 100 {
-		return nil, xerr.New(400, "每页数量不能超过100")
+		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}
 
 	videos, _, err := l.svcCtx.Dal.Video.SearchVideosByKeyword(l.ctx, req.Keyword, req.PageNum, req.PageSize)
 	if err != nil {
-		return nil, xerr.New(1002, "搜索视频失败，请稍后重试")
+		return nil, err
 	}
 
 	videoResponses := l.svcCtx.Dal.Video.VideosToResponse(videos)
@@ -66,10 +64,9 @@ func (l *VideoSearchLogic) VideoSearch(req *types.VideoSearchRequest) (resp *typ
 		defer cancel()
 		for _, video := range videos {
 			if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, video.VideoID, 1); err != nil {
-				logx.Errorf("increment visit count failed for video %s: %v", video.VideoID, err)
+				fmt.Printf("increment visit count failed for video %s: %v\n", video.VideoID, err)
 			}
 		}
-
 	}()
 
 	return resp, nil

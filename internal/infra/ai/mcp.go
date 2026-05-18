@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"go_zero-tiktok/internal/svc/xerr"
 
 	mcpclient "github.com/mark3labs/mcp-go/client"
 	mcptransport "github.com/mark3labs/mcp-go/client/transport"
@@ -19,15 +19,13 @@ type FuuMCP struct {
 func NewFuuMCPClient(ctx context.Context) (*FuuMCP, error) {
 	transport, err := mcptransport.NewStreamableHTTP("https://fzuhelper.west2.online/mcp")
 	if err != nil {
-		log.Printf("Failed to create MCP transport: %v", err)
-		return nil, err
+		return nil, xerr.Wrap(err, "NewFuuMCPClient.NewStreamableHTTP")
 	}
 	mcpClient := mcpclient.NewClient(transport)
 
 	_, err = mcpClient.Initialize(ctx, mcpprotocol.InitializeRequest{})
 	if err != nil {
-		log.Printf("Failed to initialize MCP client: %v", err)
-		return nil, err
+		return nil, xerr.Wrap(err, "NewFuuMCPClient.Initialize")
 	}
 
 	return &FuuMCP{client: mcpClient}, nil
@@ -36,8 +34,7 @@ func NewFuuMCPClient(ctx context.Context) (*FuuMCP, error) {
 func (f *FuuMCP) ListMCPTools(ctx context.Context) ([]openai.Tool, error) {
 	listResp, err := f.client.ListTools(ctx, mcpprotocol.ListToolsRequest{})
 	if err != nil {
-		log.Printf("Failed to list MCP tools: %v", err)
-		return nil, err
+		return nil, xerr.Wrap(err, "FuuMCP.ListMCPTools")
 	}
 	tools := make([]openai.Tool, len(listResp.Tools))
 	for i, tool := range listResp.Tools {
@@ -57,13 +54,12 @@ func (f *FuuMCP) CallMCPTool(ctx context.Context, tc openai.ToolCall, auth *Jwch
 
 	if tc.Function.Arguments != "" {
 		if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
-			return nil, err
+			return nil, xerr.Wrap(err, "FuuMCP.CallMCPTool.Unmarshal")
 		}
 	} else {
 		args = make(map[string]any)
 	}
 
-	// 2. 自动注入 student_id 和 cookie
 	if auth != nil {
 		if auth.JwchId != "" {
 			args["user_id"] = auth.JwchId
@@ -73,10 +69,9 @@ func (f *FuuMCP) CallMCPTool(ctx context.Context, tc openai.ToolCall, auth *Jwch
 		}
 	}
 
-	// 3. 重新编码为 JSON
 	finalArgs, err := json.Marshal(args)
 	if err != nil {
-		return nil, err
+		return nil, xerr.Wrap(err, "FuuMCP.CallMCPTool.Marshal")
 	}
 	result, err := f.client.CallTool(ctx, mcpprotocol.CallToolRequest{
 		Params: mcpprotocol.CallToolParams{
@@ -97,8 +92,7 @@ func (f *FuuMCP) CallMCPTool(ctx context.Context, tc openai.ToolCall, auth *Jwch
 	}
 	jsonResult, err := result.MarshalJSON()
 	if err != nil {
-		log.Printf("Failed to marshal MCP tool result: %v", err)
-		return nil, err
+		return nil, xerr.Wrap(err, "FuuMCP.CallMCPTool.MarshalJSON")
 	}
 	msg := openai.ChatCompletionMessage{
 		Role:       openai.ChatMessageRoleTool,

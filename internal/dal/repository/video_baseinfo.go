@@ -7,6 +7,7 @@ import (
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
+	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -19,10 +20,12 @@ func NewVideoBaseinfoRepo(db *gorm.DB) *VideoBaseinfoRepo {
 }
 
 func (r *VideoBaseinfoRepo) CreateVideo(ctx context.Context, video *videobasetable.VideoBaseinfo) error {
-	return videobasetable.CreateVideo(ctx, r.db, video)
+	if err := videobasetable.CreateVideo(ctx, r.db, video); err != nil {
+		return pkgerrors.WithMessage(err, "VideoBaseinfoRepo.CreateVideo")
+	}
+	return nil
 }
 
-// CreateVideoFromParams 通过参数创建视频，logic层不需要知道数据库模型
 func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, authorID, videoURL, coverURL, title, description string) error {
 	video := &videobasetable.VideoBaseinfo{
 		VideoID:     videoID,
@@ -32,26 +35,44 @@ func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, 
 		Title:       title,
 		Description: description,
 	}
-	return videobasetable.CreateVideo(ctx, r.db, video)
+	if err := videobasetable.CreateVideo(ctx, r.db, video); err != nil {
+		return pkgerrors.WithMessage(err, "VideoBaseinfoRepo.CreateVideoFromParams")
+	}
+	return nil
 }
 
 func (r *VideoBaseinfoRepo) SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSize int32) ([]videobasetable.VideoBaseinfo, int64, error) {
-	return videobasetable.SearchVideosByKeyword(ctx, r.db, keyword, pageNum, pageSize)
+	videos, total, err := videobasetable.SearchVideosByKeyword(ctx, r.db, keyword, pageNum, pageSize)
+	if err != nil {
+		return nil, 0, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.SearchVideosByKeyword")
+	}
+	return videos, total, nil
 }
 
 func (r *VideoBaseinfoRepo) GetVideosByIDs(ctx context.Context, videoIDs []string) ([]videobasetable.VideoBaseinfo, error) {
-	return videobasetable.GetVideosByIDs(ctx, r.db, videoIDs)
+	videos, err := videobasetable.GetVideosByIDs(ctx, r.db, videoIDs)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideosByIDs")
+	}
+	return videos, nil
 }
 
 func (r *VideoBaseinfoRepo) GetVideosByAuthorID(ctx context.Context, authorID string, pageNum, pageSize int32) ([]videobasetable.VideoBaseinfo, int64, error) {
-	return videobasetable.GetVideosByAuthorID(ctx, r.db, authorID, pageNum, pageSize)
+	videos, total, err := videobasetable.GetVideosByAuthorID(ctx, r.db, authorID, pageNum, pageSize)
+	if err != nil {
+		return nil, 0, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideosByAuthorID")
+	}
+	return videos, total, nil
 }
 
 func (r *VideoBaseinfoRepo) GetVideosByVisitCount(ctx context.Context, pageNum, pageSize int32, videoIDs []string) ([]videobasetable.VideoBaseinfo, int64, error) {
-	return videobasetable.GetVideosByVisitCount(ctx, r.db, pageNum, pageSize, videoIDs)
+	videos, total, err := videobasetable.GetVideosByVisitCount(ctx, r.db, pageNum, pageSize, videoIDs)
+	if err != nil {
+		return nil, 0, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideosByVisitCount")
+	}
+	return videos, total, nil
 }
 
-// VideoToResponse 将数据库模型转换为API响应类型
 func (r *VideoBaseinfoRepo) VideoToResponse(video *videobasetable.VideoBaseinfo) types.VideoBaseinfo {
 	return types.VideoBaseinfo{
 		VideoID:     video.VideoID,
@@ -66,7 +87,6 @@ func (r *VideoBaseinfoRepo) VideoToResponse(video *videobasetable.VideoBaseinfo)
 	}
 }
 
-// VideosToResponse 将数据库模型切片转换为API响应类型切片
 func (r *VideoBaseinfoRepo) VideosToResponse(videos []videobasetable.VideoBaseinfo) []types.VideoBaseinfo {
 	result := make([]types.VideoBaseinfo, 0, len(videos))
 	for _, v := range videos {
@@ -74,4 +94,3 @@ func (r *VideoBaseinfoRepo) VideosToResponse(videos []videobasetable.VideoBasein
 	}
 	return result
 }
-

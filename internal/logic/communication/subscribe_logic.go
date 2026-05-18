@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package communication
 
 import (
@@ -31,11 +28,11 @@ func NewSubscribeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Subscri
 func (l *SubscribeLogic) Subscribe(req *types.SubscribeRequest) (resp *types.SubscribeResponse, err error) {
 	followerID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
 	if req.ToUserID == "" {
-		return nil, xerr.New(400, "被关注用户ID不能为空")
+		return nil, xerr.NewInvalidParam("被关注用户ID不能为空")
 	}
 
 	switch req.ActionType {
@@ -44,7 +41,7 @@ func (l *SubscribeLogic) Subscribe(req *types.SubscribeRequest) (resp *types.Sub
 	case 0:
 		err = l.svcCtx.Dal.UserFollow.UnfollowUser(l.ctx, followerID, req.ToUserID)
 	default:
-		return nil, xerr.New(400, "操作类型无效，仅支持1(关注)或0(取关)")
+		return nil, xerr.NewInvalidParam("操作类型无效，仅支持1(关注)或0(取关)")
 	}
 
 	if err != nil {

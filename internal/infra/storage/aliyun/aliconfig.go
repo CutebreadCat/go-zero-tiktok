@@ -3,7 +3,6 @@ package aliyun
 import (
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/spf13/viper"
@@ -28,7 +27,7 @@ func GetAliConfig() {
 	viper.AddConfigPath("internal/infra/storage/aliyun")
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("read aliyun config failed: %v", err)
+		fmt.Printf("读取阿里云配置失败: %v\n", err)
 		return
 	}
 
@@ -36,7 +35,7 @@ func GetAliConfig() {
 	AliConf.OSSAccess.Secret = viper.GetString("oss_access.secret")
 	AliConf.OSSAccess.Endpoint = viper.GetString("oss_access.endpoint")
 	AliConf.OSSAccess.BucketName = viper.GetString("oss_access.bucket_name")
-	log.Println("aliyun config loaded")
+	fmt.Println("阿里云配置已加载")
 }
 
 func AliInit() {
@@ -45,18 +44,18 @@ func AliInit() {
 	accessKeySecret := AliConf.OSSAccess.Secret
 
 	if endpoint == "" || accessKeyID == "" || accessKeySecret == "" {
-		log.Println("aliyun config is incomplete, oss upload is disabled")
+		fmt.Println("阿里云配置不完整，OSS 上传已禁用")
 		return
 	}
 
 	client, err := oss.New(endpoint, accessKeyID, accessKeySecret)
 	if err != nil {
-		log.Printf("init aliyun oss client failed: %v", err)
+		fmt.Printf("初始化阿里云 OSS 客户端失败: %v\n", err)
 		return
 	}
 
 	AliClient = client
-	log.Println("aliyun oss client initialized")
+	fmt.Println("阿里云 OSS 客户端已初始化")
 }
 
 func UploadFileToOSS(localFilePath, objectKey string) (string, error) {

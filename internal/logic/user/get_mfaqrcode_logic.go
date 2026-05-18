@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package user
 
 import (
@@ -8,6 +5,7 @@ import (
 	"net/http"
 
 	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 
 	mfa "go_zero-tiktok/internal/middleware/mfa"
@@ -33,18 +31,15 @@ func NewGetMfaqrcodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetM
 func (l *GetMfaqrcodeLogic) GetMfaqrcode(req *types.MfaqrcodeRequest) (resp *types.MfaqrcodeResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		logx.Errorf("failed to get user id from context, error: %v", err)
-		return nil, err
+		return nil, xerr.NewUnauthorized("获取用户ID失败")
 	}
 	secret, url, err := mfa.GenerateSecret(l.ctx, userID)
 	if err != nil {
-		logx.Errorf("failed to generate mfa secret for user_id: %s, error: %v", userID, err)
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetMfaqrcode.GenerateSecret")
 	}
 	err = l.svcCtx.Dal.User.UpdateUserMFAPendingSecret(l.ctx, userID, secret)
 	if err != nil {
-		logx.Errorf("failed to update user mfa pending secret for user_id: %s, error: %v", userID, err)
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetMfaqrcode.UpdateUserMFAPendingSecret")
 	}
 	resp = &types.MfaqrcodeResponse{
 		Mfa_secret: secret,

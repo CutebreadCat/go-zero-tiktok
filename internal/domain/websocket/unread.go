@@ -2,61 +2,57 @@ package websocket
 
 import (
 	"context"
-	"log"
+	"fmt"
 )
-
-// ==================== 未读消息处理 ====================
 
 func (mm *messageManager) HandleGetUnread(ctx context.Context, client *Client, roomID string) {
 	if !mm.rooms.IsMember(client, roomID) {
-		log.Printf("User %s is not a member of room %s, ignoring get_unread", client.UserID, roomID)
+		fmt.Printf("用户 %s 不是房间 %s 的成员，忽略获取未读\n", client.UserID, roomID)
 		return
 	}
 	count, err := mm.cache.GetUnreadCount(ctx, client.UserID, roomID)
 	if err != nil {
-		log.Printf("Failed to get unread count for user %s in room %s: %v", client.UserID, roomID, err)
+		fmt.Printf("获取用户 %s 在房间 %s 的未读计数失败: %v\n", client.UserID, roomID, err)
 		return
 	}
 
 	var messages []CacheMessage
 	if count > 0 {
-		messages, err = mm.cache.GetUnreadMessages(ctx, client.UserID, roomID, count)
+		messages, err = mm.cache.GetMessages(ctx, client.UserID, roomID, count)
 		if err != nil {
-			log.Printf("Failed to get unread messages for user %s in room %s: %v", client.UserID, roomID, err)
+			fmt.Printf("获取用户 %s 在房间 %s 的未读消息失败: %v\n", client.UserID, roomID, err)
 			return
 		}
 	}
 	for _, message := range messages {
 		client.Send <- message
 	}
-	// 发送 MQ 事件，让消费端异步处理
 	event := NewUnreadEvent(MessageTopic, roomID, client.UserID)
 	if err := mm.writer.SendMessage(ctx, event); err != nil {
-		log.Printf("Failed to send unread event for user %s in room %s: %v", client.UserID, roomID, err)
+		fmt.Printf("发送未读事件到 Kafka 失败 (用户 %s, 房间 %s): %v\n", client.UserID, roomID, err)
 	}
 }
 
 func (mm *messageManager) HandleGetUnreadByUserID(ctx context.Context, userID, roomID string) {
 
-	log.Printf("未读消息: user=%s, room=%s", userID, roomID)
+	fmt.Printf("处理未读消息: user=%s, room=%s\n", userID, roomID)
 
-	// 清除未读计数
 	if err := mm.cache.ClearUnread(ctx, userID, roomID); err != nil {
-		log.Printf("Failed to clear unread for user %s in room %s: %v", userID, roomID, err)
+		fmt.Printf("清除用户 %s 在房间 %s 的未读失败: %v\n", userID, roomID, err)
 	}
 }
 
 func (mm *messageManager) UpdateUnreadCount(ctx context.Context, senderID, roomID string) {
 	users, err := mm.roomRepo.GetChatRoomUsers(ctx, roomID)
 	if err != nil {
-		log.Printf("Failed to get room users for room %s: %v", roomID, err)
+		fmt.Printf("获取房间 %s 的用户列表失败: %v\n", roomID, err)
 		return
 	}
-	log.Printf("Updating unread count for room %s, users: %v", roomID, users)
+	fmt.Printf("更新房间 %s 的未读计数，用户: %v\n", roomID, users)
 	for _, userID := range users {
 		if userID != senderID {
 			if err = mm.cache.IncrUnread(ctx, userID, roomID); err != nil {
-				log.Printf("Failed to increment unread count for user %s in room %s: %v", userID, roomID, err)
+				fmt.Printf("增加用户 %s 在房间 %s 的未读计数失败: %v\n", userID, roomID, err)
 			}
 		}
 	}

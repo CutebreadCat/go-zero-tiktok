@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package communication
 
 import (
@@ -31,12 +28,12 @@ func NewGetSubscriberListLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListRequest) (resp *types.GetSubscriberListResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
 	relations, total, err := l.svcCtx.Dal.UserFollow.GetFollowingByFollowerID(l.ctx, userID, req.PageNumber, req.PageSize)
 	if err != nil {
-		return nil, xerr.New(1002, "获取关注列表失败，请稍后重试")
+		return nil, err
 	}
 
 	subscriberIDs := make([]string, 0, len(relations))
@@ -46,7 +43,7 @@ func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListR
 
 	subscriberList, err := l.svcCtx.Dal.User.GetUsersByIDs(l.ctx, subscriberIDs)
 	if err != nil {
-		return nil, xerr.New(1002, "获取关注用户信息失败，请稍后重试")
+		return nil, err
 	}
 
 	resp = &types.GetSubscriberListResponse{

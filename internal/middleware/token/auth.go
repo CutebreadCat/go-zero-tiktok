@@ -11,8 +11,6 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
-const invalidTokenMsg = "token无效"
-
 func WithAuth(secret string) rest.RunOption {
 	return func(server *rest.Server) {
 		rest.WithUnauthorizedCallback(UnauthorizedCallback)(server)
@@ -21,7 +19,7 @@ func WithAuth(secret string) rest.RunOption {
 }
 
 func UnauthorizedCallback(w http.ResponseWriter, r *http.Request, err error) {
-	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, invalidTokenResponse())
+	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, xerr.NewUnauthorized("token无效").(*xerr.CodeError).HandleResponse())
 }
 
 func AuthMiddleware(secret string) rest.Middleware {
@@ -34,13 +32,13 @@ func AuthMiddleware(secret string) rest.Middleware {
 
 			accessToken := extractAccessToken(r)
 			if accessToken == "" {
-				httpx.ErrorCtx(r.Context(), w, invalidTokenError())
+				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token无效"))
 				return
 			}
 
 			claims, err := ParseToken(secret, accessToken)
 			if err != nil || claims.Claims.TokenType != AccessTokenType {
-				httpx.ErrorCtx(r.Context(), w, invalidTokenError())
+				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token无效"))
 				return
 			}
 
@@ -48,17 +46,6 @@ func AuthMiddleware(secret string) rest.Middleware {
 			next(w, r.WithContext(ctx))
 		}
 	}
-}
-
-func invalidTokenError() error {
-	return xerr.New(http.StatusUnauthorized, invalidTokenMsg)
-}
-
-func invalidTokenResponse() *xerr.ApiResponse {
-	return (&xerr.CodeError{
-		Code: http.StatusUnauthorized,
-		Msg:  invalidTokenMsg,
-	}).ToResponse()
 }
 
 func isPublicPath(path string) bool {

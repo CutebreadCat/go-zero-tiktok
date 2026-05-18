@@ -1,44 +1,142 @@
 package xerr
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
 
-// CodeError 自定义错误结构
+	pkgerrors "github.com/pkg/errors"
+)
+
+var ErrRedisError = errors.New("redis error")
+
+const (
+	ServerBusy   = 1001
+	InvalidParam = 1002
+	Unauthorized = 401
+)
+
 type CodeError struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
+	err  error
 }
 
-// 实现 error 接口
 func (e *CodeError) Error() string {
+	if e.err != nil {
+		return fmt.Sprintf("Code: %d, Msg: %s, Err: %v", e.Code, e.Msg, e.err)
+	}
 	return fmt.Sprintf("Code: %d, Msg: %s", e.Code, e.Msg)
 }
 
-// 快捷构造函数
+func (e *CodeError) Unwrap() error {
+	return e.err
+}
+
+func (e *CodeError) Cause() error {
+	return e.err
+}
+
 func New(code int, msg string) error {
 	return &CodeError{Code: code, Msg: msg}
 }
 
-// 预定义一些常用错误
-var (
-	ErrInvalidParam  = New(400, "请求参数错误")
-	ErrUnauthorized  = New(401, "用户未登录")
-	ErrUserNotFound  = New(1001, "用户不存在")
-	ErrMysqlError    = New(1002, "数据库错误")
-	ErrRedisError    = New(1003, "缓存错误")
-	ErrInternalError = New(1004, "服务器内部错误")
-	ErrNotFound      = New(404, "资源未找到")
-)
+func NewServerBusy() error {
+	return &CodeError{Code: ServerBusy, Msg: "系统繁忙"}
+}
+
+func WrapServerBusy(err error) error {
+	return &CodeError{Code: ServerBusy, Msg: "系统繁忙", err: err}
+}
+
+func NewInvalidParam(msg string) error {
+	return &CodeError{Code: InvalidParam, Msg: msg}
+}
+
+func NewUnauthorized(msg string) error {
+	return &CodeError{Code: Unauthorized, Msg: msg}
+}
+
+func WithMessage(err error, message string) error {
+	return pkgerrors.WithMessage(err, message)
+}
+
+func WithMessagef(err error, format string, args ...interface{}) error {
+	return pkgerrors.WithMessagef(err, format, args...)
+}
+
+func Wrap(err error, message string) error {
+	return pkgerrors.Wrap(err, message)
+}
+
+func Wrapf(err error, format string, args ...interface{}) error {
+	return pkgerrors.Wrapf(err, format, args...)
+}
+
+func Cause(err error) error {
+	return pkgerrors.Cause(err)
+}
+
+func HandleDaoError(err error, context string) error {
+	var codeErr *CodeError
+	if errors.As(err, &codeErr) {
+		return err
+	}
+	return &CodeError{Code: ServerBusy, Msg: "系统繁忙", err: pkgerrors.WithMessage(err, context)}
+}
 
 type ApiResponse struct {
 	Code int         `json:"code"`
 	Msg  string      `json:"msg"`
-	Data interface{} `json:"data,omitempty"` // omitempty 表示如果 data 为空则不显示该字段
+	Data interface{} `json:"data,omitempty"`
 }
 
-// 辅助函数：将 CodeError 转换为 ApiResponse
 func (e *CodeError) ToResponse() *ApiResponse {
 	return &ApiResponse{
 		Code: e.Code,
 		Msg:  e.Msg,
+	}
+}
+
+func (e *CodeError) HandleResponse() *ApiResponse {
+	switch e.Code {
+	case ServerBusy:
+		if e.err != nil {
+			fmt.Printf("[ServerBusy] code=%d, msg=%s, err=%+v\n", e.Code, e.Msg, e.err)
+		}
+		return &ApiResponse{
+			Code: e.Code,
+			Msg:  "系统繁忙",
+		}
+	case InvalidParam:
+		return &ApiResponse{
+			Code: e.Code,
+			Msg:  e.Msg,
+		}
+	case Unauthorized:
+		return &ApiResponse{
+			Code: e.Code,
+			Msg:  e.Msg,
+		}
+	default:
+		if e.err != nil {
+			fmt.Printf("[InternalError] code=%d, msg=%s, err=%+v\n", e.Code, e.Msg, e.err)
+		}
+		return &ApiResponse{
+			Code: e.Code,
+			Msg:  e.Msg,
+		}
+	}
+}
+
+func HandleError(err error) *ApiResponse {
+	var codeErr *CodeError
+	if errors.As(err, &codeErr) {
+		return codeErr.HandleResponse()
+	}
+
+	fmt.Printf("[UnknownError] err=%+v\n", err)
+	return &ApiResponse{
+		Code: ServerBusy,
+		Msg:  "系统繁忙",
 	}
 }

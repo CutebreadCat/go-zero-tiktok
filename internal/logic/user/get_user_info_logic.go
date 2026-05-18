@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package user
 
 import (
@@ -10,8 +7,6 @@ import (
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
-
-	"net/http"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -35,14 +30,13 @@ func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.
 	if userID == "" {
 		userID = req.UserID
 	}
-	logx.Infof("getting user info for user ID: %s", userID)
 	if userID == "" {
-		return nil, xerr.New(http.StatusBadRequest, "用户ID不能为空")
+		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
 
 	user, err := l.svcCtx.Dal.User.GetUserByID(l.ctx, userID)
 	if err != nil {
-		return nil, xerr.New(http.StatusNotFound, "用户不存在或已被删除")
+		return nil, err
 	}
 
 	resp = &types.UserInfoResponse{

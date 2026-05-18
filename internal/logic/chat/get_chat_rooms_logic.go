@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package chat
 
 import (
@@ -31,7 +28,7 @@ func NewGetChatRoomsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetC
 func (l *GetChatRoomsLogic) GetChatRooms(req *types.GetChatRoomsRequest) (resp *types.GetChatRoomsResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 	rooms, err := l.svcCtx.Dal.Chat.GetJoinRooms(l.ctx, userID)
 	if err != nil {

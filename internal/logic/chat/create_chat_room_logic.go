@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package chat
 
 import (
@@ -32,16 +29,16 @@ func NewCreateChatRoomLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cr
 func (l *CreateChatRoomLogic) CreateChatRoom(req *types.CreateChatRoomRequest) (resp *types.CreateChatRoomResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 	if req.Types != 0 && req.Types != 1 {
-		return nil, xerr.New(400, "聊天室类型无效")
+		return nil, xerr.NewInvalidParam("聊天室类型无效")
 	}
 	if req.Types == 1 && strings.TrimSpace(req.RoomName) == "" {
-		return nil, xerr.New(400, "聊天室名称不能为空")
+		return nil, xerr.NewInvalidParam("聊天室名称不能为空")
 	}
 	if req.Types == 0 && len(req.UserIDs) == 0 {
-		return nil, xerr.New(400, "私聊至少需要一个对方用户")
+		return nil, xerr.NewInvalidParam("私聊至少需要一个对方用户")
 	}
 
 	roomID := myutils.GenerateRoomID()

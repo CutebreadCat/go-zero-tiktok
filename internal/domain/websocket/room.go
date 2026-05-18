@@ -2,11 +2,9 @@ package websocket
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"sync"
 )
-
-// ==================== RoomManager 实现 ====================
 
 type roomManager struct {
 	mu    sync.RWMutex
@@ -18,7 +16,7 @@ type roomManager struct {
 func (rm *roomManager) LoadRooms(ctx context.Context, client *Client) {
 	rooms, err := rm.repo.GetJoinRooms(ctx, client.UserID)
 	if err != nil {
-		log.Printf("Failed to load rooms for user %s: %v", client.UserID, err)
+		fmt.Printf("加载用户 %s 的房间失败: %v\n", client.UserID, err)
 		return
 	}
 	rm.mu.Lock()
@@ -29,7 +27,6 @@ func (rm *roomManager) LoadRooms(ctx context.Context, client *Client) {
 			rm.rooms[roomID] = make(map[*Client]bool)
 		}
 		rm.rooms[roomID][client] = true
-		// 同步到 Redis 房间集合
 		rm.cache.JoinRoom(ctx, roomID, client.UserID)
 	}
 }
@@ -48,7 +45,6 @@ func (rm *roomManager) RemoveFromRooms(ctx context.Context, client *Client) {
 				delete(rm.rooms, roomID)
 			}
 		}
-		// 同步从 Redis 房间集合移除
 		rm.cache.LeaveRoom(ctx, roomID, client.UserID)
 	}
 }

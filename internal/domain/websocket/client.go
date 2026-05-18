@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"time"
 
 	myutils "go_zero-tiktok/internal/utils"
@@ -12,8 +12,6 @@ import (
 )
 
 var pongWait = 60 * time.Second
-
-// ==================== Client 读写循环 ====================
 
 func (c *Client) ReadLoop() {
 	ctx, hand := context.WithTimeout(context.Background(), time.Hour*24)
@@ -41,7 +39,7 @@ func (c *Client) ReadLoop() {
 		case "ping":
 			c.Send <- map[string]string{"req": "pong"}
 		default:
-			log.Printf("Unknown message type: %s", msg.Typek)
+			fmt.Printf("未知的消息类型: %s\n", msg.Typek)
 			continue
 		}
 	}
@@ -56,12 +54,12 @@ func (c *Client) WriteLoop() {
 			c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
 			c.Cmu.Lock()
 			if !ok {
-				log.Println("Send channel closed, exiting WriteLoop")
+				fmt.Printf("发送通道已关闭，退出 WriteLoop\n")
 				c.Cmu.Unlock()
 				return
 			}
 			if err := c.Conn.WriteJSON(message); err != nil {
-				log.Printf("Failed to write message to client %s: %v", c.UserID, err)
+				fmt.Printf("写入消息到客户端 %s 失败: %v\n", c.UserID, err)
 				c.Cmu.Unlock()
 				return
 			}
@@ -69,7 +67,7 @@ func (c *Client) WriteLoop() {
 		case <-ticker.C:
 			c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
 			if err := c.Conn.WriteMessage(ws.PingMessage, nil); err != nil {
-				log.Printf("Failed to send ping to client %s: %v", c.UserID, err)
+				fmt.Printf("发送 ping 到客户端 %s 失败: %v\n", c.UserID, err)
 				return
 			}
 		}

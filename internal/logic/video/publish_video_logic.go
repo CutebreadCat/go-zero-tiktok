@@ -1,12 +1,8 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package video
 
 import (
 	"bytes"
 	"context"
-	"log"
 
 	"go_zero-tiktok/internal/infra/storage/aliyun"
 	"go_zero-tiktok/internal/svc"
@@ -34,27 +30,25 @@ func NewPublishVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Publ
 func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *types.PublishVideoResponse, err error) {
 	authorID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.New(401, "用户身份信息无效，请重新登录")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 	VideoID := myutils.GenerateVideoID()
 	filename, ok := l.ctx.Value("filename").(string)
 	if !ok || filename == "" {
-		return nil, xerr.New(400, "视频文件名缺失")
+		return nil, xerr.NewInvalidParam("视频文件名缺失")
 	}
 	videoBytes, ok := l.ctx.Value("video_bytes").([]byte)
 	if !ok || len(videoBytes) == 0 {
-		return nil, xerr.New(400, "视频文件内容为空")
+		return nil, xerr.NewInvalidParam("视频文件内容为空")
 	}
 	objectKey := authorID + "/" + VideoID + "/" + filename
 	var Videourl string
 	if Videourl, err = aliyun.UploadBytesToOSS(bytes.NewReader(videoBytes), objectKey); err != nil {
-		log.Printf("failed to upload video to OSS: %v", err)
-		return nil, xerr.New(1004, "视频上传失败，请稍后重试")
+		return nil, xerr.HandleDaoError(err, "PublishVideo.UploadToOSS")
 	}
 
 	if err := l.svcCtx.Dal.Video.CreateVideoFromParams(l.ctx, VideoID, authorID, Videourl, "", req.Title, req.Description); err != nil {
-		log.Printf("创建视频记录失败: %v", err)
-		return nil, xerr.New(1002, "发布视频失败，请稍后重试")
+		return nil, xerr.HandleDaoError(err, "PublishVideo.CreateVideo")
 	}
 	resp = &types.PublishVideoResponse{
 		Base: types.BaseResponse{
