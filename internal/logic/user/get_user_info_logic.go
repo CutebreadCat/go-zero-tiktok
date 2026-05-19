@@ -1,0 +1,48 @@
+package user
+
+import (
+	"context"
+
+	"go_zero-tiktok/internal/middleware/token"
+	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/types"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type GetUserInfoLogic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+func NewGetUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUserInfoLogic {
+	return &GetUserInfoLogic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.UserInfoResponse, err error) {
+	userID := token.UserIDFromContext(l.ctx)
+	if userID == "" {
+		userID = req.UserID
+	}
+	if userID == "" {
+		return nil, xerr.NewInvalidParam("用户ID不能为空")
+	}
+
+	user, err := l.svcCtx.Dal.User.GetUserByID(l.ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp = &types.UserInfoResponse{
+		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
+		User: l.svcCtx.Dal.User.UserToResponse(user),
+	}
+
+	return
+}

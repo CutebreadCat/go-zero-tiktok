@@ -7,7 +7,13 @@ import (
 
 	"context"
 
-	"go_zero-tiktok/internal/types"
+	chatModel "go_zero-tiktok/internal/dal/tables/chat"
+	commentModel "go_zero-tiktok/internal/dal/tables/comment_baseinfo"
+	userFollowModel "go_zero-tiktok/internal/dal/tables/user_follow"
+	userModel "go_zero-tiktok/internal/dal/tables/user_baseinfo"
+	videoLikerModel "go_zero-tiktok/internal/dal/tables/video_liker"
+	videoPopularModel "go_zero-tiktok/internal/dal/tables/video_popular"
+	videoModel "go_zero-tiktok/internal/dal/tables/video_baseinfo"
 
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"gorm.io/driver/mysql"
@@ -75,16 +81,16 @@ func InitTables() error {
 	// 这里可以调用 AutoMigrate 来自动创建表
 	// 注意：AutoMigrate 只能创建表，不能修改已存在的表结构
 	err := Db.AutoMigrate(
-		&types.UserBaseinfo{},
-		&types.VideoBaseinfo{},
-		&types.VideoPopular{},
-		&types.CommentBaseinfo{},
-		&types.VideoLiker{},
-		&types.UserFollow{},
-		&types.CommentLiker{},
-		&types.User_mfa{},
-		&types.MessageChat{},
-		&types.User_chat{},
+		&userModel.UserBaseinfo{},
+		&userModel.UserMFA{},
+		&videoModel.VideoBaseinfo{},
+		&videoPopularModel.VideoPopular{},
+		&commentModel.CommentBaseinfo{},
+		&videoLikerModel.VideoLiker{},
+		&userFollowModel.UserFollow{},
+		&commentModel.CommentLiker{},
+		&chatModel.MessageChat{},
+		&chatModel.UserChat{},
 	)
 	if err != nil {
 		log.Printf("数据表初始化失败: %v", err)

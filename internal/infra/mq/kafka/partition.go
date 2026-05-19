@@ -2,7 +2,7 @@ package mykafka
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"time"
 
 	"go_zero-tiktok/internal/infra/mq"
@@ -10,13 +10,11 @@ import (
 	mqcontract "go_zero-tiktok/internal/shared/mq"
 )
 
-// Readder 消息读取器接口，封装 Kafka Reader 的核心操作
 type Readder interface {
 	Fetch(ctx context.Context) (*mqcontract.Event, error)
 	Commit(ctx context.Context, msg *mqcontract.Message) error
 }
 
-// Partition 单分区消费器，负责拉取消息并提交给 WorkerPool
 type Partition struct {
 	reader Readder
 	pool   *mq.WorkerPool
@@ -30,13 +28,13 @@ func NewPartition(reader Readder, pool *mq.WorkerPool) *Partition {
 }
 
 func (p *Partition) Start(ctx context.Context) {
-	log.Printf("🚀 Partition fetcher starting...")
+	fmt.Printf("Partition fetcher 启动...\n")
 	go func() {
-		log.Printf("✅ Partition fetcher goroutine started")
+		fmt.Printf("Partition fetcher goroutine 已启动\n")
 		for {
 			select {
 			case <-ctx.Done():
-				log.Printf("🛑 Partition fetcher stopped: %v", ctx.Err())
+				fmt.Printf("Partition fetcher 停止: %v\n", ctx.Err())
 				return
 			default:
 				event, err := p.reader.Fetch(ctx)
@@ -44,24 +42,24 @@ func (p *Partition) Start(ctx context.Context) {
 					if err == context.DeadlineExceeded {
 						continue
 					}
-					log.Printf("❌ Partition fetch error: %v", err)
+					fmt.Printf("Partition fetch 错误: %v\n", err)
 					time.Sleep(2 * time.Second)
 					continue
 				}
 
-				log.Printf("📨 Partition fetched message: key=%s, topic=%s", string(event.Msg.Key), event.Msg.Topic)
+				fmt.Printf("Partition 获取消息: key=%s, topic=%s\n", string(event.Msg.Key), event.Msg.Topic)
 
 				msg := event.Msg
-				commitFunc := func() {
+				commit_func := func() {
 					err := p.reader.Commit(ctx, msg)
 					if err != nil {
-						log.Printf("❌ Failed to commit message: %v", err)
+						fmt.Printf("提交消息失败: %v\n", err)
 					} else {
-						log.Printf("✅ Message committed: key=%s", string(msg.Key))
+						fmt.Printf("消息已提交: key=%s\n", string(msg.Key))
 					}
 				}
 
-				p.pool.Submit(event, commitFunc)
+				p.pool.Submit(event, commit_func)
 			}
 		}
 	}()

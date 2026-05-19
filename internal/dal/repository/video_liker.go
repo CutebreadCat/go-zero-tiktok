@@ -3,11 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	videolikertable "go_zero-tiktok/internal/dal/tables/video_liker"
 
 	goRedis "github.com/redis/go-redis/v9"
-	"github.com/zeromicro/go-zero/core/logx"
+	pkgerrors "github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"gorm.io/gorm"
 )
@@ -23,20 +24,20 @@ func NewVideoLikerRepo(db *gorm.DB, rdb *redis.Redis) *VideoLikerRepo {
 
 func (r *VideoLikerRepo) LikeVideo(ctx context.Context, userID, videoID string) error {
 	if err := videolikertable.LikeVideo(ctx, r.db, userID, videoID); err != nil {
-		return err
+		return pkgerrors.WithMessage(err, "VideoLikerRepo.LikeVideo")
 	}
 	if err := videolikertable.AddVideoLike(ctx, r.rdb, userID, videoID); err != nil && !errors.Is(err, goRedis.Nil) {
-		logx.WithContext(ctx).Errorf("sync like to redis failed: %v", err)
+		fmt.Printf("sync like to redis failed: %v\n", err)
 	}
 	return nil
 }
 
 func (r *VideoLikerRepo) CancelLikeVideo(ctx context.Context, userID, videoID string) error {
 	if err := videolikertable.CancelLikeVideo(ctx, r.db, userID, videoID); err != nil {
-		return err
+		return pkgerrors.WithMessage(err, "VideoLikerRepo.CancelLikeVideo")
 	}
 	if err := videolikertable.RemoveVideoLike(ctx, r.rdb, userID, videoID); err != nil && !errors.Is(err, goRedis.Nil) {
-		logx.WithContext(ctx).Errorf("sync unlike to redis failed: %v", err)
+		fmt.Printf("sync unlike to redis failed: %v\n", err)
 	}
 	return nil
 }
@@ -47,22 +48,22 @@ func (r *VideoLikerRepo) GetLikedVideoIDsByUserID(ctx context.Context, userID st
 		return videoIDs, total, nil
 	}
 	if err != nil && !errors.Is(err, goRedis.Nil) {
-		logx.WithContext(ctx).Errorf("read liked videos from redis failed: %v", err)
+		fmt.Printf("read liked videos from redis failed: %v\n", err)
 	}
 
 	videoIDs, total, err = videolikertable.GetLikedVideoIDsByUserID(ctx, r.db, userID, pageNumber, pageSize)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, pkgerrors.WithMessage(err, "VideoLikerRepo.GetLikedVideoIDsByUserID")
 	}
 
 	allLikedVideoIDs, listErr := videolikertable.GetAllLikedVideoIDsByUserID(ctx, r.db, userID)
 	if listErr != nil {
-		logx.WithContext(ctx).Errorf("query all liked videos for cache backfill failed: %v", listErr)
+		fmt.Printf("query all liked videos for cache backfill failed: %v\n", listErr)
 		return videoIDs, total, nil
 	}
 
 	if cacheErr := videolikertable.ResetLikedVideoIDs(ctx, r.rdb, userID, allLikedVideoIDs); cacheErr != nil {
-		logx.WithContext(ctx).Errorf("backfill liked videos cache failed: %v", cacheErr)
+		fmt.Printf("backfill liked videos cache failed: %v\n", cacheErr)
 	}
 
 	return videoIDs, total, nil

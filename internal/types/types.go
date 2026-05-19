@@ -172,6 +172,15 @@ type JoinChatRoomResponse struct {
 	Base BaseResponse `json:"base_response"`
 }
 
+type JwchLoginRequest struct {
+	Username string `form:"username"`
+	Password string `form:"password"`
+}
+
+type JwchLoginResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
 type LikeCommentRequest struct {
 	CommentID string `form:"comment_id"`
 	Liketype  int32  `form:"like_type"`
@@ -208,7 +217,7 @@ type MessageChat struct {
 	RoomID    string `json:"room_id" gorm:"not null;type:varchar(64)"`
 	SenderID  string `json:"sender_id" gorm:"not null;type:varchar(64)"`
 	Content   string `json:"content" gorm:"not null;type:varchar(1024)"`
-	CreatedAt string `json:"created_at" `
+	CreatedAt string `json:"created_at"gorm:"not null"`
 }
 
 type MfaqrcodeRequest struct {

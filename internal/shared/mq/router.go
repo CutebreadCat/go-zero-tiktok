@@ -6,13 +6,15 @@ type Router struct {
 	unreadHandler  ConsumerHandler
 	messageHandler ConsumerHandler
 	roomHandler    ConsumerHandler
+	aiChatHandler  ConsumerHandler
 }
 
-func NewRouter(unreadHandler, messageHandler, roomHandler ConsumerHandler) *Router {
+func NewRouter(unreadHandler, messageHandler, roomHandler, aiChatHandler ConsumerHandler) *Router {
 	return &Router{
 		unreadHandler:  unreadHandler,
 		messageHandler: messageHandler,
 		roomHandler:    roomHandler,
+		aiChatHandler:  aiChatHandler,
 	}
 }
 
@@ -24,6 +26,8 @@ func (r *Router) Route(e *Event) ConsumerHandler {
 		return r.messageHandler
 	case "room":
 		return r.roomHandler
+	case "ai_chat":
+		return r.aiChatHandler
 	default:
 		return nil
 	}

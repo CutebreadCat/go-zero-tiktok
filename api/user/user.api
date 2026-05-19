@@ -91,5 +91,12 @@ type (
   BindMfaqrcodeResponse {
     Base BaseResponse `json:"base"`
   }
-
+  JwchLoginRequest {
+    Username string `form:"username"`
+    Password string `form:"password"`
+  }
+  JwchLoginResponse {
+    Base         BaseResponse `json:"base"`
+  }
+   
 )

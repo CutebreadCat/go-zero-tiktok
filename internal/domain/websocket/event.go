@@ -9,6 +9,7 @@ const (
 	EventTypeUnread  = "get_unread"
 	EventTypeMessage = "message"
 	EventTypeRoom    = "room"
+	EventTypeAIChat  = "ai_chat"
 )
 
 // ============ 事件数据结构 ============
@@ -31,6 +32,13 @@ type RoomEvent struct {
 	Action string `json:"action"` // join, leave
 	RoomID string `json:"room_id"`
 	UserID string `json:"user_id"`
+}
+
+// AIChatEvent AI 聊天事件数据
+type AIChatEvent struct {
+	RoomID  string `json:"room_id"`
+	UserID  string `json:"user_id"`
+	Content string `json:"content"`
 }
 
 // ============ 事件构造函数 ============
@@ -78,6 +86,22 @@ func NewRoomEvent(topic, action, roomID, userID string) *mqcontract.Event {
 			Action: action,
 			RoomID: roomID,
 			UserID: userID,
+		},
+	}
+}
+
+// NewAIChatEvent 创建 AI 聊天事件
+func NewAIChatEvent(topic, roomID, userID, content string) *mqcontract.Event {
+	return &mqcontract.Event{
+		Type: EventTypeAIChat,
+		Msg: &mqcontract.Message{
+			Topic: topic,
+			Key:   []byte(roomID),
+		},
+		Data: &AIChatEvent{
+			RoomID:  roomID,
+			UserID:  userID,
+			Content: content,
 		},
 	}
 }

@@ -287,9 +287,7 @@
         "responses": {
           "200": {
             "description": "",
-            "schema": {
-              "type": "object"
-            }
+            "schema": {}
           }
         }
       }
@@ -1280,6 +1278,63 @@
         }
       }
     },
+    "/user/jwch/login": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "JwchLoginHandler",
+        "operationId": "userJwchLoginHandler",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "username",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "password",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/login": {
       "post": {
         "consumes": [
@@ -1990,7 +2045,7 @@
       }
     }
   },
-  "x-date": "2026-05-09 13:19:17",
+  "x-date": "2026-05-17 23:57:06",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

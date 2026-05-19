@@ -48,7 +48,7 @@ func (h *Hub) SetWriter(writer MessageWriter) {
 
 // ==================== 构造函数 ====================
 
-func NewHub(pc PresenceCache, rc RoomCache, mc MessageCache, rr RoomRepository, mr MessageRepository) *Hub {
+func NewHub(pc PresenceCache, rc RoomCache, mc MessageCache, rr RoomRepository, mr MessageRepository, ai *AIChat) *Hub {
 	rm := &roomManager{
 		rooms: make(map[string]map[*Client]bool),
 		repo:  rr,
@@ -64,6 +64,7 @@ func NewHub(pc PresenceCache, rc RoomCache, mc MessageCache, rr RoomRepository, 
 		repo:     mr,
 		roomRepo: rr,
 		rooms:    rm,
+		ai:       ai,
 	}
 	return &Hub{
 		presence: pm,
