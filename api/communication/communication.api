@@ -5,6 +5,7 @@ import "../model.api"
 @server (
   group: communication
   jwt: Auth
+  middleware: RateLimit
   tags:"communication"
 )
 service tiktok-api {

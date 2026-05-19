@@ -5,6 +5,7 @@ import "../model.api"
 @server(
     group: chat
     tags:"chat"
+     middleware: RateLimit
     jwt: Auth
 )
 

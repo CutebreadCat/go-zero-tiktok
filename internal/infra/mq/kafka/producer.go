@@ -2,6 +2,7 @@ package mykafka
 
 import (
 	"context"
+	"go_zero-tiktok/internal/svc/xerr"
 	"log"
 	"time"
 
@@ -38,20 +39,18 @@ func (k *KafakaProducer) SendMessage(ctx context.Context, m *mqcontract.Event) e
 	var payload []byte
 	var err error
 	if payload, err = k.MashalMessage(m); err != nil {
-		log.Printf("Failed to marshal message: %v", err)
-		return err
+		return xerr.Wrap(err, "KafakaProducer.SendMessage.Marshal")
 	}
 
-	log.Printf("🚀 Writing message to Kafka, topic=%s, key=%s", m.Msg.Topic, string(m.Msg.Key))
+	log.Printf("发送消息到 Kafka, topic=%s, key=%s", m.Msg.Topic, string(m.Msg.Key))
 	err = k.writer.WriteMessages(ctx, kafka.Message{
 		Key:   m.Msg.Key,
 		Value: payload,
 	})
 	if err != nil {
-		log.Printf("❌ Failed to write kafka message: %v", err)
-		return err
+		return xerr.Wrap(err, "KafakaProducer.SendMessage.WriteMessages")
 	}
-	log.Printf("✅ Message written to Kafka successfully")
+	log.Printf("消息成功写入 Kafka")
 	return nil
 }
 
@@ -60,8 +59,7 @@ func (k *KafakaProducer) MashalMessage(m *mqcontract.Event) ([]byte, error) {
 	// 2. 将整个 event 结构体序列化为 []byte (作为 Kafka 的 Value)
 	payload, err := json.Marshal(m)
 	if err != nil {
-		log.Printf("Failed to marshal event: %v", err)
-		return nil, err
+		return nil, xerr.Wrap(err, "KafakaProducer.MashalMessage")
 	}
 
 	return payload, nil

@@ -2,11 +2,13 @@ package ai
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"go_zero-tiktok/internal/svc/xerr"
-
 	myutils "go_zero-tiktok/internal/utils"
 
 	jwch "github.com/west2-online/jwch"
+	"github.com/sashabaranov/go-openai"
 )
 
 type JwchLogin struct {
@@ -14,22 +16,63 @@ type JwchLogin struct {
 	Jwchcookie string `json:"jwch_cookie"`
 }
 
-func JwchLoginFunc(ctx context.Context, userid, password string) (JwchLogin, error) {
+// JwchLoginToolDef 定义教务处登录工具
+var JwchLoginToolDef = openai.Tool{
+	Type: openai.ToolTypeFunction,
+	Function: &openai.FunctionDefinition{
+		Name:        "jwch_login",
+		Description: "登录教务处系统获取用户信息和cookie，用于访问教务处相关功能。当用户需要查询成绩、课表、考试等教务处信息时调用此工具。",
+		Parameters: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"jwch_id": map[string]any{
+					"type":        "string",
+					"description": "教务处账号（学号）",
+				},
+				"jwch_password": map[string]any{
+					"type":        "string",
+					"description": "教务处密码",
+				},
+			},
+			"required": []string{"jwch_id", "jwch_password"},
+		},
+	},
+}
+
+// HandleJwchLogin 处理教务处登录工具调用
+func HandleJwchLogin(ctx context.Context, args map[string]any) (string, error) {
+	jwchID, _ := args["jwch_id"].(string)
+	jwchPassword, _ := args["jwch_password"].(string)
+
+	if jwchID == "" || jwchPassword == "" {
+		return "", fmt.Errorf("jwch_id and jwch_password are required")
+	}
+
 	jwchClient := jwch.NewStudent()
-	jwchClient.ID = userid
-	jwchClient.Password = password
+	jwchClient.ID = jwchID
+	jwchClient.Password = jwchPassword
+
 	err := jwchClient.Login()
 	if err != nil {
-		return JwchLogin{}, xerr.Wrap(err, "JwchLoginFunc.Login")
+		return "", xerr.Wrap(err, "HandleJwchLogin.Login")
 	}
+
 	user, cookie, err := jwchClient.GetIdentifierAndCookies()
 	if err != nil {
-		return JwchLogin{}, xerr.Wrap(err, "JwchLoginFunc.GetIdentifierAndCookies")
+		return "", xerr.Wrap(err, "HandleJwchLogin.GetIdentifierAndCookies")
 	}
+
 	jwchcookie := myutils.ParseCookieTostring(cookie)
-	return JwchLogin{
+
+	result := JwchLogin{
 		JwchId:     user,
 		Jwchcookie: jwchcookie,
-	}, nil
+	}
 
+	jsonResult, err := json.Marshal(result)
+	if err != nil {
+		return "", xerr.Wrap(err, "HandleJwchLogin.Marshal")
+	}
+
+	return string(jsonResult), nil
 }

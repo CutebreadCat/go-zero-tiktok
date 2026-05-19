@@ -230,7 +230,6 @@ func (r *RedisCache) GetAIMessages(ctx context.Context, userID, roomID string, c
 			}
 			var cacheMsg websocket.CacheMessage
 			if err := json.Unmarshal([]byte(data), &cacheMsg); err != nil {
-				fmt.Printf("Failed to unmarshal AI message: %v", err)
 				continue
 			}
 			messages = append(messages, cacheMsg)

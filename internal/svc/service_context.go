@@ -13,6 +13,11 @@ import (
 	"go_zero-tiktok/internal/infra/ai"
 	"go_zero-tiktok/internal/infra/cache"
 	"go_zero-tiktok/internal/infra/storage/aliyun"
+	"go_zero-tiktok/internal/middleware"
+	"go_zero-tiktok/internal/middleware/goverment/breaker"
+	"go_zero-tiktok/internal/middleware/goverment/limiter"
+
+	"github.com/zeromicro/go-zero/rest"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -20,14 +25,15 @@ import (
 )
 
 type ServiceContext struct {
-	Config config.Config
-	DB     *gorm.DB
-	Cache  *cache.RedisCache
-	Rdb    *redis.Redis
-	Dal    *repository.Repositories
-	Hub    *websocket.Hub
-	AIChat *websocket.AIChat
-	MQ     *MQComponents
+	Config    config.Config
+	DB        *gorm.DB
+	Cache     *cache.RedisCache
+	Rdb       *redis.Redis
+	Dal       *repository.Repositories
+	Hub       *websocket.Hub
+	AIChat    *websocket.AIChat
+	MQ        *MQComponents
+	RateLimit rest.Middleware
 }
 
 func NewServiceContext(config config.Config) *ServiceContext {
@@ -40,13 +46,18 @@ func NewServiceContext(config config.Config) *ServiceContext {
 
 	c := cache.NewRedisCache(dal.Rdb)
 	dalRepo := repository.NewRepositories(dal.Db, dal.Rdb)
-	aiAgent, err := ai.NewAgent(context.Background())
+
+	aiLimiter := limiter.New(dal.Rdb, 60, 20, "ai_limit")
+	wsLimiter := limiter.New(dal.Rdb, 1, 30, "ws_limit")
+	aiBreaker := breaker.New()
+
+	aiAgent, err := ai.NewAgent(context.Background(), aiLimiter, aiBreaker)
 	if err != nil {
 		logx.Must(err)
 	}
-	aiChat := websocket.NewAIChat(aiAgent, c, dalRepo.User)
+	aiChat := websocket.NewAIChat(aiAgent, c)
 	// 创建 Hub（先不注入 writer）
-	hub := websocket.NewHub(c, c, c, dalRepo.Chat, dalRepo.Chat, aiChat)
+	hub := websocket.NewHub(c, c, c, dalRepo.Chat, dalRepo.Chat, aiChat, wsLimiter)
 
 	// 创建 AI Agent 和 AIChat
 
@@ -54,13 +65,14 @@ func NewServiceContext(config config.Config) *ServiceContext {
 	mq := InitMQ(config.Kafka, hub, aiChat)
 
 	return &ServiceContext{
-		Config: config,
-		DB:     dal.Db,
-		Rdb:    dal.Rdb,
-		Dal:    dalRepo,
-		Cache:  c,
-		Hub:    hub,
-		AIChat: aiChat,
-		MQ:     mq,
+		Config:    config,
+		DB:        dal.Db,
+		Rdb:       dal.Rdb,
+		Dal:       dalRepo,
+		Cache:     c,
+		Hub:       hub,
+		AIChat:    aiChat,
+		MQ:        mq,
+		RateLimit: middleware.NewRateLimitMiddleware(limiter.New(dal.Rdb, 1, 100, "http_limit")).Handle,
 	}
 }

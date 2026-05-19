@@ -25,3 +25,5 @@ Kafka:
   Brokers: ["kafka:9092"]  # Kafka broker 地址
   Topic: "chat-messages"   # Kafka 主题名称
   GroupID: "tiktok-consumers-v2" # Kafka 消息消费者组 ID
+
+Timeout: 3000  # 毫秒（默认值：3000）

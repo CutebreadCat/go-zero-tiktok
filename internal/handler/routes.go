@@ -18,182 +18,208 @@ import (
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodGet,
-				Path:    "/chat/messages",
-				Handler: chat.GetMessagesHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/chat/room/create",
-				Handler: chat.CreateChatRoomHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/chat/room/join",
-				Handler: chat.JoinChatRoomHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/chat/rooms",
-				Handler: chat.GetChatRoomsHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/chat/ws",
-				Handler: chat.WsChatHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.RateLimit},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/chat/messages",
+					Handler: chat.GetMessagesHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/chat/room/create",
+					Handler: chat.CreateChatRoomHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/chat/room/join",
+					Handler: chat.JoinChatRoomHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/chat/rooms",
+					Handler: chat.GetChatRoomsHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/chat/ws",
+					Handler: chat.WsChatHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodGet,
-				Path:    "/follower/list",
-				Handler: communication.GetFansListHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/following/list",
-				Handler: communication.GetSubscriberListHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/friend/list",
-				Handler: communication.GetFriendListHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/relation/action",
-				Handler: communication.SubscribeHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.RateLimit},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/follower/list",
+					Handler: communication.GetFansListHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/following/list",
+					Handler: communication.GetSubscriberListHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/friend/list",
+					Handler: communication.GetFriendListHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/relation/action",
+					Handler: communication.SubscribeHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodPost,
-				Path:    "/comment/delete",
-				Handler: interaction.DeleteCommentHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/comment/like",
-				Handler: interaction.LikeCommentHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/comment/list",
-				Handler: interaction.GetCommentListHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/comment/parent",
-				Handler: interaction.CommentPareantCommentHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/comment/publish",
-				Handler: interaction.CommentVideoHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/like/action",
-				Handler: interaction.LikeVideoHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/like/list",
-				Handler: interaction.GetLikeListHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.RateLimit},
+			[]rest.Route{
+				{
+					Method:  http.MethodPost,
+					Path:    "/comment/delete",
+					Handler: interaction.DeleteCommentHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/comment/like",
+					Handler: interaction.LikeCommentHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/comment/list",
+					Handler: interaction.GetCommentListHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/comment/parent",
+					Handler: interaction.CommentPareantCommentHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/comment/publish",
+					Handler: interaction.CommentVideoHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/like/action",
+					Handler: interaction.LikeVideoHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/like/list",
+					Handler: interaction.GetLikeListHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodGet,
-				Path:    "/user/info",
-				Handler: user.GetUserInfoHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/user/login",
-				Handler: user.LoginHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/user/register",
-				Handler: user.RegisterHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/user/token/refresh",
-				Handler: user.RefreshTokenHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.RateLimit},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/user/info",
+					Handler: user.GetUserInfoHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/user/login",
+					Handler: user.LoginHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/user/register",
+					Handler: user.RegisterHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/user/token/refresh",
+					Handler: user.RefreshTokenHandler(serverCtx),
+				},
+			}...,
+		),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodPut,
-				Path:    "/user/avatar/upload",
-				Handler: user.PostUserPhotoHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/user/jwch/login",
-				Handler: user.JwchLoginHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/user/mfa/bind",
-				Handler: user.BindMfaHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/user/mfa/qrcode",
-				Handler: user.GetMfaqrcodeHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.RateLimit},
+			[]rest.Route{
+				{
+					Method:  http.MethodPut,
+					Path:    "/user/avatar/upload",
+					Handler: user.PostUserPhotoHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/user/jwch/cookie",
+					Handler: user.JwchGetUserCookieHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/user/jwch/login",
+					Handler: user.JwchLoginHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/user/mfa/bind",
+					Handler: user.BindMfaHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/user/mfa/qrcode",
+					Handler: user.GetMfaqrcodeHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodGet,
-				Path:    "/video/list",
-				Handler: video.GetVideoListHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/video/popular",
-				Handler: video.VideoPopularHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/video/search",
-				Handler: video.VideoSearchHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.RateLimit},
+			[]rest.Route{
+				{
+					Method:  http.MethodGet,
+					Path:    "/video/list",
+					Handler: video.GetVideoListHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/video/popular",
+					Handler: video.VideoPopularHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/video/search",
+					Handler: video.VideoSearchHandler(serverCtx),
+				},
+			}...,
+		),
 	)
 
 	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodPost,
-				Path:    "/video/publish",
-				Handler: video.PublishVideoHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.RateLimit},
+			[]rest.Route{
+				{
+					Method:  http.MethodPost,
+					Path:    "/video/publish",
+					Handler: video.PublishVideoHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 }

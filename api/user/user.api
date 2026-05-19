@@ -5,9 +5,7 @@ import "../model.api"
 @server (
   group: user
 
-
-
-
+  middleware: RateLimit
 
   tags:"user"
 )
@@ -97,6 +95,14 @@ type (
   }
   JwchLoginResponse {
     Base         BaseResponse `json:"base"`
+  }
+  JwchGetUserCookieRequest {
+
+  }
+  JwchGetUserCookieResponse {
+    Base         BaseResponse `json:"base"`
+    JwchID       string       `json:"jwch_id"`
+    Cookie       string       `json:"cookie" `
   }
    
 )

@@ -2,7 +2,8 @@ package websocket
 
 import (
 	"context"
-	"fmt"
+	
+	"log"
 	"time"
 
 	myutils "go_zero-tiktok/internal/utils"
@@ -28,6 +29,15 @@ func (c *Client) ReadLoop() {
 		if err := c.Conn.ReadJSON(&msg); err != nil {
 			break
 		}
+
+		if allowed, err := c.Hub.limiter.Allow(c.UserID); err != nil {
+			log.Printf("限流检查失败: %v", err)
+			continue
+		} else if !allowed {
+			c.Send <- map[string]string{"typek": "error", "message": "消息发送过于频繁，请稍后再试"}
+			continue
+		}
+
 		msg.Message.ID = uuid.New().String()
 		msg.Message.SenderID = c.UserID
 		msg.Message.CreatedAt = myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05")
@@ -39,7 +49,7 @@ func (c *Client) ReadLoop() {
 		case "ping":
 			c.Send <- map[string]string{"req": "pong"}
 		default:
-			fmt.Printf("未知的消息类型: %s\n", msg.Typek)
+			log.Printf("未知的消息类型: %s", msg.Typek)
 			continue
 		}
 	}
@@ -54,12 +64,12 @@ func (c *Client) WriteLoop() {
 			c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
 			c.Cmu.Lock()
 			if !ok {
-				fmt.Printf("发送通道已关闭，退出 WriteLoop\n")
+				log.Println("发送通道已关闭，退出 WriteLoop")
 				c.Cmu.Unlock()
 				return
 			}
 			if err := c.Conn.WriteJSON(message); err != nil {
-				fmt.Printf("写入消息到客户端 %s 失败: %v\n", c.UserID, err)
+				log.Printf("写入消息到客户端 %s 失败: %v", c.UserID, err)
 				c.Cmu.Unlock()
 				return
 			}
@@ -67,7 +77,7 @@ func (c *Client) WriteLoop() {
 		case <-ticker.C:
 			c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
 			if err := c.Conn.WriteMessage(ws.PingMessage, nil); err != nil {
-				fmt.Printf("发送 ping 到客户端 %s 失败: %v\n", c.UserID, err)
+				log.Printf("发送 ping 到客户端 %s 失败: %v", c.UserID, err)
 				return
 			}
 		}

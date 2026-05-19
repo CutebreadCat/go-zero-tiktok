@@ -10,6 +10,11 @@ import (
 
 // ==================== 模型定义 ====================
 
+// Limiter 限流器接口
+type Limiter interface {
+	Allow(userId string) (bool, error)
+}
+
 // Message WebSocket 消息结构
 type Message struct {
 	Message types.MessageChat `json:"message"`
@@ -21,6 +26,7 @@ type Hub struct {
 	presence PresenceManager
 	rooms    RoomManager
 	messages MessageManager
+	limiter  Limiter
 }
 
 // Client WebSocket 客户端
@@ -48,7 +54,7 @@ func (h *Hub) SetWriter(writer MessageWriter) {
 
 // ==================== 构造函数 ====================
 
-func NewHub(pc PresenceCache, rc RoomCache, mc MessageCache, rr RoomRepository, mr MessageRepository, ai *AIChat) *Hub {
+func NewHub(pc PresenceCache, rc RoomCache, mc MessageCache, rr RoomRepository, mr MessageRepository, ai *AIChat, limiter Limiter) *Hub {
 	rm := &roomManager{
 		rooms: make(map[string]map[*Client]bool),
 		repo:  rr,
@@ -70,6 +76,7 @@ func NewHub(pc PresenceCache, rc RoomCache, mc MessageCache, rr RoomRepository, 
 		presence: pm,
 		rooms:    rm,
 		messages: mm,
+		limiter:  limiter,
 	}
 }
 

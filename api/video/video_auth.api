@@ -5,6 +5,7 @@ import "./video.api"
 @server(
   group: video
   jwt: Auth
+  middleware: RateLimit
   tags:"video"
 )
 service tiktok-api {
