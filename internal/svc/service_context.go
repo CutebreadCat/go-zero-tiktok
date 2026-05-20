@@ -11,7 +11,7 @@ import (
 	repository "go_zero-tiktok/internal/dal/repository"
 	"go_zero-tiktok/internal/domain/websocket"
 	"go_zero-tiktok/internal/infra/ai"
-	"go_zero-tiktok/internal/infra/cache"
+	wscache "go_zero-tiktok/internal/infra/cache/ws"
 	"go_zero-tiktok/internal/infra/storage/aliyun"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -22,7 +22,7 @@ import (
 type ServiceContext struct {
 	Config config.Config
 	DB     *gorm.DB
-	Cache  *cache.RedisCache
+	Cache  *wscache.RedisCache
 	Rdb    *redis.Redis
 	Dal    *repository.Repositories
 	Hub    *websocket.Hub
@@ -38,7 +38,7 @@ func NewServiceContext(config config.Config) *ServiceContext {
 	aliyun.GetAliConfig()
 	aliyun.AliInit()
 
-	c := cache.NewRedisCache(dal.Rdb)
+	c := wscache.NewRedisCache(dal.Rdb)
 	dalRepo := repository.NewRepositories(dal.Db, dal.Rdb)
 	aiAgent, err := ai.NewAgent(context.Background())
 	if err != nil {

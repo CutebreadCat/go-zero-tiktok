@@ -1,5 +1,10 @@
 package video_popular
 
+const (
+	popularVideosRankKey = "popular_videos"
+	popularVideosHashKey = "popular_videos:hash"
+)
+
 // VideoPopular 视频热度数据库模型
 type VideoPopular struct {
 	VideoID      string `gorm:"primaryKey;type:varchar(64);column:video_id"`

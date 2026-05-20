@@ -93,9 +93,9 @@ func (a *AIChat) ExecuteAI(ctx context.Context, userID, roomID string) (Message,
 	return Message{
 		Message: types.MessageChat{
 			RoomID:   roomID,
-			SenderID: "AI",
+			SenderID: aiSenderID,
 			Content:  reply,
 		},
-		Typek: "ai_reply",
+		Typek: MessageTypeAIReply,
 	}, nil
 }
