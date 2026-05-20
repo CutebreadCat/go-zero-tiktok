@@ -4,7 +4,6 @@ import (
 	"context"
 	"go_zero-tiktok/internal/svc/xerr"
 	"log"
-	"time"
 
 	"encoding/json"
 
@@ -24,13 +23,13 @@ func NewProducer(brokers []string, topic string) *KafakaProducer {
 			Brokers:      brokers,
 			Topic:        topic,
 			Balancer:     &kafka.LeastBytes{},
-			WriteTimeout: 10 * time.Second,
-			ReadTimeout:  10 * time.Second,
+			WriteTimeout: producerWriteTimeout,
+			ReadTimeout:  producerReadTimeout,
 			RequiredAcks: int(kafka.RequireOne),
-			Async:        true,                   // 异步模式
-			BatchSize:    10,                     // 每 100 条消息批量发送
-			BatchBytes:   1048576,                // 1MB 批量大小
-			BatchTimeout: 100 * time.Millisecond, // 100ms 超时自动 flush
+			Async:        true,
+			BatchSize:    producerBatchSize,
+			BatchBytes:   producerBatchBytes,
+			BatchTimeout: producerBatchTimeout,
 		}),
 	}
 }

@@ -17,7 +17,7 @@ type FuuMCP struct {
 }
 
 func NewFuuMCPClient(ctx context.Context) (*FuuMCP, error) {
-	transport, err := mcptransport.NewStreamableHTTP("https://fzuhelper.west2.online/mcp")
+	transport, err := mcptransport.NewStreamableHTTP(fuuMCPURL)
 	if err != nil {
 		return nil, xerr.Wrap(err, "NewFuuMCPClient.NewStreamableHTTP")
 	}
@@ -61,7 +61,7 @@ func (f *FuuMCP) CallMCPTool(ctx context.Context, tc openai.ToolCall, auth *Jwch
 	}
 
 	// 处理本地教务处登录工具
-	if tc.Function.Name == "jwch_login" {
+	if tc.Function.Name == jwchLoginTool {
 		content, err := HandleJwchLogin(ctx, args)
 		if err != nil {
 			return &openai.ChatCompletionMessage{
@@ -85,10 +85,10 @@ func (f *FuuMCP) CallMCPTool(ctx context.Context, tc openai.ToolCall, auth *Jwch
 	// 处理远程 MCP 工具
 	if auth != nil {
 		if auth.JwchId != "" {
-			args["user_id"] = auth.JwchId
+			args[userIDArg] = auth.JwchId
 		}
 		if auth.Jwchcookie != "" {
-			args["user_cookie"] = auth.Jwchcookie
+			args[userCookieArg] = auth.Jwchcookie
 		}
 	}
 

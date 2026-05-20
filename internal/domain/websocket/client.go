@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"context"
-	
 	"log"
 	"time"
 
@@ -12,16 +11,14 @@ import (
 	ws "github.com/gorilla/websocket"
 )
 
-var pongWait = 60 * time.Second
-
 func (c *Client) ReadLoop() {
-	ctx, hand := context.WithTimeout(context.Background(), time.Hour*24)
+	ctx, hand := context.WithTimeout(context.Background(), clientContextTTL)
 	defer func() {
 		c.Hub.Presence().RemoveClient(ctx, c)
 		c.Conn.Close()
 		hand()
 	}()
-	c.Conn.SetReadLimit(512)
+	c.Conn.SetReadLimit(clientReadLimit)
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.Conn.SetPongHandler(func(string) error { c.Conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
@@ -34,20 +31,20 @@ func (c *Client) ReadLoop() {
 			log.Printf("限流检查失败: %v", err)
 			continue
 		} else if !allowed {
-			c.Send <- map[string]string{"typek": "error", "message": "消息发送过于频繁，请稍后再试"}
+			c.Send <- map[string]string{typeKey: MessageTypeError, rateLimitMessageKey: wsRateLimitMessage}
 			continue
 		}
 
 		msg.Message.ID = uuid.New().String()
 		msg.Message.SenderID = c.UserID
-		msg.Message.CreatedAt = myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05")
+		msg.Message.CreatedAt = myutils.TsToStr(time.Now().Unix(), dateTimeLayout)
 		switch msg.Typek {
-		case "message":
+		case EventTypeMessage:
 			c.Hub.Messages().HandleMessage(ctx, c, &msg.Message)
-		case "get_unread":
+		case EventTypeUnread:
 			c.Hub.Messages().HandleGetUnread(ctx, c, msg.Message.RoomID)
-		case "ping":
-			c.Send <- map[string]string{"req": "pong"}
+		case MessageTypePing:
+			c.Send <- map[string]string{"req": MessageTypePong}
 		default:
 			log.Printf("未知的消息类型: %s", msg.Typek)
 			continue

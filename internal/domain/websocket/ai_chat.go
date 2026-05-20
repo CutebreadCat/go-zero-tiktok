@@ -51,8 +51,8 @@ func (a *AIChat) CheckAndEnqueue(ctx context.Context, userID, roomID string, msg
 		return false, xerr.Wrap(err, "AIChat.CheckAndEnqueue.GetAIMessageCount")
 	}
 
-	if count < 2 {
-		log.Printf("用户 %s 在房间 %s 的 AI 消息计数为 %d，等待达到 2", userID, roomID, count)
+	if count < aiTriggerMsgCount {
+		log.Printf("用户 %s 在房间 %s 的 AI 消息计数为 %d，等待达到 %d", userID, roomID, count, aiTriggerMsgCount)
 		return false, nil
 	}
 
@@ -69,7 +69,7 @@ func (a *AIChat) ExecuteAI(ctx context.Context, userID, roomID string) (Message,
 		}
 	}()
 
-	messages, err := a.Cache.GetAIMessages(ctx, userID, roomID, 2)
+	messages, err := a.Cache.GetAIMessages(ctx, userID, roomID, aiTriggerMsgCount)
 	if err != nil {
 		return Message{}, xerr.Wrap(err, "AIChat.ExecuteAI.GetAIMessages")
 	}
@@ -83,9 +83,9 @@ func (a *AIChat) ExecuteAI(ctx context.Context, userID, roomID string) (Message,
 	return Message{
 		Message: types.MessageChat{
 			RoomID:   roomID,
-			SenderID: "AI",
+			SenderID: aiSenderID,
 			Content:  reply,
 		},
-		Typek: "ai_reply",
+		Typek: MessageTypeAIReply,
 	}, nil
 }

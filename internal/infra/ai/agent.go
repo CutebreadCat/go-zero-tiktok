@@ -9,10 +9,6 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-var (
-	aimodel = "mimo-v2.5-pro"
-)
-
 type Limiter interface {
 	Allow(key string) (bool, error)
 }
@@ -34,12 +30,12 @@ func NewAgent(ctx context.Context, l Limiter, b Breaker) (*Agent, error) {
 	if err != nil {
 		return nil, xerr.Wrap(err, "NewAgent.NewFuuMCPClient")
 	}
-	config := openai.DefaultConfig(os.Getenv("XIAOMI_AI_KEY"))
-	config.BaseURL = "https://token-plan-cn.xiaomimimo.com/v1"
+	config := openai.DefaultConfig(os.Getenv(xiaomiAIEnv))
+	config.BaseURL = xiaomiAIURL
 	return &Agent{
 		openaiClient: openai.NewClientWithConfig(config),
 		mcpClient:    mcp,
-		model:        aimodel,
+		model:        aiModel,
 		limiter:      l,
 		breaker:      b,
 	}, nil
@@ -48,13 +44,13 @@ func (a *Agent) Run(ctx context.Context, userId string, messages []openai.ChatCo
 	if allowed, err := a.limiter.Allow(userId); err != nil {
 		return "", xerr.Wrap(err, "Agent.Run.Limiter.Allow")
 	} else if !allowed {
-		return "", xerr.New(429, "AI 请求过于频繁，请稍后再试")
+		return "", xerr.New(429, aiRateLimitMessage)
 	}
 
 	var result string
 	var resultErr error
 
-	err := a.breaker.Do("ai_chat", func() error {
+	err := a.breaker.Do(aiBreakerName, func() error {
 		tools, err := a.mcpClient.ListMCPTools(ctx)
 		if err != nil {
 			return xerr.Wrap(err, "Agent.Run.ListMCPTools")
@@ -64,7 +60,7 @@ func (a *Agent) Run(ctx context.Context, userId string, messages []openai.ChatCo
 
 		var auth JwchLogin
 
-		for i := 0; i < 10; i++ {
+		for i := 0; i < maxToolLoops; i++ {
 			resp, err := a.openaiClient.CreateChatCompletion(
 				ctx,
 				openai.ChatCompletionRequest{
