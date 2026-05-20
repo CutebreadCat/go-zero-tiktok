@@ -4,6 +4,14 @@ import (
 	mqcontract "go_zero-tiktok/internal/shared/mq"
 )
 
+// 事件类型常量
+const (
+	EventTypeUnread  = "get_unread"
+	EventTypeMessage = "message"
+	EventTypeRoom    = "room"
+	EventTypeAIChat  = "ai_chat"
+)
+
 // ============ 事件数据结构 ============
 
 // MessageEvent 消息事件数据

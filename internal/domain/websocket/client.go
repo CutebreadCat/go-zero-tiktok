@@ -11,6 +11,8 @@ import (
 	ws "github.com/gorilla/websocket"
 )
 
+var pongWait = 60 * time.Second
+
 func (c *Client) ReadLoop() {
 	ctx, hand := context.WithTimeout(context.Background(), time.Hour*24)
 	defer func() {
@@ -28,14 +30,14 @@ func (c *Client) ReadLoop() {
 		}
 		msg.Message.ID = uuid.New().String()
 		msg.Message.SenderID = c.UserID
-		msg.Message.CreatedAt = myutils.TsToStr(time.Now().Unix(), dateTimeLayout)
+		msg.Message.CreatedAt = myutils.TsToStr(time.Now().Unix(), "2006-01-02 15:04:05")
 		switch msg.Typek {
-		case EventTypeMessage:
+		case "message":
 			c.Hub.Messages().HandleMessage(ctx, c, &msg.Message)
-		case EventTypeUnread:
+		case "get_unread":
 			c.Hub.Messages().HandleGetUnread(ctx, c, msg.Message.RoomID)
-		case MessageTypePing:
-			c.Send <- map[string]string{"req": MessageTypePong}
+		case "ping":
+			c.Send <- map[string]string{"req": "pong"}
 		default:
 			fmt.Printf("未知的消息类型: %s\n", msg.Typek)
 			continue

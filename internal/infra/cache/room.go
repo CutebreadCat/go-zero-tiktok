@@ -1,4 +1,4 @@
-package ws
+package cache
 
 import (
 	"context"
@@ -6,8 +6,10 @@ import (
 	"go_zero-tiktok/internal/svc/xerr"
 )
 
+const OnlineExpireSeconds = 24 * 3600
+
 func (c *RedisCache) RoomOnlineKey(roomID string) string {
-	return roomPresenceKeyPrefix + roomID
+	return "presence:room:" + roomID
 }
 
 func (c *RedisCache) JoinRoom(ctx context.Context, roomID string, userID string) error {
@@ -16,7 +18,7 @@ func (c *RedisCache) JoinRoom(ctx context.Context, roomID string, userID string)
 		return xerr.Wrap(err, "RedisCache.JoinRoom")
 	}
 
-	c.client.Expire(c.RoomOnlineKey(roomID), onlineExpireSeconds)
+	c.client.Expire(c.RoomOnlineKey(roomID), OnlineExpireSeconds)
 
 	fmt.Printf("用户 %s 已加入房间 %s\n", userID, roomID)
 	return nil
@@ -57,7 +59,7 @@ func (c *RedisCache) GetRoomOnlineCount(ctx context.Context, roomID string) (int
 }
 
 func (c *RedisCache) RoomHeartBeat(ctx context.Context, roomID string) error {
-	if err := c.client.Expire(c.RoomOnlineKey(roomID), onlineExpireSeconds); err != nil {
+	if err := c.client.Expire(c.RoomOnlineKey(roomID), OnlineExpireSeconds); err != nil {
 		return xerr.Wrap(err, "RedisCache.RoomHeartBeat")
 	}
 	return nil

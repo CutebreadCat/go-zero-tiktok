@@ -3,6 +3,7 @@ package token
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -14,7 +15,7 @@ func refreshTokenKey(refreshToken string) string {
 
 func SaveRefreshToken(ctx context.Context, rdb *redis.Redis, refreshToken, userID string) error {
 	logger := logx.WithContext(ctx)
-	if err := rdb.SetexCtx(ctx, refreshTokenKey(refreshToken), userID, int(refreshTokenExpire.Seconds())); err != nil {
+	if err := rdb.SetexCtx(ctx, refreshTokenKey(refreshToken), userID, int((24 * time.Hour).Seconds())); err != nil {
 		logger.Errorf("save refresh token failed: %v", err)
 		return err
 	}
@@ -30,7 +31,7 @@ func GetRefreshTokenUserID(ctx context.Context, rdb *redis.Redis, refreshToken s
 		return "", err
 	}
 	if userID == "" {
-		err := errors.New(refreshTokenNotFoundMessage)
+		err := errors.New("refresh token not found")
 		logger.Errorf("get refresh token failed: %v", err)
 		return "", err
 	}

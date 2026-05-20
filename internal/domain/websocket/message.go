@@ -9,6 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	MessageTopic = "chat-messages"
+)
+
 type messageManager struct {
 	cache    MessageCache
 	repo     MessageRepository
@@ -37,7 +41,7 @@ func (mm *messageManager) HandleMessage(ctx context.Context, client *Client, msg
 
 	broadcastMsg := Message{
 		Message: *msg,
-		Typek:   EventTypeMessage,
+		Typek:   "message",
 	}
 	mm.rooms.BroadcastToRoom(msg.RoomID, broadcastMsg)
 
