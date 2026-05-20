@@ -33,7 +33,7 @@ func GenerateToken(secret, userID, tokenType string, expire time.Duration) (stri
 func ParseToken(secret, tokenString string) (*JwtClaims, error) {
 	parsedToken, err := jwt.ParseWithClaims(tokenString, &JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if token.Method != jwt.SigningMethodHS256 {
-			return nil, xerr.New(400, unexpectedSigningMethodMessage)
+			return nil, xerr.New(400, "unexpected signing method")
 		}
 
 		return []byte(secret), nil
@@ -44,16 +44,16 @@ func ParseToken(secret, tokenString string) (*JwtClaims, error) {
 
 	claims, ok := parsedToken.Claims.(*JwtClaims)
 	if !ok || !parsedToken.Valid {
-		return nil, xerr.New(400, invalidTokenMessage)
+		return nil, xerr.New(400, "invalid token")
 	}
 
 	return claims, nil
 }
 
 func GenerateAccessToken(secret, userID string) (string, error) {
-	return GenerateToken(secret, userID, AccessTokenType, accessTokenExpire)
+	return GenerateToken(secret, userID, AccessTokenType, time.Hour)
 }
 
 func GenerateRefreshToken(secret, userID string) (string, error) {
-	return GenerateToken(secret, userID, RefreshTokenType, refreshTokenExpire)
+	return GenerateToken(secret, userID, RefreshTokenType, 24*time.Hour)
 }

@@ -1,4 +1,4 @@
-package ws
+package cache
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 func (c *RedisCache) OnlineKey(userID string) string {
-	return presenceKeyPrefix + userID
+	return "presence:" + userID
 }
 
 func (c *RedisCache) SetOnline(ctx context.Context, userID string, url string) error {
@@ -18,7 +18,7 @@ func (c *RedisCache) SetOnline(ctx context.Context, userID string, url string) e
 		return xerr.Wrap(err, "RedisCache.SetOnline")
 	}
 
-	c.client.Expire(c.OnlineKey(userID), onlineExpireSeconds)
+	c.client.Expire(c.OnlineKey(userID), OnlineExpireSeconds)
 
 	fmt.Printf("用户 %s 在线，设置在线状态成功\n", userID)
 	return nil
@@ -40,7 +40,7 @@ func (c *RedisCache) HeartBeat(ctx context.Context, userID string, url string) e
 		return xerr.Wrap(err, "RedisCache.HeartBeat.Zadd")
 	}
 
-	if err := c.client.Expire(c.OnlineKey(userID), onlineExpireSeconds); err != nil {
+	if err := c.client.Expire(c.OnlineKey(userID), OnlineExpireSeconds); err != nil {
 		return xerr.Wrap(err, "RedisCache.HeartBeat.Expire")
 	}
 

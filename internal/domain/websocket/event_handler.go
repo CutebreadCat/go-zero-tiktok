@@ -31,7 +31,7 @@ func (h *MessageHandler) Consume(ctx context.Context, e *mqcontract.Event) error
 		RoomID:    event.RoomID,
 		SenderID:  event.SenderID,
 		Content:   event.Content,
-		CreatedAt: time.Now().Format(dateTimeLayout),
+		CreatedAt: time.Now().Format("2006-01-02 15:04:05"),
 	}
 	h.messages.HandleMessageByUserID(ctx, event.SenderID, msg)
 
