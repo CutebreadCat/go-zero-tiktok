@@ -19,7 +19,7 @@ func WithAuth(secret string) rest.RunOption {
 }
 
 func UnauthorizedCallback(w http.ResponseWriter, r *http.Request, err error) {
-	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, xerr.NewUnauthorized("token无效").(*xerr.CodeError).HandleResponse())
+	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, xerr.NewUnauthorized(tokenInvalidMessage).(*xerr.CodeError).HandleResponse())
 }
 
 func AuthMiddleware(secret string) rest.Middleware {
@@ -32,13 +32,13 @@ func AuthMiddleware(secret string) rest.Middleware {
 
 			accessToken := extractAccessToken(r)
 			if accessToken == "" {
-				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token无效"))
+				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized(tokenInvalidMessage))
 				return
 			}
 
 			claims, err := ParseToken(secret, accessToken)
 			if err != nil || claims.Claims.TokenType != AccessTokenType {
-				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token无效"))
+				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized(tokenInvalidMessage))
 				return
 			}
 
@@ -49,23 +49,14 @@ func AuthMiddleware(secret string) rest.Middleware {
 }
 
 func isPublicPath(path string) bool {
-	switch path {
-	case "/user/login",
-		"/user/register",
-		"/user/token/refresh",
-		"/video/list",
-		"/video/popular",
-		"/video/search":
-		return true
-	default:
-		return false
-	}
+	_, ok := publicPaths[path]
+	return ok
 }
 
 func extractAccessToken(r *http.Request) string {
-	if authorization := r.Header.Get("Authorization"); authorization != "" {
+	if authorization := r.Header.Get(authorizationHeader); authorization != "" {
 		parts := strings.Fields(authorization)
-		if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+		if len(parts) == 2 && strings.EqualFold(parts[0], bearerTokenPrefix) {
 			return parts[1]
 		}
 	}

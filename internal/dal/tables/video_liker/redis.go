@@ -9,8 +9,6 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
-const userLikedVideosSetPrefix = "user:liked:videos:"
-
 func userLikedVideosSetKey(userID string) string {
 	return userLikedVideosSetPrefix + userID
 }

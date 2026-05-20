@@ -9,10 +9,6 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-var (
-	aimodel = "mimo-v2.5-pro"
-)
-
 type Agent struct {
 	openaiClient *openai.Client
 	mcpClient    *FuuMCP
@@ -24,12 +20,12 @@ func NewAgent(ctx context.Context) (*Agent, error) {
 	if err != nil {
 		return nil, xerr.Wrap(err, "NewAgent.NewFuuMCPClient")
 	}
-	config := openai.DefaultConfig(os.Getenv("XIAOMI_AI_KEY"))
-	config.BaseURL = "https://token-plan-cn.xiaomimimo.com/v1"
+	config := openai.DefaultConfig(os.Getenv(xiaomiAIEnv))
+	config.BaseURL = xiaomiAIURL
 	return &Agent{
 		openaiClient: openai.NewClientWithConfig(config),
 		mcpClient:    mcp,
-		model:        aimodel,
+		model:        aiModel,
 	}, nil
 }
 func (a *Agent) Run(ctx context.Context, messages []openai.ChatCompletionMessage, jwchid, jwchpassword string) (string, error) {
@@ -43,7 +39,7 @@ func (a *Agent) Run(ctx context.Context, messages []openai.ChatCompletionMessage
 		return "", xerr.Wrap(err, "Agent.Run.ListMCPTools")
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < maxToolLoops; i++ {
 		resp, err := a.openaiClient.CreateChatCompletion(
 			ctx,
 			openai.ChatCompletionRequest{

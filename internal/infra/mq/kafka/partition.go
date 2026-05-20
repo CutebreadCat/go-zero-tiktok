@@ -43,7 +43,7 @@ func (p *Partition) Start(ctx context.Context) {
 						continue
 					}
 					fmt.Printf("Partition fetch 错误: %v\n", err)
-					time.Sleep(2 * time.Second)
+					time.Sleep(partitionFetchRetryWait)
 					continue
 				}
 

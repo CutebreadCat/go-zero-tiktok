@@ -1,4 +1,4 @@
-package cache
+package ws
 
 import (
 	"github.com/zeromicro/go-zero/core/stores/redis"

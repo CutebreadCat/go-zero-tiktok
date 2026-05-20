@@ -51,10 +51,10 @@ func NewMultiTopicConsumerUnitFromConfigs(
 		r := kafkaGo.NewReader(kafkaGo.ReaderConfig{
 			Brokers:   brokers,
 			Topic:     cfg.Topic,
-			Partition: 0,                      // 直接读取 partition 0
-			MinBytes:  1,                      // 1 字节，立即返回
-			MaxBytes:  10e6,                   // 10MB
-			MaxWait:   500 * time.Millisecond, // 最大等待时间
+			Partition: defaultPartition,
+			MinBytes:  readerMinBytes,
+			MaxBytes:  readerMaxBytes,
+			MaxWait:   readerMaxWait,
 		})
 		log.Printf("📋 Kafka Reader 配置（Partition 模式）：Brokers=%v, Topic=%s, Partition=0",
 			brokers, cfg.Topic)
@@ -79,7 +79,7 @@ func (u *MultiTopicConsumerUnit) Start(ctx context.Context) {
 	// 在 Docker 环境中，容器同时启动会导致 Kafka 协调器压力过大
 	// 需要给 Kafka 足够的时间来完成消费者组的初始化和分区分配
 	log.Printf("⏳ Waiting for Kafka consumer group to stabilize...")
-	time.Sleep(3 * time.Second)
+	time.Sleep(consumerGroupStabilizeWait)
 	log.Printf("✅ Kafka consumer group should be ready now")
 
 	// 再启动所有 PartitionFetcher，开始拉取消息
@@ -89,7 +89,7 @@ func (u *MultiTopicConsumerUnit) Start(ctx context.Context) {
 		log.Printf("✅ Fetcher %d started", i)
 
 		// 每个 fetcher 之间间隔一下，避免同时连接 Kafka 造成压力
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(fetcherStartInterval)
 	}
 
 	log.Printf("✅ MultiTopicConsumerUnit started")

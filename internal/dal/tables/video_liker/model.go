@@ -1,5 +1,7 @@
 package video_liker
 
+const userLikedVideosSetPrefix = "user:liked:videos:"
+
 // VideoLiker 视频点赞数据库模型
 type VideoLiker struct {
 	UserID  string `gorm:"primaryKey;type:varchar(64);column:user_id"`
