@@ -60,6 +60,29 @@ func (f *FuuMCP) CallMCPTool(ctx context.Context, tc openai.ToolCall, auth *Jwch
 		args = make(map[string]any)
 	}
 
+	// 处理本地教务处登录工具
+	if tc.Function.Name == "jwch_login" {
+		content, err := HandleJwchLogin(ctx, args)
+		if err != nil {
+			return &openai.ChatCompletionMessage{
+				Role:       openai.ChatMessageRoleTool,
+				Content:    fmt.Sprintf("教务处登录失败: %v", err),
+				ToolCallID: tc.ID,
+			}, nil
+		}
+		// 解析登录结果，保存到 auth
+		var loginResult JwchLogin
+		if err := json.Unmarshal([]byte(content), &loginResult); err == nil && auth != nil {
+			*auth = loginResult
+		}
+		return &openai.ChatCompletionMessage{
+			Role:       openai.ChatMessageRoleTool,
+			Content:    content,
+			ToolCallID: tc.ID,
+		}, nil
+	}
+
+	// 处理远程 MCP 工具
 	if auth != nil {
 		if auth.JwchId != "" {
 			args["user_id"] = auth.JwchId

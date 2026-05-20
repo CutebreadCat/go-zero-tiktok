@@ -5,6 +5,7 @@ import "./user.api"
 @server(
   group: user
   jwt: Auth
+  middleware: RateLimit
   tags:"user"
 )
 service tiktok-api {
@@ -16,4 +17,6 @@ service tiktok-api {
   post /user/mfa/bind (BindMfaqrcodeRequest) returns (BindMfaqrcodeResponse)
   @handler JwchLoginHandler
   post /user/jwch/login (JwchLoginRequest) returns (JwchLoginResponse)
+  @handler JwchGetUserCookieHandler
+  get /user/jwch/cookie (JwchGetUserCookieRequest) returns (JwchGetUserCookieResponse)
 }

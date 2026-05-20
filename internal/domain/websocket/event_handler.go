@@ -3,6 +3,7 @@ package websocket
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	mqcontract "go_zero-tiktok/internal/shared/mq"
@@ -25,7 +26,7 @@ func (h *MessageHandler) Consume(ctx context.Context, e *mqcontract.Event) error
 		return nil
 	}
 
-	fmt.Printf("MQ 消费消息: room=%s, sender=%s\n", event.RoomID, event.SenderID)
+	log.Printf("MQ 消费消息: room=%s, sender=%s", event.RoomID, event.SenderID)
 
 	msg := &types.MessageChat{
 		RoomID:    event.RoomID,

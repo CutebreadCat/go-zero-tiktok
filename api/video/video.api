@@ -4,6 +4,7 @@ import "../model.api"
 
 @server(
     group: video
+    middleware: RateLimit
     tags:"video"
 )
 

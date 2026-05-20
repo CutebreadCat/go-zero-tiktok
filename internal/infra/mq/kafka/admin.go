@@ -3,6 +3,7 @@ package mykafka
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/segmentio/kafka-go"
@@ -21,7 +22,7 @@ type MyKafa struct {
 }
 
 func (m *MyKafa) BatchEnsureTopics(ctx context.Context, brokers []string, topics []TopicConfig) error {
-	fmt.Println("开始初始化 Kafka Topics...")
+	log.Println("开始初始化 Kafka Topics...")
 
 	conn, err := kafka.DialContext(ctx, "tcp", brokers[0])
 	if err != nil {
@@ -39,14 +40,14 @@ func (m *MyKafa) BatchEnsureTopics(ctx context.Context, brokers []string, topics
 		err := conn.CreateTopics(config)
 		if err != nil {
 			if strings.Contains(err.Error(), "TopicAlreadyExists") {
-				fmt.Printf("Topic [%s] 已存在，跳过\n", t.Name)
+				log.Printf("Topic [%s] 已存在，跳过", t.Name)
 				continue
 			}
 			return fmt.Errorf("failed to create topic [%s]: %w", t.Name, err)
 		}
-		fmt.Printf("Topic [%s] 创建成功 (分区:%d, 副本:%d)\n", t.Name, t.Partitions, t.ReplicationFactor)
+		log.Printf("Topic [%s] 创建成功 (分区:%d, 副本:%d)", t.Name, t.Partitions, t.ReplicationFactor)
 	}
 
-	fmt.Println("所有 Topic 初始化完成")
+	log.Println("所有 Topic 初始化完成")
 	return nil
 }

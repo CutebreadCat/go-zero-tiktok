@@ -2,7 +2,7 @@ package mykafka
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"time"
 
 	"go_zero-tiktok/internal/infra/mq"
@@ -28,13 +28,13 @@ func NewPartition(reader Readder, pool *mq.WorkerPool) *Partition {
 }
 
 func (p *Partition) Start(ctx context.Context) {
-	fmt.Printf("Partition fetcher 启动...\n")
+	log.Printf("Partition fetcher 启动...")
 	go func() {
-		fmt.Printf("Partition fetcher goroutine 已启动\n")
+		log.Printf("Partition fetcher goroutine 已启动")
 		for {
 			select {
 			case <-ctx.Done():
-				fmt.Printf("Partition fetcher 停止: %v\n", ctx.Err())
+				log.Printf("Partition fetcher 停止: %v", ctx.Err())
 				return
 			default:
 				event, err := p.reader.Fetch(ctx)
@@ -42,20 +42,20 @@ func (p *Partition) Start(ctx context.Context) {
 					if err == context.DeadlineExceeded {
 						continue
 					}
-					fmt.Printf("Partition fetch 错误: %v\n", err)
+					log.Printf("Partition fetch 错误: %v", err)
 					time.Sleep(2 * time.Second)
 					continue
 				}
 
-				fmt.Printf("Partition 获取消息: key=%s, topic=%s\n", string(event.Msg.Key), event.Msg.Topic)
+				log.Printf("Partition 获取消息: key=%s, topic=%s", string(event.Msg.Key), event.Msg.Topic)
 
 				msg := event.Msg
 				commit_func := func() {
 					err := p.reader.Commit(ctx, msg)
 					if err != nil {
-						fmt.Printf("提交消息失败: %v\n", err)
+						log.Printf("提交消息失败: %v", err)
 					} else {
-						fmt.Printf("消息已提交: key=%s\n", string(msg.Key))
+						log.Printf("消息已提交: key=%s", string(msg.Key))
 					}
 				}
 

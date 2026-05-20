@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"sync"
 )
 
@@ -16,7 +16,7 @@ type roomManager struct {
 func (rm *roomManager) LoadRooms(ctx context.Context, client *Client) {
 	rooms, err := rm.repo.GetJoinRooms(ctx, client.UserID)
 	if err != nil {
-		fmt.Printf("加载用户 %s 的房间失败: %v\n", client.UserID, err)
+		log.Printf("加载用户 %s 的房间失败: %v", client.UserID, err)
 		return
 	}
 	rm.mu.Lock()

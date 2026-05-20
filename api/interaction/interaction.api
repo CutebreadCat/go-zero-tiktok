@@ -5,6 +5,7 @@ import "../model.api"
 @server(
     group: interaction
     jwt: Auth
+    middleware: RateLimit
     tags:"interaction"
 )
 

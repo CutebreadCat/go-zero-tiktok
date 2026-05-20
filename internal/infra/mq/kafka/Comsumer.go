@@ -3,6 +3,7 @@ package mykafka
 import (
 	"context"
 	mqcontract "go_zero-tiktok/internal/shared/mq"
+	"go_zero-tiktok/internal/svc/xerr"
 	"log"
 
 	kafkaGo "github.com/segmentio/kafka-go"
@@ -21,10 +22,10 @@ func NewReader(r *kafkaGo.Reader) *KafkaReader {
 func (m *MyKafa) NewKafkaReader(ctx context.Context, brokers []string, topic string, groupID string) *KafkaReader {
 	r := kafkaGo.NewReader(kafkaGo.ReaderConfig{
 		Brokers:  brokers,
-		GroupID:  groupID,
 		Topic:    topic,
-		MinBytes: 10e3, // 10KB
-		MaxBytes: 10e6, // 10MB
+		GroupID:  groupID,
+		MinBytes: 10e3,
+		MaxBytes: 10e6,
 	})
 	return NewReader(r)
 }
@@ -32,18 +33,16 @@ func (m *MyKafa) NewKafkaReader(ctx context.Context, brokers []string, topic str
 func (k *KafkaReader) Fetch(ctx context.Context) (*mqcontract.Event, error) {
 	m, err := k.r.FetchMessage(ctx)
 	if err != nil {
-		log.Printf("❌ KafkaReader FetchMessage error: %v", err)
-		return nil, err
+		return nil, xerr.Wrap(err, "KafkaReader.Fetch.FetchMessage")
 	}
 
-	log.Printf("📨 KafkaReader fetched message: topic=%s, partition=%d, offset=%d, key=%s, value_len=%d",
+	log.Printf("KafkaReader 获取消息: topic=%s, partition=%d, offset=%d, key=%s, value_len=%d",
 		m.Topic, m.Partition, m.Offset, string(m.Key), len(m.Value))
 
 	var Event mqcontract.Event
 	err = json.Unmarshal(m.Value, &Event)
 	if err != nil {
-		log.Printf("❌ Failed to unmarshal message: %v", err)
-		return nil, err
+		return nil, xerr.Wrap(err, "KafkaReader.fetch.Unmarshal")
 	}
 
 	Event.Msg.Topic = m.Topic
@@ -54,9 +53,7 @@ func (k *KafkaReader) Fetch(ctx context.Context) (*mqcontract.Event, error) {
 }
 
 func (k *KafkaReader) Commit(ctx context.Context, msg *mqcontract.Message) error {
-	// 当使用 Partition 模式（没有 GroupID）时，不需要手动 commit
-	// kafka-go 会自动跟踪 offset
-	log.Printf("✅ Message processed: topic=%s, partition=%d, offset=%d", msg.Topic, msg.Partition, msg.Offset)
+	log.Printf("消息已处理: topic=%s, partition=%d, offset=%d", msg.Topic, msg.Partition, msg.Offset)
 	return nil
 }
 
@@ -64,8 +61,7 @@ func (k *KafkaReader) UnmarshalMessage(m *mqcontract.Message) (*mqcontract.Event
 	var event mqcontract.Event
 	err := json.Unmarshal(m.Value, &event)
 	if err != nil {
-		log.Printf("Failed to unmarshal kafka message: %v", err)
-		return nil, err
+		return nil, xerr.Wrap(err, "KafkaReader.UnmarshalMessage")
 	}
 	return &event, nil
 }

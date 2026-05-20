@@ -172,6 +172,15 @@ type JoinChatRoomResponse struct {
 	Base BaseResponse `json:"base_response"`
 }
 
+type JwchGetUserCookieRequest struct {
+}
+
+type JwchGetUserCookieResponse struct {
+	Base   BaseResponse `json:"base"`
+	JwchID string       `json:"jwch_id"`
+	Cookie string       `json:"cookie" `
+}
+
 type JwchLoginRequest struct {
 	Username string `form:"username"`
 	Password string `form:"password"`
