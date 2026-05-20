@@ -11,7 +11,7 @@ import (
 	repository "go_zero-tiktok/internal/dal/repository"
 	"go_zero-tiktok/internal/domain/websocket"
 	"go_zero-tiktok/internal/infra/ai"
-	"go_zero-tiktok/internal/infra/cache"
+	wscache "go_zero-tiktok/internal/infra/cache/ws"
 	"go_zero-tiktok/internal/infra/storage/aliyun"
 	"go_zero-tiktok/internal/middleware"
 	"go_zero-tiktok/internal/middleware/goverment/breaker"
@@ -27,7 +27,7 @@ import (
 type ServiceContext struct {
 	Config    config.Config
 	DB        *gorm.DB
-	Cache     *cache.RedisCache
+	Cache     *wscache.RedisCache
 	Rdb       *redis.Redis
 	Dal       *repository.Repositories
 	Hub       *websocket.Hub
@@ -44,11 +44,11 @@ func NewServiceContext(config config.Config) *ServiceContext {
 	aliyun.GetAliConfig()
 	aliyun.AliInit()
 
-	c := cache.NewRedisCache(dal.Rdb)
+	c := wscache.NewRedisCache(dal.Rdb)
 	dalRepo := repository.NewRepositories(dal.Db, dal.Rdb)
 
-	aiLimiter := limiter.New(dal.Rdb, 60, 20, "ai_limit")
-	wsLimiter := limiter.New(dal.Rdb, 1, 30, "ws_limit")
+	aiLimiter := limiter.New(dal.Rdb, aiLimitSeconds, aiLimitMaxRequests, aiLimitKeyPrefix)
+	wsLimiter := limiter.New(dal.Rdb, wsLimitSeconds, wsLimitMaxRequests, wsLimitKeyPrefix)
 	aiBreaker := breaker.New()
 
 	aiAgent, err := ai.NewAgent(context.Background(), aiLimiter, aiBreaker)
@@ -73,6 +73,6 @@ func NewServiceContext(config config.Config) *ServiceContext {
 		Hub:       hub,
 		AIChat:    aiChat,
 		MQ:        mq,
-		RateLimit: middleware.NewRateLimitMiddleware(limiter.New(dal.Rdb, 1, 100, "http_limit")).Handle,
+		RateLimit: middleware.NewRateLimitMiddleware(limiter.New(dal.Rdb, httpLimitSeconds, httpLimitMaxRequests, httpLimitKeyPrefix)).Handle,
 	}
 }

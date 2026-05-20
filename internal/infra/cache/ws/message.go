@@ -1,4 +1,4 @@
-package cache
+package ws
 
 import (
 	"context"
@@ -12,16 +12,16 @@ import (
 )
 
 func (r *RedisCache) streamkey(roomID string) string {
-	return fmt.Sprintf("stream:message:%s", roomID)
+	return messageStreamPrefix + roomID
 }
 func (r *RedisCache) aiStreamKey(roomID, userID string) string {
-	return fmt.Sprintf("stream:ai:%s:%s", roomID, userID)
+	return fmt.Sprintf("%s%s:%s", aiStreamPrefix, roomID, userID)
 }
 func (r *RedisCache) Unreadkey(userid, roomid string) string {
-	return fmt.Sprintf("unread:%s:%s", userid, roomid)
+	return fmt.Sprintf("%s%s:%s", unreadKeyPrefix, userid, roomid)
 }
 func (r *RedisCache) AiChatKey(userid, roomID string) string {
-	return fmt.Sprintf("aichat:%s:%s", userid, roomID)
+	return fmt.Sprintf("%s%s:%s", aiChatKeyPrefix, userid, roomID)
 }
 
 func (r *RedisCache) AddMessage(ctx context.Context, message *types.MessageChat) (string, error) {
@@ -43,8 +43,7 @@ func (r *RedisCache) AddMessage(ctx context.Context, message *types.MessageChat)
 	if err != nil {
 		return "", xerr.Wrap(err, "RedisCache.AddMessage.XAdd")
 	}
-	maxlen := 1000
-	_, err = r.client.Do("XTRIM", key, "MAXLEN", maxlen)
+	_, err = r.client.Do("XTRIM", key, "MAXLEN", messageStreamMaxLen)
 	if err != nil {
 		return "", xerr.Wrap(err, "RedisCache.AddMessage.XTRIM")
 	}

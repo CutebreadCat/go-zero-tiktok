@@ -20,9 +20,7 @@ func NewRateLimitMiddleware(l limiter.Limiter) *RateLimitMiddleware {
 func (m *RateLimitMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO generate middleware implement function, delete after code implementation
-		allowed, err := m.limiter.Allow(
-			r.RemoteAddr,
-		)
+		allowed, err := m.limiter.Allow(rateLimitKey(r))
 
 		if err != nil {
 			xerr.NewServerBusy()
@@ -39,3 +37,9 @@ func (m *RateLimitMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 }
 
 // Passthrough to next handler if need
+func rateLimitKey(r *http.Request) string {
+	if r.RemoteAddr == "" {
+		return rateLimitRemoteAddrKey
+	}
+	return r.RemoteAddr
+}

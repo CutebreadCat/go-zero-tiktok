@@ -8,11 +8,6 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
-const (
-	popularVideosRankKey = "popular_videos"
-	popularVideosHashKey = "popular_videos:hash"
-)
-
 func SetPopularVideoToRedis(ctx context.Context, rdb *redis.Redis, video VideoPopular) error {
 	if ok, err := rdb.Zadd(popularVideosRankKey, video.VisitCount, video.VideoID); !ok {
 		return xerr.Wrap(err, "set popular video to redis failed")

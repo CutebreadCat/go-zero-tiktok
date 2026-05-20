@@ -22,20 +22,20 @@ var AliConf AliConfig
 var AliClient *oss.Client
 
 func GetAliConfig() {
-	viper.SetConfigName("aliconfig")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("internal/infra/storage/aliyun")
+	viper.SetConfigName(aliConfigName)
+	viper.SetConfigType(aliConfigType)
+	viper.AddConfigPath(aliConfigRootPath)
+	viper.AddConfigPath(aliConfigPkgPath)
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("读取阿里云配置失败: %v", err)
 		return
 	}
 
-	AliConf.OSSAccess.ID = viper.GetString("oss_access.id")
-	AliConf.OSSAccess.Secret = viper.GetString("oss_access.secret")
-	AliConf.OSSAccess.Endpoint = viper.GetString("oss_access.endpoint")
-	AliConf.OSSAccess.BucketName = viper.GetString("oss_access.bucket_name")
+	AliConf.OSSAccess.ID = viper.GetString(ossAccessIDKey)
+	AliConf.OSSAccess.Secret = viper.GetString(ossAccessSecretKey)
+	AliConf.OSSAccess.Endpoint = viper.GetString(ossAccessEndpointKey)
+	AliConf.OSSAccess.BucketName = viper.GetString(ossAccessBucketNameKey)
 	log.Println("阿里云配置已加载")
 }
 

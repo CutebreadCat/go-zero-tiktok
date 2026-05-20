@@ -45,10 +45,10 @@ func NewMultiTopicConsumerUnitFromConfigs(
 		r := kafkaGo.NewReader(kafkaGo.ReaderConfig{
 			Brokers:   brokers,
 			Topic:     cfg.Topic,
-			Partition: 0,
-			MinBytes:  1,
-			MaxBytes:  10e6,
-			MaxWait:   500 * time.Millisecond,
+			Partition: defaultPartition,
+			MinBytes:  readerMinBytes,
+			MaxBytes:  readerMaxBytes,
+			MaxWait:   readerMaxWait,
 		})
 		log.Printf("Kafka Reader 配置（Partition 模式）：Brokers=%v, Topic=%s, Partition=0",
 			brokers, cfg.Topic)
@@ -71,7 +71,7 @@ func (u *MultiTopicConsumerUnit) Start(ctx context.Context) {
 
 	// 等待 Kafka 消费者组稳定（避免 rebalance 期间拉取失败）
 	log.Printf("等待 Kafka 消费者组稳定...")
-	time.Sleep(3 * time.Second)
+	time.Sleep(consumerGroupStabilizeWait)
 	log.Printf("Kafka 消费者组已就绪")
 
 	// 再启动所有 PartitionFetcher，开始拉取消息
@@ -81,7 +81,7 @@ func (u *MultiTopicConsumerUnit) Start(ctx context.Context) {
 		log.Printf("Fetcher %d 已启动", i)
 
 		// 每个 fetcher 之间间隔一下，避免同时连接 Kafka 造成压力
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(fetcherStartInterval)
 	}
 
 	log.Printf("MultiTopicConsumerUnit 已启动")

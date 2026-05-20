@@ -1,4 +1,4 @@
-package cache
+package ws
 
 import (
 	"context"
@@ -6,10 +6,8 @@ import (
 	"log"
 )
 
-const OnlineExpireSeconds = 24 * 3600
-
 func (c *RedisCache) RoomOnlineKey(roomID string) string {
-	return "presence:room:" + roomID
+	return roomPresenceKeyPrefix + roomID
 }
 
 func (c *RedisCache) JoinRoom(ctx context.Context, roomID string, userID string) error {
@@ -19,7 +17,7 @@ func (c *RedisCache) JoinRoom(ctx context.Context, roomID string, userID string)
 		return xerr.Wrap(err, "RedisCache.JoinRoom")
 	}
 
-	c.client.Expire(c.RoomOnlineKey(roomID), OnlineExpireSeconds)
+	c.client.Expire(c.RoomOnlineKey(roomID), onlineExpireSeconds)
 
 	log.Printf("用户 %s 已加入房间 %s", userID, roomID)
 	return nil
@@ -64,7 +62,7 @@ func (c *RedisCache) GetRoomOnlineCount(ctx context.Context, roomID string) (int
 }
 
 func (c *RedisCache) RoomHeartBeat(ctx context.Context, roomID string) error {
-	if err := c.client.Expire(c.RoomOnlineKey(roomID), OnlineExpireSeconds); err != nil {
+	if err := c.client.Expire(c.RoomOnlineKey(roomID), onlineExpireSeconds); err != nil {
 		log.Printf("房间 %s 心跳续命 TTL 失败: %v", roomID, err)
 		return xerr.Wrap(err, "RedisCache.RoomHeartBeat")
 	}
