@@ -3,17 +3,16 @@ package dal
 
 import (
 	"log"
-	"time"
 
 	"context"
 
 	chatModel "go_zero-tiktok/internal/dal/tables/chat"
 	commentModel "go_zero-tiktok/internal/dal/tables/comment_baseinfo"
-	userFollowModel "go_zero-tiktok/internal/dal/tables/user_follow"
 	userModel "go_zero-tiktok/internal/dal/tables/user_baseinfo"
+	userFollowModel "go_zero-tiktok/internal/dal/tables/user_follow"
+	videoModel "go_zero-tiktok/internal/dal/tables/video_baseinfo"
 	videoLikerModel "go_zero-tiktok/internal/dal/tables/video_liker"
 	videoPopularModel "go_zero-tiktok/internal/dal/tables/video_popular"
-	videoModel "go_zero-tiktok/internal/dal/tables/video_baseinfo"
 
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"gorm.io/driver/mysql"
@@ -41,9 +40,9 @@ func InitMysql(dsn string) error {
 	}
 
 	// 3. 配置连接池参数
-	sqlDB.SetMaxOpenConns(100)          // 最大打开连接数
-	sqlDB.SetMaxIdleConns(10)           // 最大空闲连接数
-	sqlDB.SetConnMaxLifetime(time.Hour) // 连接最大存活时间
+	sqlDB.SetMaxOpenConns(mysqlMaxOpenConns)
+	sqlDB.SetMaxIdleConns(mysqlMaxIdleConns)
+	sqlDB.SetConnMaxLifetime(mysqlConnMaxLifetime)
 
 	// 4. 测试连接是否成功
 	if err = sqlDB.Ping(); err != nil {

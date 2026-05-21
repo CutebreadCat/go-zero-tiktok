@@ -2,6 +2,10 @@ package mqcontract
 
 import "context"
 
+type ConsumerHandler interface {
+	Consume(ctx context.Context, msg *Event) error
+}
+
 type Router struct {
 	unreadHandler  ConsumerHandler
 	messageHandler ConsumerHandler

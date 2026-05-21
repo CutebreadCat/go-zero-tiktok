@@ -47,8 +47,8 @@ func NewServiceContext(config config.Config) *ServiceContext {
 	c := wscache.NewRedisCache(dal.Rdb)
 	dalRepo := repository.NewRepositories(dal.Db, dal.Rdb)
 
-	aiLimiter := limiter.New(dal.Rdb, aiLimitSeconds, aiLimitMaxRequests, aiLimitKeyPrefix)
-	wsLimiter := limiter.New(dal.Rdb, wsLimitSeconds, wsLimitMaxRequests, wsLimitKeyPrefix)
+	aiLimiter := limiter.New(dal.Rdb, ai.DefaultLimitSeconds, ai.DefaultLimitMaxRequests, ai.DefaultLimitKeyPrefix)
+	wsLimiter := limiter.New(dal.Rdb, websocket.DefaultLimitSeconds, websocket.DefaultLimitMaxRequests, websocket.DefaultLimitKeyPrefix)
 	aiBreaker := breaker.New()
 
 	aiAgent, err := ai.NewAgent(context.Background(), aiLimiter, aiBreaker)
@@ -73,6 +73,6 @@ func NewServiceContext(config config.Config) *ServiceContext {
 		Hub:       hub,
 		AIChat:    aiChat,
 		MQ:        mq,
-		RateLimit: middleware.NewRateLimitMiddleware(limiter.New(dal.Rdb, httpLimitSeconds, httpLimitMaxRequests, httpLimitKeyPrefix)).Handle,
+		RateLimit: middleware.NewRateLimitMiddleware(limiter.New(dal.Rdb, middleware.DefaultRateLimitSeconds, middleware.DefaultRateLimitMaxRequests, middleware.DefaultRateLimitKeyPrefix)).Handle,
 	}
 }

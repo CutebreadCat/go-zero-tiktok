@@ -1,7 +1,6 @@
 package mqcontract
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"sync"
@@ -36,6 +35,7 @@ func RegisterEventFactory(eventType string, factory func() any) {
 }
 
 // GetEventFactory 获取事件类型对应的工厂函数
+
 func GetEventFactory(eventType string) (func() any, bool) {
 	factoryMu.RLock()
 	defer factoryMu.RUnlock()
@@ -45,7 +45,7 @@ func GetEventFactory(eventType string) (func() any, bool) {
 
 func (e *Event) UnmarshalJSON(data []byte) error {
 	// 先解析到中间结构，避免无限递归
-	log.Printf("调用了反序列化")
+
 	var raw struct {
 		Type string          `json:"Type"`
 		Msg  *Message        `json:"Msg"`
@@ -64,19 +64,15 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	factoryMu.RUnlock()
 
 	if ok && len(raw.Data) > 0 {
-		log.Printf("找到工厂，创建实例并反序列化 Data")
+
 		e.Data = factory()
 		return json.Unmarshal(raw.Data, e.Data)
 	}
 
 	// 未注册的类型，fallback 到 map
 	if len(raw.Data) > 0 {
-		log.Printf("未找到工厂，Data 反序列化到 map[string]any")
+
 		return json.Unmarshal(raw.Data, &e.Data)
 	}
 	return nil
-}
-
-type ConsumerHandler interface {
-	Consume(ctx context.Context, msg *Event) error
 }

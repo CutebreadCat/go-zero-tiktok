@@ -15,6 +15,10 @@ const (
 	MessageTypeError   = "error"
 	MessageTypeAIReply = "ai_reply"
 
+	DefaultLimitSeconds     = 1
+	DefaultLimitMaxRequests = 30
+	DefaultLimitKeyPrefix   = "ws_limit"
+
 	aiSenderID          = "AI"
 	aiTriggerMsgCount   = 2
 	clientReadLimit     = 512

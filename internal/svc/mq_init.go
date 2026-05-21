@@ -77,8 +77,8 @@ func InitMQ(cfg config.KafkaConfig, hub *websocket.Hub, aiChat *websocket.AIChat
 		cfg.Brokers,
 		cfg.GroupID,
 		consumer,
-		10,   // Worker 数量
-		1000, // 队列大小
+		mykafka.DefaultConsumerWorkerCount,
+		mykafka.DefaultConsumerQueueSize,
 	)
 
 	// 7. 启动消费

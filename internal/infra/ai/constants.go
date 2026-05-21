@@ -13,5 +13,9 @@ const (
 	aiBreakerName   = "ai_chat"
 	maxToolLoops    = 10
 
+	DefaultLimitSeconds     = 60
+	DefaultLimitMaxRequests = 20
+	DefaultLimitKeyPrefix   = "ai_limit"
+
 	aiRateLimitMessage = "AI 请求过于频繁，请稍后再试"
 )

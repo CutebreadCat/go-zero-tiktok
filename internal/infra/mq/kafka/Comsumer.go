@@ -36,9 +36,6 @@ func (k *KafkaReader) Fetch(ctx context.Context) (*mqcontract.Event, error) {
 		return nil, xerr.Wrap(err, "KafkaReader.Fetch.FetchMessage")
 	}
 
-	log.Printf("KafkaReader 获取消息: topic=%s, partition=%d, offset=%d, key=%s, value_len=%d",
-		m.Topic, m.Partition, m.Offset, string(m.Key), len(m.Value))
-
 	var Event mqcontract.Event
 	err = json.Unmarshal(m.Value, &Event)
 	if err != nil {
