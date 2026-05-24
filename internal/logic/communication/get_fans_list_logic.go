@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -48,7 +48,7 @@ func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *typ
 
 	resp = &types.GetFansListResponse{
 		BaseResponse: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		FansList:     l.svcCtx.Dal.User.UsersToResponse(fansList),
+		FansList:     fansList,
 		FansCount:    int32(total),
 	}
 

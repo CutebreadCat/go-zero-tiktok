@@ -47,12 +47,12 @@ func (r *VideoPopularRepo) UpdateVideoLikeCount(ctx context.Context, videoID str
 	return nil
 }
 
-func (r *VideoPopularRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]videopopulartable.VideoPopular, int64, error) {
+func (r *VideoPopularRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error) {
 	rows, total, err := videopopulartable.GetPopularVideoIDsByVisitCount(ctx, r.db, pageNum, pageSize)
 	if err != nil {
 		return nil, 0, pkgerrors.WithMessage(err, "VideoPopularRepo.GetPopularVideoIDsByVisitCount")
 	}
-	return rows, total, nil
+	return r.VideoPopularsToResponse(rows), total, nil
 }
 
 func (r *VideoPopularRepo) VideoPopularToResponse(popular *videopopulartable.VideoPopular) types.VideoPopular {

@@ -19,8 +19,8 @@ func (c *Client) ReadLoop() {
 		hand()
 	}()
 	c.Conn.SetReadLimit(clientReadLimit)
-	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.Conn.SetPongHandler(func(string) error { c.Conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	_ = c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.Conn.SetPongHandler(func(string) error { _ = c.Conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
 		var msg Message
 		if err := c.Conn.ReadJSON(&msg); err != nil {
@@ -58,7 +58,7 @@ func (c *Client) WriteLoop() {
 	for {
 		select {
 		case message, ok := <-c.Send:
-			c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
+			_ = c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
 			c.Cmu.Lock()
 			if !ok {
 				log.Println("发送通道已关闭，退出 WriteLoop")
@@ -72,7 +72,7 @@ func (c *Client) WriteLoop() {
 			}
 			c.Cmu.Unlock()
 		case <-ticker.C:
-			c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
+			_ = c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
 			if err := c.Conn.WriteMessage(ws.PingMessage, nil); err != nil {
 				log.Printf("发送 ping 到客户端 %s 失败: %v", c.UserID, err)
 				return

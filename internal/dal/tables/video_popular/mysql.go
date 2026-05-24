@@ -2,9 +2,10 @@ package video_popular
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 
 	"gorm.io/gorm"
 )
@@ -95,7 +96,7 @@ func IncrVideoVisitCountInDB(ctx context.Context, db *gorm.DB, videoID string) e
 func GetVideoPopularByVideoID(ctx context.Context, db *gorm.DB, videoID string) (*VideoPopular, error) {
 	var videoPopular VideoPopular
 	if err := db.WithContext(ctx).Where("video_id = ?", videoID).First(&videoPopular).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, xerr.Wrap(err, "get video popular failed")

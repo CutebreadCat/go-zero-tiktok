@@ -3,7 +3,7 @@ package mykafka
 import (
 	"context"
 	mqcontract "go_zero-tiktok/internal/shared/mq"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"log"
 
 	kafkaGo "github.com/segmentio/kafka-go"
@@ -35,9 +35,6 @@ func (k *KafkaReader) Fetch(ctx context.Context) (*mqcontract.Event, error) {
 	if err != nil {
 		return nil, xerr.Wrap(err, "KafkaReader.Fetch.FetchMessage")
 	}
-
-	log.Printf("KafkaReader 获取消息: topic=%s, partition=%d, offset=%d, key=%s, value_len=%d",
-		m.Topic, m.Partition, m.Offset, string(m.Key), len(m.Value))
 
 	var Event mqcontract.Event
 	err = json.Unmarshal(m.Value, &Event)

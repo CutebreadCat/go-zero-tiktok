@@ -1,0 +1,37 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - ineffassign
+    - unused
+    - revive
+    - gocritic
+    - bodyclose
+    - misspell
+    - errorlint
+    - gocognit
+    - contextcheck
+  disable:
+    - wsl
+    - nlreturn
+
+linters-settings:
+  revive:
+    rules:
+      - name: exported
+        disabled: true
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocognit
+        - wrapcheck
+    - path: _test\.go
+      text: "SA1029:"
+      linters:
+        - staticcheck

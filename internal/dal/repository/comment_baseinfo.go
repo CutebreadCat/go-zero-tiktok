@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	commenttable "go_zero-tiktok/internal/dal/tables/comment_baseinfo"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -69,12 +69,12 @@ func (r *CommentRepo) DeleteCommentByID(ctx context.Context, commentID string, u
 	return nil
 }
 
-func (r *CommentRepo) GetCommentsByVideoID(ctx context.Context, videoID string, pageNumber, pageSize int32) ([]commenttable.CommentBaseinfo, int64, error) {
+func (r *CommentRepo) GetCommentsByVideoID(ctx context.Context, videoID string, pageNumber, pageSize int32) ([]types.CommentBaseinfo, int64, error) {
 	comments, total, err := commenttable.GetCommentsByVideoID(ctx, r.db, videoID, pageNumber, pageSize)
 	if err != nil {
 		return nil, 0, pkgerrors.WithMessage(err, "CommentRepo.GetCommentsByVideoID")
 	}
-	return comments, total, nil
+	return r.CommentsToResponse(comments), total, nil
 }
 
 func (r *CommentRepo) LikeComment(ctx context.Context, commentID string, userID string, likeType int32) error {

@@ -86,12 +86,19 @@ func (r *ChatRepo) CreateChatMessage(ctx context.Context, message *types.Message
 	return nil
 }
 
-func (r *ChatRepo) GetChatRoomMessage(ctx context.Context, roomID string, pageSize int, pageNum int) ([]*chattable.MessageChat, error) {
+func (r *ChatRepo) GetChatRoomMessage(ctx context.Context, roomID string, pageSize int, pageNum int) ([]*types.MessageChat, error) {
 	msgs, err := chattable.GetChatRoomMessage(ctx, r.db, roomID, pageSize, pageNum)
 	if err != nil {
 		return nil, pkgerrors.WithMessage(err, "ChatRepo.GetChatRoomMessage")
 	}
-	return msgs, nil
+	result := make([]*types.MessageChat, 0, len(msgs))
+	for _, msg := range msgs {
+		if msg != nil {
+			resp := r.MessageToResponse(msg)
+			result = append(result, &resp)
+		}
+	}
+	return result, nil
 }
 
 func (r *ChatRepo) GetJoinRooms(ctx context.Context, userID string) ([]string, error) {

@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	userbasetable "go_zero-tiktok/internal/dal/tables/user_baseinfo"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -59,20 +59,27 @@ func (r *UserBaseinfoRepo) CreateUserFromParams(ctx context.Context, userID, use
 	return nil
 }
 
-func (r *UserBaseinfoRepo) GetUserByID(ctx context.Context, userID string) (*userbasetable.UserBaseinfo, error) {
+func (r *UserBaseinfoRepo) GetUserByID(ctx context.Context, userID string) (*types.UserBaseinfo, error) {
 	user, err := userbasetable.GetUserByID(ctx, r.db, userID)
 	if err != nil {
 		return nil, pkgerrors.WithMessage(err, "UserBaseinfoRepo.GetUserByID")
 	}
-	return user, nil
+	resp := r.UserToResponse(user)
+	return &resp, nil
 }
 
-func (r *UserBaseinfoRepo) GetUserByUsername(ctx context.Context, username string) (*userbasetable.UserBaseinfo, error) {
+func (r *UserBaseinfoRepo) GetUserByUsername(ctx context.Context, username string) (*types.UserBaseinfo, error) {
 	user, err := userbasetable.GetUserByUsername(ctx, r.db, username)
 	if err != nil {
 		return nil, pkgerrors.WithMessage(err, "UserBaseinfoRepo.GetUserByUsername")
 	}
-	return user, nil
+	resp := types.UserBaseinfo{
+		UserID:   user.UserID,
+		Username: user.Username,
+		Password: user.Password,
+		PhotoURL: user.PhotoURL,
+	}
+	return &resp, nil
 }
 
 func (r *UserBaseinfoRepo) UpdateUserPhotoByID(ctx context.Context, userID string, photoURL string) error {
@@ -82,12 +89,12 @@ func (r *UserBaseinfoRepo) UpdateUserPhotoByID(ctx context.Context, userID strin
 	return nil
 }
 
-func (r *UserBaseinfoRepo) GetUsersByIDs(ctx context.Context, userIDs []string) ([]userbasetable.UserBaseinfo, error) {
+func (r *UserBaseinfoRepo) GetUsersByIDs(ctx context.Context, userIDs []string) ([]types.UserBaseinfo, error) {
 	users, err := userbasetable.GetUsersByIDs(ctx, r.db, userIDs)
 	if err != nil {
 		return nil, pkgerrors.WithMessage(err, "UserBaseinfoRepo.GetUsersByIDs")
 	}
-	return users, nil
+	return r.UsersToResponse(users), nil
 }
 
 func (r *UserBaseinfoRepo) CheckExistsMFA(ctx context.Context, userID string) (bool, error) {

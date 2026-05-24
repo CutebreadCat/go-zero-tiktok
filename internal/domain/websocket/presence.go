@@ -18,7 +18,7 @@ func (pm *presenceManager) AddClient(ctx context.Context, client *Client) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
 	pm.clients[client] = true
-	pm.cache.SetOnline(ctx, client.UserID, client.Conn.RemoteAddr().String())
+	_ = pm.cache.SetOnline(ctx, client.UserID, client.Conn.RemoteAddr().String())
 	pm.rooms.LoadRooms(ctx, client)
 }
 
@@ -26,7 +26,7 @@ func (pm *presenceManager) RemoveClient(ctx context.Context, client *Client) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
 	delete(pm.clients, client)
-	pm.cache.SetOffline(ctx, client.UserID, client.Conn.RemoteAddr().String())
+	_ = pm.cache.SetOffline(ctx, client.UserID, client.Conn.RemoteAddr().String())
 	pm.rooms.RemoveFromRooms(ctx, client)
 	close(client.Send)
 }

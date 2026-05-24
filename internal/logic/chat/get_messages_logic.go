@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -42,18 +42,18 @@ func (l *GetMessagesLogic) GetMessages(req *types.GetMessagesRequest) (resp *typ
 		return nil, err
 	}
 
+	msgList := make([]types.MessageChat, 0, len(messages))
+	for _, msg := range messages {
+		if msg != nil {
+			msgList = append(msgList, *msg)
+		}
+	}
 	resp = &types.GetMessagesResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		Messages: make([]types.MessageChat, 0, len(messages)),
-	}
-	for _, message := range messages {
-		if message == nil {
-			continue
-		}
-		resp.Messages = append(resp.Messages, l.svcCtx.Dal.Chat.MessageToResponse(message))
+		Messages: msgList,
 	}
 
 	return resp, nil

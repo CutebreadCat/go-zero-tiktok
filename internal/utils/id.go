@@ -3,7 +3,9 @@ package myutils
 import (
 	"context"
 	"fmt"
-	"go_zero-tiktok/internal/svc/xerr"
+
+	"go_zero-tiktok/internal/shared/ctxkey"
+	"go_zero-tiktok/internal/shared/xerr"
 
 	"github.com/bwmarrin/snowflake"
 )
@@ -45,6 +47,10 @@ func GenerateMessageID() string {
 func GetUserIDFromContext(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", xerr.New(500, "上下文为空")
+	}
+
+	if uid, ok := ctx.Value(ctxkey.UserID).(string); ok && uid != "" {
+		return uid, nil
 	}
 
 	keys := []string{"user_id", "userId", "uid", "UserID"}

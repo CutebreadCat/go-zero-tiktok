@@ -2,10 +2,11 @@ package token
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
@@ -19,7 +20,12 @@ func WithAuth(secret string) rest.RunOption {
 }
 
 func UnauthorizedCallback(w http.ResponseWriter, r *http.Request, err error) {
-	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, xerr.NewUnauthorized(tokenInvalidMessage).(*xerr.CodeError).HandleResponse())
+	var codeErr *xerr.CodeError
+	if !errors.As(xerr.NewUnauthorized(tokenInvalidMessage), &codeErr) {
+		httpx.ErrorCtx(r.Context(), w, err)
+		return
+	}
+	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, codeErr.HandleResponse())
 }
 
 func AuthMiddleware(secret string) rest.Middleware {

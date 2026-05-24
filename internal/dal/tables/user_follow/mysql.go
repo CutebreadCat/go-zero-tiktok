@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 
 	"gorm.io/gorm"
 )

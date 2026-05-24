@@ -3,8 +3,8 @@ package interaction
 import (
 	"context"
 
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -41,26 +41,12 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 		return nil, err
 	}
 
-	videoList := make([]types.VideoBaseinfo, 0, len(videos))
-	for _, video := range videos {
-		videoList = append(videoList, types.VideoBaseinfo{
-			VideoID:     video.VideoID,
-			AuthorID:    video.AuthorID,
-			VideoURL:    video.VideoURL,
-			CoverURL:    video.CoverURL,
-			Title:       video.Title,
-			Description: video.Description,
-			CreatedAt:   myutils.TimeToStr(video.CreatedAt, ""),
-			UpdatedAt:   myutils.TimeToStr(video.UpdatedAt, ""),
-		})
-	}
-
 	resp = &types.GetLikeListResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		VideoList: videoList,
+		VideoList: videos,
 		LikeCount: int32(total),
 	}
 

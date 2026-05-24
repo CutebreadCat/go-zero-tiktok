@@ -4,6 +4,7 @@ import (
 	"context"
 
 	userfollowtable "go_zero-tiktok/internal/dal/tables/user_follow"
+	"go_zero-tiktok/internal/types"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -53,26 +54,38 @@ func (r *UserFollowRepo) GetFollowingISSubriber(ctx context.Context, followerID,
 	return following, nil
 }
 
-func (r *UserFollowRepo) GetFollowingByFollowerID(ctx context.Context, followerID string, pageNumber, pageSize int32) ([]userfollowtable.UserFollow, int64, error) {
+func (r *UserFollowRepo) userFollowsToResponse(relations []userfollowtable.UserFollow) []types.UserFollow {
+	result := make([]types.UserFollow, 0, len(relations))
+	for _, rel := range relations {
+		result = append(result, types.UserFollow{
+			FollowerID: rel.FollowerID,
+			UserID:     rel.UserID,
+			Status:     rel.Status,
+		})
+	}
+	return result
+}
+
+func (r *UserFollowRepo) GetFollowingByFollowerID(ctx context.Context, followerID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
 	relations, total, err := userfollowtable.GetFollowingByFollowerID(ctx, r.db, followerID, pageNumber, pageSize)
 	if err != nil {
 		return nil, 0, pkgerrors.WithMessage(err, "UserFollowRepo.GetFollowingByFollowerID")
 	}
-	return relations, total, nil
+	return r.userFollowsToResponse(relations), total, nil
 }
 
-func (r *UserFollowRepo) GetFansByUserID(ctx context.Context, userID string, pageNumber, pageSize int32) ([]userfollowtable.UserFollow, int64, error) {
+func (r *UserFollowRepo) GetFansByUserID(ctx context.Context, userID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
 	relations, total, err := userfollowtable.GetFansByUserID(ctx, r.db, userID, pageNumber, pageSize)
 	if err != nil {
 		return nil, 0, pkgerrors.WithMessage(err, "UserFollowRepo.GetFansByUserID")
 	}
-	return relations, total, nil
+	return r.userFollowsToResponse(relations), total, nil
 }
 
-func (r *UserFollowRepo) GetFriendByUserID(ctx context.Context, userID string, pageNumber, pageSize int32) ([]userfollowtable.UserFollow, int64, error) {
+func (r *UserFollowRepo) GetFriendByUserID(ctx context.Context, userID string, pageNumber, pageSize int32) ([]types.UserFollow, int64, error) {
 	relations, total, err := userfollowtable.GetFriendByUserID(ctx, r.db, userID, pageNumber, pageSize)
 	if err != nil {
 		return nil, 0, pkgerrors.WithMessage(err, "UserFollowRepo.GetFriendByUserID")
 	}
-	return relations, total, nil
+	return r.userFollowsToResponse(relations), total, nil
 }

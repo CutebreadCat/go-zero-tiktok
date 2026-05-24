@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -48,7 +48,7 @@ func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListR
 
 	resp = &types.GetSubscriberListResponse{
 		BaseResponse:    types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		SubscriberList:  l.svcCtx.Dal.User.UsersToResponse(subscriberList),
+		SubscriberList:  subscriberList,
 		SubscriberCount: int32(total),
 	}
 

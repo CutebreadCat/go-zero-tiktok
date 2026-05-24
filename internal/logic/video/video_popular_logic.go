@@ -38,23 +38,19 @@ func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *
 		return nil, err
 	}
 
-	videoResponses := l.svcCtx.Dal.Video.VideosToResponse(videos)
-	videoPopularResponses := l.svcCtx.Dal.Popular.VideoPopularsToResponse(videoPopulars)
-
-	Items := make([]types.Item, 0)
-	for i := 0; i < len(videoResponses); i++ {
-		item := types.Item{
-			Videos:        videoResponses[i],
-			VideosPopular: videoPopularResponses[i],
-		}
-		Items = append(Items, item)
+	items := make([]types.Item, 0, len(videos))
+	for i := 0; i < len(videos); i++ {
+		items = append(items, types.Item{
+			Videos:        videos[i],
+			VideosPopular: videoPopulars[i],
+		})
 	}
 	resp = &types.VideoPopularResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		Videos: Items,
+		Videos: items,
 	}
 
 	return

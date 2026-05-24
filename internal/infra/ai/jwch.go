@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	myutils "go_zero-tiktok/internal/utils"
 
 	"github.com/sashabaranov/go-openai"

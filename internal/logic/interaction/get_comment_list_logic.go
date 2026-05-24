@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -43,14 +43,9 @@ func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (
 		return nil, err
 	}
 
-	commentList := make([]types.CommentBaseinfo, 0, len(comments))
-	for _, comment := range comments {
-		commentList = append(commentList, l.svcCtx.Dal.Comment.CommentToResponse(&comment))
-	}
-
 	resp = &types.GetCommentListResponse{
 		Base:         types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
-		CommentList:  commentList,
+		CommentList:  comments,
 		CommentCount: int32(total),
 	}
 	if resp.CommentList == nil {
