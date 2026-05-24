@@ -3,6 +3,7 @@ package video_popular
 import (
 	"context"
 
+	"go_zero-tiktok/internal/dal/page"
 	"go_zero-tiktok/internal/shared/xerr"
 
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -26,10 +27,10 @@ func IncrVideoVisitCountInRedis(ctx context.Context, rdb *redis.Redis, videoID s
 
 func GetVideoVisitCountFromRedis(ctx context.Context, rdb *redis.Redis, pageSize int, pageNum int) ([]string, error) {
 	if pageNum <= 0 {
-		pageNum = 1
+		pageNum = page.DefaultPageNum
 	}
 	if pageSize <= 0 {
-		pageSize = 10
+		pageSize = page.DefaultPageSize
 	}
 
 	start := int64((pageNum - 1) * pageSize)

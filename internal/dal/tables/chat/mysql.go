@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"go_zero-tiktok/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 
 	"gorm.io/gorm"
@@ -25,9 +26,9 @@ func CreateChatMessage(ctx context.Context, db *gorm.DB, message *MessageChat) e
 
 func GetChatRoomMessage(ctx context.Context, db *gorm.DB, room_id string, page_size int, page_num int) ([]*MessageChat, error) {
 	var messages []*MessageChat
-	if err := db.Model(&MessageChat{}).Where("room_id = ?", room_id).Find(&messages).Scopes(func(db *gorm.DB) *gorm.DB {
-		return db.Limit(page_size).Offset((page_num - 1) * page_size)
-	}).Error; err != nil {
+	if err := db.Model(&MessageChat{}).Where("room_id = ?", room_id).
+		Scopes(query.Paginate(page_num, page_size)).
+		Find(&messages).Error; err != nil {
 		return nil, xerr.Wrap(err, "get chat room message failed")
 	}
 	return messages, nil

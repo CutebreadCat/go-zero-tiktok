@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"go_zero-tiktok/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -47,23 +48,16 @@ func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID string, userI
 }
 
 func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, pageNumber, pageSize int32) ([]CommentBaseinfo, int64, error) {
-	if pageNumber <= 0 {
-		pageNumber = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := db.WithContext(ctx).Model(&CommentBaseinfo{}).Where("video_id = ?", videoID)
+	dbQuery := db.WithContext(ctx).Model(&CommentBaseinfo{}).Where("video_id = ?", videoID)
 
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get comments by video id count failed")
 	}
 
 	var comments []CommentBaseinfo
-	offset := (pageNumber - 1) * pageSize
-	if err := query.Order("created_at DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&comments).Error; err != nil {
+	if err := dbQuery.Order("created_at DESC").Scopes(query.Paginate(int(pageNumber), int(pageSize))).
+		Find(&comments).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get comments by video id failed")
 	}
 

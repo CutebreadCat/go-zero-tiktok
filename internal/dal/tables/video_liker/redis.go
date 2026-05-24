@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 
+	"go_zero-tiktok/internal/dal/page"
 	"go_zero-tiktok/internal/shared/xerr"
 
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -43,10 +44,10 @@ func GetLikedVideoIDs(ctx context.Context, rdb *redis.Redis, userID string, page
 	}
 
 	if pageNumber <= 0 {
-		pageNumber = 1
+		pageNumber = int32(page.DefaultPageNum)
 	}
 	if pageSize <= 0 {
-		pageSize = 10
+		pageSize = int32(page.DefaultPageSize)
 	}
 
 	all, err := rdb.SmembersCtx(ctx, userLikedVideosSetKey(userID))

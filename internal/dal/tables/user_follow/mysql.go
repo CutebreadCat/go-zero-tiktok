@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"go_zero-tiktok/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 
 	"gorm.io/gorm"
@@ -127,23 +128,16 @@ func GetFollowingISSubriber(ctx context.Context, db *gorm.DB, followerID, userID
 }
 
 func GetFollowingByFollowerID(ctx context.Context, db *gorm.DB, followerID string, pageNumber, pageSize int32) ([]UserFollow, int64, error) {
-	if pageNumber <= 0 {
-		pageNumber = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := db.WithContext(ctx).Model(&UserFollow{}).Where("follower_id = ?", followerID)
+	dbQuery := db.WithContext(ctx).Model(&UserFollow{}).Where("follower_id = ?", followerID)
 
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "count following list failed")
 	}
 
 	var relations []UserFollow
-	offset := (pageNumber - 1) * pageSize
-	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&relations).Error; err != nil {
+	if err := dbQuery.Scopes(query.Paginate(int(pageNumber), int(pageSize))).
+		Find(&relations).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get following list failed")
 	}
 
@@ -151,23 +145,16 @@ func GetFollowingByFollowerID(ctx context.Context, db *gorm.DB, followerID strin
 }
 
 func GetFansByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]UserFollow, int64, error) {
-	if pageNumber <= 0 {
-		pageNumber = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := db.WithContext(ctx).Model(&UserFollow{}).Where("user_id = ?", userID)
+	dbQuery := db.WithContext(ctx).Model(&UserFollow{}).Where("user_id = ?", userID)
 
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "count fans list failed")
 	}
 
 	var relations []UserFollow
-	offset := (pageNumber - 1) * pageSize
-	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&relations).Error; err != nil {
+	if err := dbQuery.Scopes(query.Paginate(int(pageNumber), int(pageSize))).
+		Find(&relations).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get fans list failed")
 	}
 
@@ -175,23 +162,16 @@ func GetFansByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber
 }
 
 func GetFriendByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]UserFollow, int64, error) {
-	if pageNumber <= 0 {
-		pageNumber = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := db.WithContext(ctx).Model(&UserFollow{}).Where("user_id = ? AND status = ?", userID, 1)
+	dbQuery := db.WithContext(ctx).Model(&UserFollow{}).Where("user_id = ? AND status = ?", userID, 1)
 
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "count friends list failed")
 	}
 
 	var relations []UserFollow
-	offset := (pageNumber - 1) * pageSize
-	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&relations).Error; err != nil {
+	if err := dbQuery.Scopes(query.Paginate(int(pageNumber), int(pageSize))).
+		Find(&relations).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get friends list failed")
 	}
 

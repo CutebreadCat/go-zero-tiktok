@@ -3,8 +3,8 @@ package chat
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -30,13 +30,6 @@ func (l *GetMessagesLogic) GetMessages(req *types.GetMessagesRequest) (resp *typ
 	}
 	pageSize := int(req.PageSize)
 	pageNumber := int(req.PageNumber)
-	if pageSize <= 0 {
-		pageSize = 20
-	}
-	if pageNumber <= 0 {
-		pageNumber = 1
-	}
-
 	messages, err := l.svcCtx.Dal.Chat.GetChatRoomMessage(l.ctx, req.RoomID, pageSize, pageNumber)
 	if err != nil {
 		return nil, err

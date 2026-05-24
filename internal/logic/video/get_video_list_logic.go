@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -27,12 +27,6 @@ func NewGetVideoListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetV
 
 func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *types.GetVideoListResponse, err error) {
 
-	if req.PageNum <= 0 {
-		req.PageNum = 1
-	}
-	if req.PageSize <= 0 {
-		req.PageSize = 10
-	}
 	if req.PageSize > 100 {
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}

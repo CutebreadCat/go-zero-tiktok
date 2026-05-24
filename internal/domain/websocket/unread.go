@@ -51,6 +51,10 @@ func (mm *messageManager) UpdateUnreadCount(ctx context.Context, senderID, roomI
 	log.Printf("更新房间 %s 的未读计数，用户: %v", roomID, users)
 	for _, userID := range users {
 		if userID != senderID {
+			if mm.rooms.IsOnline(userID) {
+				log.Printf("用户 %s 在线，跳过未读计数增加", userID)
+				continue
+			}
 			if err = mm.cache.IncrUnread(ctx, userID, roomID); err != nil {
 				log.Printf("增加用户 %s 在房间 %s 的未读计数失败: %v", userID, roomID, err)
 			}
