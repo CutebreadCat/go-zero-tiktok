@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"

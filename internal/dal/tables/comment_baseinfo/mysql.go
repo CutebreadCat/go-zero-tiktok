@@ -3,9 +3,8 @@ package comment_baseinfo
 import (
 	"context"
 	"errors"
-	"fmt"
 
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	myutils "go_zero-tiktok/internal/utils"
 
 	"gorm.io/gorm"
@@ -32,7 +31,7 @@ func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID string, userI
 		return xerr.Wrap(err, "delete comment query failed")
 	}
 	if comment.UserID != userID {
-		return xerr.NewInvalidParam(fmt.Sprintf("删除评论失败，用户ID不匹配"))
+		return xerr.NewInvalidParam("删除评论失败，用户ID不匹配")
 	}
 
 	result := db.WithContext(ctx).Where("comment_id = ?", commentID).Delete(&comment)

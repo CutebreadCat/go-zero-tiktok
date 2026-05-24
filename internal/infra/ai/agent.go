@@ -3,7 +3,7 @@ package ai
 import (
 	"context"
 	"fmt"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"os"
 
 	"github.com/sashabaranov/go-openai"

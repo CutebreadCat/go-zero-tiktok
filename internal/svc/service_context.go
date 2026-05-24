@@ -8,7 +8,6 @@ import (
 
 	"go_zero-tiktok/internal/config"
 	"go_zero-tiktok/internal/dal"
-	repository "go_zero-tiktok/internal/dal/repository"
 	"go_zero-tiktok/internal/domain/websocket"
 	"go_zero-tiktok/internal/infra/ai"
 	wscache "go_zero-tiktok/internal/infra/cache/ws"
@@ -29,7 +28,7 @@ type ServiceContext struct {
 	DB        *gorm.DB
 	Cache     *wscache.RedisCache
 	Rdb       *redis.Redis
-	Dal       *repository.Repositories
+	Dal       *Repositories
 	Hub       *websocket.Hub
 	AIChat    *websocket.AIChat
 	MQ        *MQComponents
@@ -45,7 +44,7 @@ func NewServiceContext(config config.Config) *ServiceContext {
 	aliyun.AliInit()
 
 	c := wscache.NewRedisCache(dal.Rdb)
-	dalRepo := repository.NewRepositories(dal.Db, dal.Rdb)
+	dalRepo := NewRepositories(dal.Db, dal.Rdb)
 
 	aiLimiter := limiter.New(dal.Rdb, ai.DefaultLimitSeconds, ai.DefaultLimitMaxRequests, ai.DefaultLimitKeyPrefix)
 	wsLimiter := limiter.New(dal.Rdb, websocket.DefaultLimitSeconds, websocket.DefaultLimitMaxRequests, websocket.DefaultLimitKeyPrefix)

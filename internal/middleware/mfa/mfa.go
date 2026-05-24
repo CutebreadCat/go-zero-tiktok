@@ -2,7 +2,7 @@ package mfa
 
 import (
 	"context"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 
 	"github.com/pquerna/otp/totp"
 )

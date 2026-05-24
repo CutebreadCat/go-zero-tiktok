@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/internal/middleware/token"
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -41,7 +41,7 @@ func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.
 
 	resp = &types.UserInfoResponse{
 		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		User: l.svcCtx.Dal.User.UserToResponse(user),
+		User: *user,
 	}
 
 	return

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go_zero-tiktok/internal/domain/websocket"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 
 	strconv "strconv"

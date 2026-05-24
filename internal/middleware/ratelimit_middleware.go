@@ -5,7 +5,7 @@ package middleware
 
 import (
 	"go_zero-tiktok/internal/middleware/goverment/limiter"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"net/http"
 )
 

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 
 	mfa "go_zero-tiktok/internal/middleware/mfa"

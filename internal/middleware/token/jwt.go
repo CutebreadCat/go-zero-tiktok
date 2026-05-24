@@ -3,7 +3,7 @@ package token
 import (
 	"time"
 
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 
 	"github.com/golang-jwt/jwt/v4"
 )

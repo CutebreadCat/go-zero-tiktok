@@ -2,7 +2,7 @@ package ws
 
 import (
 	"context"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"log"
 	"time"
 )

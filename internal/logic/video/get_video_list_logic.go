@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -42,11 +42,9 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 		return nil, err
 	}
 
-	videoResponses := l.svcCtx.Dal.Video.VideosToResponse(videos)
-
 	resp = &types.GetVideoListResponse{
 		Base:   types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
-		Videos: videoResponses,
+		Videos: videos,
 	}
 	if resp.Videos == nil {
 		resp.Videos = []types.VideoBaseinfo{}

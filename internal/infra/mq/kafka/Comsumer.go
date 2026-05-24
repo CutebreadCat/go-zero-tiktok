@@ -3,7 +3,7 @@ package mykafka
 import (
 	"context"
 	mqcontract "go_zero-tiktok/internal/shared/mq"
-	"go_zero-tiktok/internal/svc/xerr"
+	"go_zero-tiktok/internal/shared/xerr"
 	"log"
 
 	kafkaGo "github.com/segmentio/kafka-go"
