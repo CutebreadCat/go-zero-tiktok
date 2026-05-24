@@ -1,53 +1,86 @@
+### 项目结构
 ```
+
 go_zero-tiktok/
-├── api/ -- 接口定义目录
-│   ├── communication.api
-│   ├── interaction.api
-│   ├── main.api
-│   ├── model.api
-│   ├── user.api
-│   ├── user_auth.api
-│   ├── video.api
-│   └── video_auth.api
-├── docs/ -- 相关文档说明
-│   ├── directory.md
-│   └── main.json
-├── etc/ -- 配置文件目录
-│   └── tiktok-api.yaml
-├── internal/ -- 项目内部代码目录
-│   ├── config/ -- 配置文件相关
-│   │   └── config.go
-│   ├── dal/ -- 数据库操作相关
-│   │   ├── repository/ -- 聚合层，对相关数据操作进行封装，方便后续扩展
-│   │   └── tables/ -- 数据库表相关，基础 CRUD
-│   ├── handler/ -- 入口层，负责解析请求并将纯净数据传入 logic 层
+├── .github/ -- GitHub 配置
+│   └── workflows/ -- CI 工作流
+├── api/ -- gozero的api定义
+│   ├── chat/
+│   ├── communication/
+│   ├── interaction/
+│   ├── user/
+│   └── video/
+├── docs/ -- 文档与说明
+├── etc/ -- 配置文件
+├── internal/ -- 内部业务代码
+│   ├── config/ -- 配置加载
+│   ├── dal/ -- 数据访问层
+│   │   ├── repository/ -- 聚合仓储与封装
+│   │   └── tables/ -- 表结构与基础 CRUD
+│   ├── domain/ -- 领域模型
+│   │   └── websocket/ -- WebSocket 领域
+│   ├── handler/  参数校验层
+│   │   ├── chat/
 │   │   ├── communication/
 │   │   ├── interaction/
 │   │   ├── user/
 │   │   └── video/
-│   ├── infra/ -- 外部基础设施层
-│   │   └── storage/
-│   │       └── aliyun/ -- 阿里云 OSS
-│   ├── logic/ -- 业务逻辑层
+│   ├── infra/ -- 外部依赖与基础设施
+│   │   ├── ai/ -- AI 相关能力
+│   │   ├── cache/ -- 缓存实现
+│   │   ├── cronjob/ -- 定时任务(未来想做)
+│   │   ├── mq/ -- 消息队列
+│   │   └── storage/ -- 对象存储
+│   ├── logic/  逻辑层处理函数
+│   │   ├── chat/
 │   │   ├── communication/
 │   │   ├── interaction/
 │   │   ├── user/
 │   │   └── video/
-│   ├── middleware/ -- 中间件层
-│   │   ├── mfa/ -- MFA 校验
-│   │   ├── token/ -- 鉴权认证
-│   │   └── useragentmiddleware.go
-│   ├── svc/ -- 依赖注入层
-│   ├── types/
-│   └── utils/ -- 常用工具
-├── testdata/
-│   ├── images/
-│   ├── user1/
-│   ├── user2/
-│   └── videos/
-├── Dockerfile
+│   ├── middleware/ -- 中间件
+│   │   ├── government/ -- 治理相关
+│   │   ├── mfa/ -- 多因素认证
+│   │   └── token/ -- Token 认证
+│   ├── shared/ -- 契约层
+│   │   ├── ctxkey/ -- 上下文键
+│   │   ├── mq/ -- MQ 公共定义
+│   │   └── xerr/ -- 错误码
+│   ├── svc/ -- 依赖注入与上下文
+│   │   └── mock/ -- Mock 实现
+│   ├── types/ -- 通用类型
+│   └── utils/ -- 工具函数
+├── sql/ -- 数据库sql
+├── .dockerignoer
+├── .editorconfig
+├── .env
+├── .gitattributes
+├── .gitignore
+├── .golangci.yaml
 ├── compose.yml
+├── Dockerfile
 ├── go.mod
 ├── go.sum
-└── tiktok.go -- 主函数入口
+├── Makefile
+├── README.md
+└── tiktok.go  主程序入口
+
+
 ```
+
+### 部署方法
+```
+首先确保服务器有docker环境,能够正常拉取镜像
+git clone https://github.com/CutebreadCat/go-zero-tiktok.git
+然后配置小米ai:
+sudo vim /etc/profile
+在最末尾文件填入这行内容
+export XIAOMI_AI_KEY="你的api密钥"
+退出后运行这行命令
+source /etc/profile
+配置阿里云oss服务:
+cp ./internal/infra/storage/aliyun/aliconfig_example.yaml ./internal/infra/storage/aliyun/aliconfig.yaml
+在生成的aliconfig.yaml文件下面填写对应的配置即可
+最后运行
+docker-compose up --build
+```
+
