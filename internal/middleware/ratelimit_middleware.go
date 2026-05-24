@@ -4,9 +4,11 @@
 package middleware
 
 import (
-	"go_zero-tiktok/internal/middleware/goverment/limiter"
+	"go_zero-tiktok/internal/middleware/government/limiter"
 	"go_zero-tiktok/internal/shared/xerr"
 	"net/http"
+
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 type RateLimitMiddleware struct {
@@ -23,12 +25,12 @@ func (m *RateLimitMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 		allowed, err := m.limiter.Allow(rateLimitKey(r))
 
 		if err != nil {
-			xerr.NewServerBusy()
+			httpx.ErrorCtx(r.Context(), w, xerr.NewServerBusy())
 			return
 		}
 
 		if !allowed {
-			xerr.NewServerBusy()
+			httpx.ErrorCtx(r.Context(), w, xerr.NewServerBusy())
 			return
 		}
 

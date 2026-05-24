@@ -69,7 +69,7 @@ func InitRedis(conf redis.RedisConf) {
 	// 3. 使用 PingCtx 进行健康检查
 	// 注意：go-zero 的 PingCtx 需要传入 context
 	ctx := context.Background()
-	if err := rdb.PingCtx(ctx); err != true {
+	if err := rdb.PingCtx(ctx); !err {
 		log.Fatalf("❌ 无法连接到 Redis (%s): %v", conf.Host, err)
 	}
 

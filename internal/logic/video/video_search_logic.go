@@ -26,7 +26,7 @@ func NewVideoSearchLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Video
 	}
 }
 
-func (l *VideoSearchLogic) VideoSearch(req *types.VideoSearchRequest) (resp *types.VideoSearchResponse, err error) {
+func (l *VideoSearchLogic) VideoSearch(ctx context.Context, req *types.VideoSearchRequest) (resp *types.VideoSearchResponse, err error) {
 	if req.PageNum <= 0 {
 		req.PageNum = 1
 	}
@@ -37,7 +37,7 @@ func (l *VideoSearchLogic) VideoSearch(req *types.VideoSearchRequest) (resp *typ
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}
 
-	videos, _, err := l.svcCtx.Dal.Video.SearchVideosByKeyword(l.ctx, req.Keyword, req.PageNum, req.PageSize)
+	videos, _, err := l.svcCtx.Dal.Video.SearchVideosByKeyword(ctx, req.Keyword, req.PageNum, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -57,15 +57,15 @@ func (l *VideoSearchLogic) VideoSearch(req *types.VideoSearchRequest) (resp *typ
 	if req.Keyword == "" && len(resp.Videos) == 0 {
 		resp.Base.StatusMsg = "暂无视频数据"
 	}
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	go func(ctx context.Context) {
+		ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 		defer cancel()
 		for _, video := range videos {
 			if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, video.VideoID, 1); err != nil {
 				fmt.Printf("increment visit count failed for video %s: %v\n", video.VideoID, err)
 			}
 		}
-	}()
+	}(ctx)
 
 	return resp, nil
 }

@@ -2,6 +2,7 @@ package mykafka
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -39,7 +40,7 @@ func (p *Partition) Start(ctx context.Context) {
 			default:
 				event, err := p.reader.Fetch(ctx)
 				if err != nil {
-					if err == context.DeadlineExceeded {
+					if errors.Is(err, context.DeadlineExceeded) {
 						continue
 					}
 					log.Printf("Partition fetch 错误: %v", err)

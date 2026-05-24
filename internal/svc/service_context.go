@@ -13,8 +13,8 @@ import (
 	wscache "go_zero-tiktok/internal/infra/cache/ws"
 	"go_zero-tiktok/internal/infra/storage/aliyun"
 	"go_zero-tiktok/internal/middleware"
-	"go_zero-tiktok/internal/middleware/goverment/breaker"
-	"go_zero-tiktok/internal/middleware/goverment/limiter"
+	"go_zero-tiktok/internal/middleware/government/breaker"
+	"go_zero-tiktok/internal/middleware/government/limiter"
 
 	"github.com/zeromicro/go-zero/rest"
 

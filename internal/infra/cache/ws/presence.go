@@ -19,7 +19,7 @@ func (c *RedisCache) SetOnline(ctx context.Context, userID string, url string) e
 		return xerr.Wrap(err, "RedisCache.SetOnline")
 	}
 
-	c.client.Expire(c.OnlineKey(userID), onlineExpireSeconds)
+	_ = c.client.Expire(c.OnlineKey(userID), onlineExpireSeconds)
 
 	log.Printf("用户 %s 在线，设置在线状态成功", userID)
 	return nil

@@ -17,7 +17,7 @@ func (c *RedisCache) JoinRoom(ctx context.Context, roomID string, userID string)
 		return xerr.Wrap(err, "RedisCache.JoinRoom")
 	}
 
-	c.client.Expire(c.RoomOnlineKey(roomID), onlineExpireSeconds)
+	_ = c.client.Expire(c.RoomOnlineKey(roomID), onlineExpireSeconds)
 
 	log.Printf("用户 %s 已加入房间 %s", userID, roomID)
 	return nil

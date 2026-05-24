@@ -1,6 +1,7 @@
 package myutils
 
 import (
+	"errors"
 	"fmt"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -15,12 +16,12 @@ func CheckImage(file multipart.File) error {
 
 	buf := make([]byte, 512)
 	_, err := file.Read(buf)
-	if err != nil && err != io.EOF {
-		return fmt.Errorf("读取文件流失败: %v", err)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return fmt.Errorf("读取文件流失败: %w", err)
 	}
 
 	if seeker, ok := file.(io.Seeker); ok {
-		seeker.Seek(0, io.SeekStart)
+		_, _ = seeker.Seek(0, io.SeekStart)
 	}
 
 	kind, _ := filetype.Match(buf)
@@ -38,12 +39,12 @@ func CheckVideo(file multipart.File) error {
 
 	buf := make([]byte, 1024)
 	_, err := file.Read(buf)
-	if err != nil && err != io.EOF {
-		return fmt.Errorf("读取文件流失败: %v", err)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return fmt.Errorf("读取文件流失败: %w", err)
 	}
 
 	if seeker, ok := file.(io.Seeker); ok {
-		seeker.Seek(0, io.SeekStart)
+		_, _ = seeker.Seek(0, io.SeekStart)
 	}
 
 	kind, _ := filetype.Match(buf)

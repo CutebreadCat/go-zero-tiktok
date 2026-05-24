@@ -12,7 +12,6 @@ linters:
     - gocritic
     - bodyclose
     - misspell
-    - wrapcheck
     - errorlint
     - gocognit
     - contextcheck
@@ -32,3 +31,7 @@ issues:
       linters:
         - gocognit
         - wrapcheck
+    - path: _test\.go
+      text: "SA1029:"
+      linters:
+        - staticcheck

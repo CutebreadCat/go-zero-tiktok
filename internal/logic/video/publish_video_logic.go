@@ -19,6 +19,18 @@ type PublishVideoLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
+type publishVideoContextKey string
+
+const (
+	publishVideoFilenameKey publishVideoContextKey = "filename"
+	publishVideoBytesKey    publishVideoContextKey = "video_bytes"
+)
+
+func WithPublishVideoFile(ctx context.Context, filename string, videoBytes []byte) context.Context {
+	ctx = context.WithValue(ctx, publishVideoFilenameKey, filename)
+	return context.WithValue(ctx, publishVideoBytesKey, videoBytes)
+}
+
 func NewPublishVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PublishVideoLogic {
 	return &PublishVideoLogic{
 		Logger: logx.WithContext(ctx),
@@ -33,11 +45,11 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 	VideoID := myutils.GenerateVideoID()
-	filename, ok := l.ctx.Value("filename").(string)
+	filename, ok := l.ctx.Value(publishVideoFilenameKey).(string)
 	if !ok || filename == "" {
 		return nil, xerr.NewInvalidParam("视频文件名缺失")
 	}
-	videoBytes, ok := l.ctx.Value("video_bytes").([]byte)
+	videoBytes, ok := l.ctx.Value(publishVideoBytesKey).([]byte)
 	if !ok || len(videoBytes) == 0 {
 		return nil, xerr.NewInvalidParam("视频文件内容为空")
 	}

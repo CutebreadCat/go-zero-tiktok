@@ -27,7 +27,7 @@ func (rm *roomManager) LoadRooms(ctx context.Context, client *Client) {
 			rm.rooms[roomID] = make(map[*Client]bool)
 		}
 		rm.rooms[roomID][client] = true
-		rm.cache.JoinRoom(ctx, roomID, client.UserID)
+		_ = rm.cache.JoinRoom(ctx, roomID, client.UserID)
 	}
 }
 
@@ -45,7 +45,7 @@ func (rm *roomManager) RemoveFromRooms(ctx context.Context, client *Client) {
 				delete(rm.rooms, roomID)
 			}
 		}
-		rm.cache.LeaveRoom(ctx, roomID, client.UserID)
+		_ = rm.cache.LeaveRoom(ctx, roomID, client.UserID)
 	}
 }
 

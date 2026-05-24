@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -19,7 +20,12 @@ func WithAuth(secret string) rest.RunOption {
 }
 
 func UnauthorizedCallback(w http.ResponseWriter, r *http.Request, err error) {
-	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, xerr.NewUnauthorized(tokenInvalidMessage).(*xerr.CodeError).HandleResponse())
+	var codeErr *xerr.CodeError
+	if !errors.As(xerr.NewUnauthorized(tokenInvalidMessage), &codeErr) {
+		httpx.ErrorCtx(r.Context(), w, err)
+		return
+	}
+	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, codeErr.HandleResponse())
 }
 
 func AuthMiddleware(secret string) rest.Middleware {

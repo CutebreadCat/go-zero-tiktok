@@ -1,11 +1,15 @@
 package token
 
-import "time"
+import (
+	"time"
+
+	"go_zero-tiktok/internal/shared/ctxkey"
+)
 
 const (
 	AccessTokenType  = "access"
 	RefreshTokenType = "refresh"
-	UserIDContextKey = "user_id"
+	UserIDContextKey = ctxkey.UserID
 	RefreshPrefix    = "refresh_token:"
 
 	refreshTokenName    = "refresh_token"

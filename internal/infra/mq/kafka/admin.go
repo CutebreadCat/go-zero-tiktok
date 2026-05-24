@@ -15,11 +15,7 @@ type TopicConfig struct {
 	ReplicationFactor int
 }
 
-type MyKafa struct {
-	producer *KafakaProducer
-
-	reader *KafkaReader
-}
+type MyKafa struct{}
 
 func (m *MyKafa) BatchEnsureTopics(ctx context.Context, brokers []string, topics []TopicConfig) error {
 	log.Println("开始初始化 Kafka Topics...")

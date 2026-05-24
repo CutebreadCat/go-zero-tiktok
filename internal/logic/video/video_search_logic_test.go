@@ -68,7 +68,7 @@ func TestVideoSearchLogic_VideoSearch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			svcCtx := mock.NewServiceContext(nil, tt.video, tt.popular, nil, nil, nil, nil)
 			logic := NewVideoSearchLogic(context.Background(), svcCtx)
-			resp, err := logic.VideoSearch(tt.req)
+			resp, err := logic.VideoSearch(context.Background(), tt.req)
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("expected error, got nil")

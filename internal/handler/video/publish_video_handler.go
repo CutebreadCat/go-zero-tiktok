@@ -4,7 +4,6 @@
 package video
 
 import (
-	"context"
 	"io"
 	"log"
 	"net/http"
@@ -43,8 +42,7 @@ func PublishVideoHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "filename", fileheader.Filename)
-		ctx = context.WithValue(ctx, "video_bytes", videoBytes)
+		ctx := video.WithPublishVideoFile(r.Context(), fileheader.Filename, videoBytes)
 
 		l := video.NewPublishVideoLogic(ctx, svcCtx)
 		resp, err := l.PublishVideo(&req)
