@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"go_zero-tiktok/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 
 	"gorm.io/gorm"
@@ -58,23 +59,16 @@ func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID string, delt
 }
 
 func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]VideoPopular, int64, error) {
-	if pageNum <= 0 {
-		pageNum = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := db.WithContext(ctx).Model(&VideoPopular{})
+	dbQuery := db.WithContext(ctx).Model(&VideoPopular{})
 
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get popular video count failed")
 	}
 
 	var rows []VideoPopular
-	offset := (pageNum - 1) * pageSize
-	if err := query.Order("visit_count DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&rows).Error; err != nil {
+	if err := dbQuery.Order("visit_count DESC").Scopes(query.Paginate(int(pageNum), int(pageSize))).
+		Find(&rows).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get popular videos failed")
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"go_zero-tiktok/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 
 	"gorm.io/gorm"
@@ -35,26 +36,19 @@ func CreateVideo(ctx context.Context, db *gorm.DB, video *VideoBaseinfo) error {
 }
 
 func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
-	if pageNum <= 0 {
-		pageNum = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := db.WithContext(ctx).Model(&VideoBaseinfo{})
+	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{})
 	if keyword != "" {
-		query = query.Where("title LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+		dbQuery = dbQuery.Where("title LIKE ? OR description LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "search videos count failed")
 	}
 
 	var videos []VideoBaseinfo
-	offset := (pageNum - 1) * pageSize
-	if err := query.Order("created_at DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&videos).Error; err != nil {
+	if err := dbQuery.Order("created_at DESC").Scopes(query.Paginate(int(pageNum), int(pageSize))).
+		Find(&videos).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "search videos failed")
 	}
 
@@ -83,23 +77,16 @@ func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]Vide
 }
 
 func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
-	if pageNum <= 0 {
-		pageNum = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := db.WithContext(ctx).Model(&VideoBaseinfo{}).Where("author_id = ?", authorID)
+	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{}).Where("author_id = ?", authorID)
 
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get videos by author count failed")
 	}
 
 	var videos []VideoBaseinfo
-	offset := (pageNum - 1) * pageSize
-	if err := query.Order("created_at DESC").Offset(int(offset)).Limit(int(pageSize)).Find(&videos).Error; err != nil {
+	if err := dbQuery.Order("created_at DESC").Scopes(query.Paginate(int(pageNum), int(pageSize))).
+		Find(&videos).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get videos by author failed")
 	}
 
@@ -107,28 +94,21 @@ func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, page
 }
 
 func GetVideosByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32, videoIDs []string) ([]VideoBaseinfo, int64, error) {
-	if pageNum <= 0 {
-		pageNum = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-
-	query := db.WithContext(ctx).Model(&VideoBaseinfo{})
+	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{})
 	if len(videoIDs) != 0 {
-		query = query.Where("video_id IN ?", videoIDs)
+		dbQuery = dbQuery.Where("video_id IN ?", videoIDs)
 	} else {
-		query = query.Order("visit_count DESC")
+		dbQuery = dbQuery.Order("visit_count DESC")
 	}
 
 	var total int64
-	if err := query.Count(&total).Error; err != nil {
+	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get videos by visit count count failed")
 	}
 
 	var videos []VideoBaseinfo
-	offset := (pageNum - 1) * pageSize
-	if err := query.Offset(int(offset)).Limit(int(pageSize)).Find(&videos).Error; err != nil {
+	if err := dbQuery.Scopes(query.Paginate(int(pageNum), int(pageSize))).
+		Find(&videos).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get videos by visit count failed")
 	}
 	return videos, total, nil

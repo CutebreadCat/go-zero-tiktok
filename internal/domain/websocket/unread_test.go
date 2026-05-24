@@ -6,163 +6,168 @@ import (
 	"testing"
 )
 
-func TestHandleGetUnread_NotMember(t *testing.T) {
-	cache := &mockMessageCache{unreadCount: 5}
-	repo := &mockMessageRepo{}
-	roomRepo := &mockRoomRepo{}
-	writer := &mockMessageWriter{}
-	rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
-	mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
-
-	client := newTestClient("u1") // 不在任何房间
-	mm.HandleGetUnread(context.Background(), client, "r1")
-
-	// 非成员不应读 cache 或发 Kafka
-	if len(writer.events) != 0 {
-		t.Error("should not send Kafka event for non-member")
-	}
-}
-
-func TestHandleGetUnread_UnreadCountZero(t *testing.T) {
-	cache := &mockMessageCache{unreadCount: 0}
-	repo := &mockMessageRepo{}
-	roomRepo := &mockRoomRepo{}
-	writer := &mockMessageWriter{}
-	rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
-	mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
-
-	client := newTestClient("u1", "r1")
-	mm.HandleGetUnread(context.Background(), client, "r1")
-
-	// unread=0 时不应发历史消息到 client.Send
-	select {
-	case <-client.Send:
-		t.Error("should not send messages to client when unread=0")
-	default:
-	}
-
-	// 但会发 UnreadEvent 到 Kafka
-	if len(writer.events) != 1 {
-		t.Fatalf("expected 1 Kafka event, got %d", len(writer.events))
-	}
-	if writer.events[0].Type != EventTypeUnread {
-		t.Errorf("event type = %s, want %s", writer.events[0].Type, EventTypeUnread)
-	}
-}
-
-func TestHandleGetRead_UnreadCountGreaterThanZero(t *testing.T) {
+func TestHandleGetUnread(t *testing.T) {
 	msgs := []CacheMessage{
 		{ID: "m1", Context: "hello"},
 		{ID: "m2", Context: "world"},
 	}
-	cache := &mockMessageCache{unreadCount: 2, messages: msgs}
-	repo := &mockMessageRepo{}
-	roomRepo := &mockRoomRepo{}
-	writer := &mockMessageWriter{}
-	rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
-	mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
 
-	client := newTestClient("u1", "r1")
-	mm.HandleGetUnread(context.Background(), client, "r1")
+	tests := []struct {
+		name           string
+		cache          *mockMessageCache
+		clientRooms    []string // client 加入的房间
+		wantMessages   int      // 期望发送到 client.Send 的消息数
+		wantKafkaEvent bool     // 期望发送 Kafka 事件
+		wantEventType  string   // 期望的 Kafka 事件类型
+	}{
+		{
+			name:           "非成员不发消息和事件",
+			cache:          &mockMessageCache{unreadCount: 5},
+			clientRooms:    nil,
+			wantMessages:   0,
+			wantKafkaEvent: false,
+		},
+		{
+			name:           "unread为0不发消息但发事件",
+			cache:          &mockMessageCache{unreadCount: 0},
+			clientRooms:    []string{"r1"},
+			wantMessages:   0,
+			wantKafkaEvent: true,
+			wantEventType:  EventTypeUnread,
+		},
+		{
+			name:           "unread大于0发消息和事件",
+			cache:          &mockMessageCache{unreadCount: 2, messages: msgs},
+			clientRooms:    []string{"r1"},
+			wantMessages:   2,
+			wantKafkaEvent: true,
+			wantEventType:  EventTypeUnread,
+		},
+		{
+			name:           "GetUnreadCount失败不发消息和事件",
+			cache:          &mockMessageCache{unreadCountErr: errors.New("cache error")},
+			clientRooms:    []string{"r1"},
+			wantMessages:   0,
+			wantKafkaEvent: false,
+		},
+		{
+			name:           "GetMessages失败不发消息",
+			cache:          &mockMessageCache{unreadCount: 2, messagesErr: errors.New("cache error")},
+			clientRooms:    []string{"r1"},
+			wantMessages:   0,
+			wantKafkaEvent: false,
+		},
+	}
 
-	// 应该发送 2 条消息到 client.Send
-	for i := 0; i < 2; i++ {
-		select {
-		case msg := <-client.Send:
-			cm, ok := msg.(CacheMessage)
-			if !ok {
-				t.Fatalf("msg type = %T, want CacheMessage", msg)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := &mockMessageRepo{}
+			roomRepo := &mockRoomRepo{}
+			writer := &mockMessageWriter{}
+			rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
+			mm := newTestMessageManager(tt.cache, repo, roomRepo, rooms, writer, nil)
+
+			client := newTestClient("u1", tt.clientRooms...)
+			mm.HandleGetUnread(context.Background(), client, "r1")
+
+			// 检查发送到 client.Send 的消息数
+			gotMessages := 0
+			for {
+				select {
+				case <-client.Send:
+					gotMessages++
+				default:
+					goto done
+				}
 			}
-			if cm.ID != msgs[i].ID {
-				t.Errorf("msg[%d].ID = %s, want %s", i, cm.ID, msgs[i].ID)
+		done:
+			if gotMessages != tt.wantMessages {
+				t.Errorf("client.Send messages = %d, want %d", gotMessages, tt.wantMessages)
 			}
-		default:
-			t.Fatalf("expected message %d in client.Send", i)
+
+			// 检查 Kafka 事件
+			if tt.wantKafkaEvent {
+				if len(writer.events) != 1 {
+					t.Fatalf("Kafka events = %d, want 1", len(writer.events))
+				}
+				if writer.events[0].Type != tt.wantEventType {
+					t.Errorf("event type = %s, want %s", writer.events[0].Type, tt.wantEventType)
+				}
+			} else {
+				if len(writer.events) != 0 {
+					t.Errorf("Kafka events = %d, want 0", len(writer.events))
+				}
+			}
+		})
+	}
+
+	// unread大于0时验证消息顺序
+	t.Run("消息按顺序发送", func(t *testing.T) {
+		cache := &mockMessageCache{unreadCount: 2, messages: msgs}
+		repo := &mockMessageRepo{}
+		roomRepo := &mockRoomRepo{}
+		writer := &mockMessageWriter{}
+		rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
+		mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
+
+		client := newTestClient("u1", "r1")
+		mm.HandleGetUnread(context.Background(), client, "r1")
+
+		for i := 0; i < 2; i++ {
+			select {
+			case msg := <-client.Send:
+				cm, ok := msg.(CacheMessage)
+				if !ok {
+					t.Fatalf("msg type = %T, want CacheMessage", msg)
+				}
+				if cm.ID != msgs[i].ID {
+					t.Errorf("msg[%d].ID = %s, want %s", i, cm.ID, msgs[i].ID)
+				}
+			default:
+				t.Fatalf("expected message %d in client.Send", i)
+			}
 		}
-	}
-
-	// 也会发 UnreadEvent
-	if len(writer.events) != 1 || writer.events[0].Type != EventTypeUnread {
-		t.Error("expected UnreadEvent in Kafka")
-	}
+	})
 }
 
-func TestHandleGetUnread_GetUnreadCountFails(t *testing.T) {
-	cache := &mockMessageCache{unreadCountErr: errors.New("cache error")}
-	repo := &mockMessageRepo{}
-	roomRepo := &mockRoomRepo{}
-	writer := &mockMessageWriter{}
-	rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
-	mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
+func TestUpdateUnreadCount(t *testing.T) {
+	t.Run("跳过发送者", func(t *testing.T) {
+		cache := &mockMessageCache{}
+		roomRepo := &mockRoomRepo{users: []string{"u1", "u2", "u3"}}
+		repo := &mockMessageRepo{}
+		writer := &mockMessageWriter{}
+		rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
+		mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
 
-	client := newTestClient("u1", "r1")
-	mm.HandleGetUnread(context.Background(), client, "r1")
+		mm.UpdateUnreadCount(context.Background(), "u1", "r1")
 
-	// 错误时不应发消息或事件
-	select {
-	case <-client.Send:
-		t.Error("should not send messages on error")
-	default:
-	}
-	if len(writer.events) != 0 {
-		t.Error("should not send Kafka event on error")
-	}
-}
+		cache.mu.Lock()
+		defer cache.mu.Unlock()
 
-func TestHandleGetUnread_GetMessagesFails(t *testing.T) {
-	cache := &mockMessageCache{unreadCount: 2, messagesErr: errors.New("cache error")}
-	repo := &mockMessageRepo{}
-	roomRepo := &mockRoomRepo{}
-	writer := &mockMessageWriter{}
-	rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
-	mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
-
-	client := newTestClient("u1", "r1")
-	mm.HandleGetUnread(context.Background(), client, "r1")
-
-	select {
-	case <-client.Send:
-		t.Error("should not send messages on GetMessages error")
-	default:
-	}
-}
-
-func TestUpdateUnreadCount_SkipsSender(t *testing.T) {
-	cache := &mockMessageCache{}
-	roomRepo := &mockRoomRepo{users: []string{"u1", "u2", "u3"}}
-	repo := &mockMessageRepo{}
-	writer := &mockMessageWriter{}
-	rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
-	mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
-
-	mm.UpdateUnreadCount(context.Background(), "u1", "r1")
-
-	cache.mu.Lock()
-	defer cache.mu.Unlock()
-
-	if len(cache.incrUnreadCalls) != 2 {
-		t.Fatalf("IncrUnread called %d times, want 2", len(cache.incrUnreadCalls))
-	}
-	for _, call := range cache.incrUnreadCalls {
-		if call.userID == "u1" {
-			t.Error("sender u1 should not have IncrUnread called")
+		if len(cache.incrUnreadCalls) != 2 {
+			t.Fatalf("IncrUnread called %d times, want 2", len(cache.incrUnreadCalls))
 		}
-	}
-}
+		for _, call := range cache.incrUnreadCalls {
+			if call.userID == "u1" {
+				t.Error("sender u1 should not have IncrUnread called")
+			}
+		}
+	})
 
-func TestUpdateUnreadCount_GetChatRoomUsersFails(t *testing.T) {
-	cache := &mockMessageCache{}
-	roomRepo := &mockRoomRepo{usersErr: errors.New("db error")}
-	repo := &mockMessageRepo{}
-	writer := &mockMessageWriter{}
-	rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
-	mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
+	t.Run("GetChatRoomUsers失败不调用IncrUnread", func(t *testing.T) {
+		cache := &mockMessageCache{}
+		roomRepo := &mockRoomRepo{usersErr: errors.New("db error")}
+		repo := &mockMessageRepo{}
+		writer := &mockMessageWriter{}
+		rooms := newTestRoomManager(&mockRoomRepo{}, &mockRoomCache{})
+		mm := newTestMessageManager(cache, repo, roomRepo, rooms, writer, nil)
 
-	mm.UpdateUnreadCount(context.Background(), "u1", "r1")
+		mm.UpdateUnreadCount(context.Background(), "u1", "r1")
 
-	cache.mu.Lock()
-	defer cache.mu.Unlock()
-	if len(cache.incrUnreadCalls) != 0 {
-		t.Errorf("IncrUnread should not be called on error, called %d times", len(cache.incrUnreadCalls))
-	}
+		cache.mu.Lock()
+		defer cache.mu.Unlock()
+		if len(cache.incrUnreadCalls) != 0 {
+			t.Errorf("IncrUnread should not be called on error, called %d times", len(cache.incrUnreadCalls))
+		}
+	})
 }

@@ -3,8 +3,8 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -27,12 +27,6 @@ func NewGetCommentListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (resp *types.GetCommentListResponse, err error) {
 	if req.VideoID == "" {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
-	}
-	if req.PageNumber <= 0 {
-		req.PageNumber = 1
-	}
-	if req.PageSize <= 0 {
-		req.PageSize = 10
 	}
 	if req.PageSize > 100 {
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")

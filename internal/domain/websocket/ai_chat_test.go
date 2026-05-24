@@ -8,129 +8,127 @@ import (
 	"go_zero-tiktok/internal/types"
 )
 
-func TestCheckAndEnqueue_AddAIMessageFails(t *testing.T) {
-	cache := &mockMessageCache{addAIMsgErr: errors.New("redis down")}
-	ai := NewAIChat(&mockAIAgent{}, cache)
-
-	reached, err := ai.CheckAndEnqueue(context.Background(), "u1", "r1", &types.MessageChat{})
-	if err == nil {
-		t.Fatal("expected error, got nil")
+func TestCheckAndEnqueue(t *testing.T) {
+	tests := []struct {
+		name      string
+		cache     *mockMessageCache
+		wantErr   bool
+		wantReach bool
+	}{
+		{
+			name:      "AddAIMessage失败",
+			cache:     &mockMessageCache{addAIMsgErr: errors.New("redis down")},
+			wantErr:   true,
+			wantReach: false,
+		},
+		{
+			name:      "IncrAIMessage失败",
+			cache:     &mockMessageCache{incrAIErr: errors.New("redis down")},
+			wantErr:   true,
+			wantReach: false,
+		},
+		{
+			name:      "低于阈值不触发",
+			cache:     &mockMessageCache{aiCount: 1},
+			wantErr:   false,
+			wantReach: false,
+		},
+		{
+			name:      "等于阈值触发",
+			cache:     &mockMessageCache{aiCount: 2},
+			wantErr:   false,
+			wantReach: true,
+		},
+		{
+			name:      "高于阈值触发",
+			cache:     &mockMessageCache{aiCount: 5},
+			wantErr:   false,
+			wantReach: true,
+		},
 	}
-	if reached {
-		t.Error("expected reached=false on AddAIMessage error")
-	}
-}
 
-func TestCheckAndEnqueue_IncrAIMessageFails(t *testing.T) {
-	cache := &mockMessageCache{incrAIErr: errors.New("redis down")}
-	ai := NewAIChat(&mockAIAgent{}, cache)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ai := NewAIChat(&mockAIAgent{}, tt.cache)
+			reached, err := ai.CheckAndEnqueue(context.Background(), "u1", "r1", &types.MessageChat{})
 
-	reached, err := ai.CheckAndEnqueue(context.Background(), "u1", "r1", &types.MessageChat{})
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if reached {
-		t.Error("expected reached=false on IncrAIMessage error")
-	}
-}
-
-func TestCheckAndEnqueue_BelowThreshold(t *testing.T) {
-	cache := &mockMessageCache{aiCount: 1} // aiTriggerMsgCount=2
-	ai := NewAIChat(&mockAIAgent{}, cache)
-
-	reached, err := ai.CheckAndEnqueue(context.Background(), "u1", "r1", &types.MessageChat{})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if reached {
-		t.Error("expected reached=false when count < aiTriggerMsgCount")
-	}
-}
-
-func TestCheckAndEnqueue_AtThreshold(t *testing.T) {
-	cache := &mockMessageCache{aiCount: 2} // aiTriggerMsgCount=2
-	ai := NewAIChat(&mockAIAgent{}, cache)
-
-	reached, err := ai.CheckAndEnqueue(context.Background(), "u1", "r1", &types.MessageChat{})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !reached {
-		t.Error("expected reached=true when count >= aiTriggerMsgCount")
-	}
-}
-
-func TestCheckAndEnqueue_AboveThreshold(t *testing.T) {
-	cache := &mockMessageCache{aiCount: 5}
-	ai := NewAIChat(&mockAIAgent{}, cache)
-
-	reached, err := ai.CheckAndEnqueue(context.Background(), "u1", "r1", &types.MessageChat{})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !reached {
-		t.Error("expected reached=true when count > aiTriggerMsgCount")
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if reached != tt.wantReach {
+				t.Errorf("reached = %v, want %v", reached, tt.wantReach)
+			}
+		})
 	}
 }
 
-func TestExecuteAI_Success(t *testing.T) {
-	cache := &mockMessageCache{}
-	agent := &mockAIAgent{reply: "hello from AI"}
-	ai := NewAIChat(agent, cache)
-
-	msg, err := ai.ExecuteAI(context.Background(), "u1", "r1")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+func TestExecuteAI(t *testing.T) {
+	tests := []struct {
+		name     string
+		cache    *mockMessageCache
+		agent    *mockAIAgent
+		wantErr  bool
+		wantMsg  bool // 是否检查返回的消息内容
+	}{
+		{
+			name:    "成功执行",
+			cache:   &mockMessageCache{},
+			agent:   &mockAIAgent{reply: "hello from AI"},
+			wantErr: false,
+			wantMsg: true,
+		},
+		{
+			name:    "GetAIMessages失败",
+			cache:   &mockMessageCache{aiMessagesErr: errors.New("cache error")},
+			agent:   &mockAIAgent{},
+			wantErr: true,
+			wantMsg: false,
+		},
+		{
+			name:    "AgentRun失败",
+			cache:   &mockMessageCache{},
+			agent:   &mockAIAgent{runErr: errors.New("agent error")},
+			wantErr: true,
+			wantMsg: false,
+		},
 	}
-	if msg.Typek != MessageTypeAIReply {
-		t.Errorf("Typek = %s, want %s", msg.Typek, MessageTypeAIReply)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ai := NewAIChat(tt.agent, tt.cache)
+			msg, err := ai.ExecuteAI(context.Background(), "u1", "r1")
+
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if tt.wantMsg {
+				if msg.Typek != MessageTypeAIReply {
+					t.Errorf("Typek = %s, want %s", msg.Typek, MessageTypeAIReply)
+				}
+				if msg.Message.SenderID != aiSenderID {
+					t.Errorf("SenderID = %s, want %s", msg.Message.SenderID, aiSenderID)
+				}
+				if msg.Message.Content != "hello from AI" {
+					t.Errorf("Content = %s, want 'hello from AI'", msg.Message.Content)
+				}
+				if msg.Message.RoomID != "r1" {
+					t.Errorf("RoomID = %s, want r1", msg.Message.RoomID)
+				}
+			}
+		})
 	}
-	if msg.Message.SenderID != aiSenderID {
-		t.Errorf("SenderID = %s, want %s", msg.Message.SenderID, aiSenderID)
-	}
-	if msg.Message.Content != "hello from AI" {
-		t.Errorf("Content = %s, want 'hello from AI'", msg.Message.Content)
-	}
-	if msg.Message.RoomID != "r1" {
-		t.Errorf("RoomID = %s, want r1", msg.Message.RoomID)
-	}
-}
 
-func TestExecuteAI_GetAIMessagesFails(t *testing.T) {
-	cache := &mockMessageCache{aiMessagesErr: errors.New("cache error")}
-	ai := NewAIChat(&mockAIAgent{}, cache)
+	// 测试 defer 清理逻辑（成功和失败都不 panic）
+	t.Run("成功后执行清理", func(t *testing.T) {
+		cache := &mockMessageCache{}
+		ai := NewAIChat(&mockAIAgent{reply: "ok"}, cache)
+		_, _ = ai.ExecuteAI(context.Background(), "u1", "r1")
+	})
 
-	_, err := ai.ExecuteAI(context.Background(), "u1", "r1")
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-}
-
-func TestExecuteAI_AgentRunFails(t *testing.T) {
-	cache := &mockMessageCache{}
-	agent := &mockAIAgent{runErr: errors.New("agent error")}
-	ai := NewAIChat(agent, cache)
-
-	_, err := ai.ExecuteAI(context.Background(), "u1", "r1")
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-}
-
-func TestExecuteAI_ClearsOnSuccess(t *testing.T) {
-	cache := &mockMessageCache{}
-	ai := NewAIChat(&mockAIAgent{reply: "ok"}, cache)
-
-	_, _ = ai.ExecuteAI(context.Background(), "u1", "r1")
-
-	// ClearAIMessage 和 ClearAIStream 都应该在 defer 中被调用
-	// mock 默认返回 nil，说明被调用了（无 panic）
-}
-
-func TestExecuteAI_ClearsEvenOnError(t *testing.T) {
-	cache := &mockMessageCache{aiMessagesErr: errors.New("fail")}
-	ai := NewAIChat(&mockAIAgent{}, cache)
-
-	_, _ = ai.ExecuteAI(context.Background(), "u1", "r1")
-	// defer 仍然执行 ClearAIMessage 和 ClearAIStream，不 panic 即可
+	t.Run("失败后也执行清理", func(t *testing.T) {
+		cache := &mockMessageCache{aiMessagesErr: errors.New("fail")}
+		ai := NewAIChat(&mockAIAgent{}, cache)
+		_, _ = ai.ExecuteAI(context.Background(), "u1", "r1")
+	})
 }

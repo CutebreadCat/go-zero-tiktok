@@ -23,4 +23,5 @@ type RoomManager interface {
 	IsMember(client *Client, roomID string) bool
 	RemoveFromRooms(ctx context.Context, client *Client)
 	BroadcastToRoom(roomID string, message any)
+	IsOnline(userID string) bool
 }

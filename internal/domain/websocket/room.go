@@ -61,3 +61,16 @@ func (rm *roomManager) BroadcastToRoom(roomID string, message any) {
 		}
 	}
 }
+
+func (rm *roomManager) IsOnline(userID string) bool {
+	rm.mu.RLock()
+	defer rm.mu.RUnlock()
+	for _, clientsInRoom := range rm.rooms {
+		for client := range clientsInRoom {
+			if client.UserID == userID {
+				return true
+			}
+		}
+	}
+	return false
+}
