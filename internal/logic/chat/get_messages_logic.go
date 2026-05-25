@@ -28,9 +28,10 @@ func (l *GetMessagesLogic) GetMessages(req *types.GetMessagesRequest) (resp *typ
 	if req.RoomID == "" {
 		return nil, xerr.NewInvalidParam("聊天室ID不能为空")
 	}
+
 	pageSize := int(req.PageSize)
 	pageNumber := int(req.PageNumber)
-	messages, err := l.svcCtx.Dal.Chat.GetChatRoomMessage(l.ctx, req.RoomID, pageSize, pageNumber)
+	messages, err := l.svcCtx.ChatService.GetMessages(l.ctx, req.RoomID, pageSize, pageNumber)
 	if err != nil {
 		return nil, err
 	}

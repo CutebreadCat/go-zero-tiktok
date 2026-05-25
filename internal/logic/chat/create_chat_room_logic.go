@@ -50,10 +50,13 @@ func (l *CreateChatRoomLogic) CreateChatRoom(req *types.CreateChatRoomRequest) (
 		}
 		userSet[uid] = struct{}{}
 	}
+	userIDs := make([]string, 0, len(userSet))
 	for uid := range userSet {
-		if err := l.svcCtx.Dal.Chat.CreateChatRoomFromParams(l.ctx, uid, roomID, req.Types, req.RoomName); err != nil {
-			return nil, err
-		}
+		userIDs = append(userIDs, uid)
+	}
+
+	if err := l.svcCtx.ChatService.CreateChatRoom(l.ctx, roomID, req.Types, req.RoomName, userIDs); err != nil {
+		return nil, err
 	}
 
 	resp = &types.CreateChatRoomResponse{

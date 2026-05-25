@@ -36,9 +36,11 @@ func (l *LikeCommentLogic) LikeComment(req *types.LikeCommentRequest) (resp *typ
 	if req.Liketype != 1 && req.Liketype != 0 {
 		return nil, xerr.NewInvalidParam("无效的点赞类型")
 	}
-	if err = l.svcCtx.Dal.Comment.LikeComment(l.ctx, req.CommentID, userId, req.Liketype); err != nil {
+
+	if err := l.svcCtx.CommentService.LikeComment(l.ctx, req.CommentID, userId, req.Liketype); err != nil {
 		return nil, err
 	}
+
 	resp = &types.LikeCommentResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,

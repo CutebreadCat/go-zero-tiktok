@@ -31,12 +31,7 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	videoIDs, total, err := l.svcCtx.Dal.VideoLiker.GetLikedVideoIDsByUserID(l.ctx, userID, req.PageNumber, req.PageSize)
-	if err != nil {
-		return nil, err
-	}
-
-	videos, err := l.svcCtx.Dal.Video.GetVideosByIDs(l.ctx, videoIDs)
+	videos, total, err := l.svcCtx.VideoService.GetLikedVideos(l.ctx, userID, req.PageNumber, req.PageSize)
 	if err != nil {
 		return nil, err
 	}

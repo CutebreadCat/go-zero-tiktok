@@ -94,3 +94,11 @@ func (r *VideoBaseinfoRepo) VideosToResponse(videos []videobasetable.VideoBasein
 	}
 	return result
 }
+
+func (r *VideoBaseinfoRepo) GetVideoByLastTime(ctx context.Context, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+	videos, total, err := videobasetable.GetVideoByLastTime(ctx, r.db, lastTime, pageNum, pageSize)
+	if err != nil {
+		return nil, 0, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideoByLastTime")
+	}
+	return r.VideosToResponse(videos), total, nil
+}

@@ -477,7 +477,6 @@
                         "type": "string"
                       },
                       "content": {
-                        "description": "增加评论内容长度",
                         "type": "string"
                       },
                       "created_at": {
@@ -490,7 +489,6 @@
                         "type": "integer"
                       },
                       "parent_comment_id": {
-                        "description": "父评论 ID，空字符串表示没有父评论",
                         "type": "string"
                       },
                       "updated_at": {
@@ -703,22 +701,18 @@
                         "type": "string"
                       },
                       "password": {
-                        "description": "密码哈希通常较长，建议 255",
                         "type": "string"
                       },
                       "photo_url": {
-                        "description": "修正：去掉了多余的引号，增加 URL 长度",
                         "type": "string"
                       },
                       "updated_at": {
                         "type": "string"
                       },
                       "user_id": {
-                        "description": "增加长度以兼容各种 ID 生成策略",
                         "type": "string"
                       },
                       "username": {
-                        "description": "增加长度",
                         "type": "string"
                       }
                     }
@@ -802,22 +796,18 @@
                         "type": "string"
                       },
                       "password": {
-                        "description": "密码哈希通常较长，建议 255",
                         "type": "string"
                       },
                       "photo_url": {
-                        "description": "修正：去掉了多余的引号，增加 URL 长度",
                         "type": "string"
                       },
                       "updated_at": {
                         "type": "string"
                       },
                       "user_id": {
-                        "description": "增加长度以兼容各种 ID 生成策略",
                         "type": "string"
                       },
                       "username": {
-                        "description": "增加长度",
                         "type": "string"
                       }
                     }
@@ -901,22 +891,18 @@
                         "type": "string"
                       },
                       "password": {
-                        "description": "密码哈希通常较长，建议 255",
                         "type": "string"
                       },
                       "photo_url": {
-                        "description": "修正：去掉了多余的引号，增加 URL 长度",
                         "type": "string"
                       },
                       "updated_at": {
                         "type": "string"
                       },
                       "user_id": {
-                        "description": "增加长度以兼容各种 ID 生成策略",
                         "type": "string"
                       },
                       "username": {
-                        "description": "增加长度",
                         "type": "string"
                       }
                     }
@@ -1056,7 +1042,6 @@
                         "type": "string"
                       },
                       "cover_url": {
-                        "description": "增加 URL 长度",
                         "type": "string"
                       },
                       "created_at": {
@@ -1066,11 +1051,9 @@
                         "type": "string"
                       },
                       "description": {
-                        "description": "增加描述长度",
                         "type": "string"
                       },
                       "title": {
-                        "description": "标题通常需要更长",
                         "type": "string"
                       },
                       "updated_at": {
@@ -1080,7 +1063,6 @@
                         "type": "string"
                       },
                       "video_url": {
-                        "description": "增加 URL 长度",
                         "type": "string"
                       }
                     }
@@ -1252,25 +1234,67 @@
                       "type": "string"
                     },
                     "password": {
-                      "description": "密码哈希通常较长，建议 255",
                       "type": "string"
                     },
                     "photo_url": {
-                      "description": "修正：去掉了多余的引号，增加 URL 长度",
                       "type": "string"
                     },
                     "updated_at": {
                       "type": "string"
                     },
                     "user_id": {
-                      "description": "增加长度以兼容各种 ID 生成策略",
                       "type": "string"
                     },
                     "username": {
-                      "description": "增加长度",
                       "type": "string"
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/jwch/cookie": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "JwchGetUserCookieHandler",
+        "operationId": "userJwchGetUserCookieHandler",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "cookie": {
+                  "type": "string"
+                },
+                "jwch_id": {
+                  "type": "string"
                 }
               }
             }
@@ -1627,6 +1651,147 @@
         }
       }
     },
+    "/video/feed": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "video"
+        ],
+        "summary": "GetFeedVideoHandler",
+        "operationId": "videoGetFeedVideoHandler",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "last_time",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_num",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "videos",
+                      "videos_popular"
+                    ],
+                    "properties": {
+                      "videos": {
+                        "type": "object",
+                        "required": [
+                          "video_id",
+                          "author_id",
+                          "video_url",
+                          "cover_url",
+                          "title",
+                          "description",
+                          "created_at",
+                          "updated_at",
+                          "deleted_at"
+                        ],
+                        "properties": {
+                          "author_id": {
+                            "type": "string"
+                          },
+                          "cover_url": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "deleted_at": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          },
+                          "video_id": {
+                            "type": "string"
+                          },
+                          "video_url": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "videos_popular": {
+                        "type": "object",
+                        "required": [
+                          "video_id",
+                          "visit_count",
+                          "like_count",
+                          "comment_count"
+                        ],
+                        "properties": {
+                          "comment_count": {
+                            "type": "integer"
+                          },
+                          "like_count": {
+                            "type": "integer"
+                          },
+                          "video_id": {
+                            "type": "string"
+                          },
+                          "visit_count": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/video/list": {
       "get": {
         "produces": [
@@ -1701,7 +1866,6 @@
                         "type": "string"
                       },
                       "cover_url": {
-                        "description": "增加 URL 长度",
                         "type": "string"
                       },
                       "created_at": {
@@ -1711,11 +1875,9 @@
                         "type": "string"
                       },
                       "description": {
-                        "description": "增加描述长度",
                         "type": "string"
                       },
                       "title": {
-                        "description": "标题通常需要更长",
                         "type": "string"
                       },
                       "updated_at": {
@@ -1725,7 +1887,6 @@
                         "type": "string"
                       },
                       "video_url": {
-                        "description": "增加 URL 长度",
                         "type": "string"
                       }
                     }
@@ -1785,7 +1946,7 @@
                     }
                   }
                 },
-                "videos": {
+                "items": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -1812,7 +1973,6 @@
                             "type": "string"
                           },
                           "cover_url": {
-                            "description": "增加 URL 长度",
                             "type": "string"
                           },
                           "created_at": {
@@ -1822,11 +1982,9 @@
                             "type": "string"
                           },
                           "description": {
-                            "description": "增加描述长度",
                             "type": "string"
                           },
                           "title": {
-                            "description": "标题通常需要更长",
                             "type": "string"
                           },
                           "updated_at": {
@@ -1836,7 +1994,6 @@
                             "type": "string"
                           },
                           "video_url": {
-                            "description": "增加 URL 长度",
                             "type": "string"
                           }
                         }
@@ -1860,7 +2017,6 @@
                             "type": "string"
                           },
                           "visit_count": {
-                            "description": "建议用 bigint 防止溢出",
                             "type": "integer"
                           }
                         }
@@ -2008,7 +2164,6 @@
                         "type": "string"
                       },
                       "cover_url": {
-                        "description": "增加 URL 长度",
                         "type": "string"
                       },
                       "created_at": {
@@ -2018,11 +2173,9 @@
                         "type": "string"
                       },
                       "description": {
-                        "description": "增加描述长度",
                         "type": "string"
                       },
                       "title": {
-                        "description": "标题通常需要更长",
                         "type": "string"
                       },
                       "updated_at": {
@@ -2032,7 +2185,6 @@
                         "type": "string"
                       },
                       "video_url": {
-                        "description": "增加 URL 长度",
                         "type": "string"
                       }
                     }
@@ -2045,7 +2197,7 @@
       }
     }
   },
-  "x-date": "2026-05-17 23:57:06",
+  "x-date": "2026-05-25 22:22:10",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

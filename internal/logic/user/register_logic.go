@@ -6,7 +6,6 @@ import (
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -30,13 +29,9 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 		return nil, xerr.NewInvalidParam("用户名或密码不能为空")
 	}
 
-	if _, err := l.svcCtx.Dal.User.GetUserByUsername(l.ctx, req.Username); err == nil {
-		return nil, xerr.NewInvalidParam("用户名已存在，请更换后重试")
-	}
-
-	userID := myutils.GenerateUserID()
-	if err := l.svcCtx.Dal.User.CreateUserFromParams(l.ctx, userID, req.Username, myutils.HashPassword(req.Password), ""); err != nil {
-		return nil, xerr.HandleDaoError(err, "Register.CreateUser")
+	userID, err := l.svcCtx.UserAuthService.Register(l.ctx, req.Username, req.Password)
+	if err != nil {
+		return nil, err
 	}
 
 	resp = &types.RegisterResponse{

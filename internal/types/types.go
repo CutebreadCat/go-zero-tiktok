@@ -18,20 +18,20 @@ type BindMfaqrcodeResponse struct {
 }
 
 type CommentBaseinfo struct {
-	CommentID       string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
-	UserID          string `json:"user_id" gorm:"not null;type:varchar(64)"`
-	VideoID         string `json:"video_id" gorm:"not null;type:varchar(64)"`
-	Content         string `json:"content" gorm:"not null;type:varchar(1024)"` // 增加评论内容长度
-	CreatedAt       string `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt       string `json:"updated_at" gorm:"autoUpdateTime"`
+	CommentID       string `json:"comment_id"`
+	UserID          string `json:"user_id"`
+	VideoID         string `json:"video_id"`
+	Content         string `json:"content"`
+	CreatedAt       string `json:"created_at"`
+	UpdatedAt       string `json:"updated_at"`
 	DeletedAt       string `json:"deleted_at"`
-	LikeCount       int32  `json:"like_count" gorm:"default:0;type:int"`
-	ParentCommentID string `json:"parent_comment_id" gorm:"type:char(64);default:''"` // 父评论 ID，空字符串表示没有父评论
+	LikeCount       int32  `json:"like_count"`
+	ParentCommentID string `json:"parent_comment_id"`
 }
 
 type CommentLiker struct {
-	UserID    string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
-	CommentID string `json:"comment_id" gorm:"primaryKey;type:varchar(64)"`
+	UserID    string `json:"user_id"`
+	CommentID string `json:"comment_id"`
 }
 
 type CommentPareantCommentRequest struct {
@@ -71,6 +71,18 @@ type DeleteCommentRequest struct {
 
 type DeleteCommentResponse struct {
 	Base BaseResponse `json:"base_response"`
+}
+
+type FeedVideoRequest struct {
+	LastTime string `form:"last_time"`
+	PageSize int32  `form:"page_size"`
+	PageNum  int32  `form:"page_num"`
+}
+
+type FeedVideoResponse struct {
+	Base   BaseResponse `json:"base"`
+	Total  int64        `json:"total"`
+	Videos []Item       `json:"items"`
 }
 
 type GetChatRoomsRequest struct {
@@ -222,11 +234,11 @@ type LoginResponse struct {
 }
 
 type MessageChat struct {
-	ID        string `json:"id" gorm:"primaryKey;type:varchar(64)"`
-	RoomID    string `json:"room_id" gorm:"not null;type:varchar(64)"`
-	SenderID  string `json:"sender_id" gorm:"not null;type:varchar(64)"`
-	Content   string `json:"content" gorm:"not null;type:varchar(1024)"`
-	CreatedAt string `json:"created_at"gorm:"not null"`
+	ID        string `json:"id"`
+	RoomID    string `json:"room_id"`
+	SenderID  string `json:"sender_id"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
 }
 
 type MfaqrcodeRequest struct {
@@ -279,19 +291,19 @@ type SubscribeResponse struct {
 }
 
 type UserBaseinfo struct {
-	UserID    string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`  // 增加长度以兼容各种 ID 生成策略
-	Username  string `json:"username" gorm:"unique;type:varchar(64)"`     // 增加长度
-	Password  string `json:"password" gorm:"not null;type:varchar(255)"`  // 密码哈希通常较长，建议 255
-	PhotoURL  string `json:"photo_url" gorm:"not null;type:varchar(255)"` // 修正：去掉了多余的引号，增加 URL 长度
-	CreatedAt string `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt string `json:"updated_at" gorm:"autoUpdateTime"`
+	UserID    string `json:"user_id"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	PhotoURL  string `json:"photo_url"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 	DeletedAt string `json:"deleted_at"`
 }
 
 type UserFollow struct {
-	FollowerID string `json:"follower_id" gorm:"primaryKey;type:varchar(64)"` // 联合主键：关注者
-	UserID     string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`     // 联合主键：被关注者
-	Status     int32  `json:"status" gorm:"default:0;type:int"`               // 修正：default 和 type 之间加分号或空格
+	FollowerID string `json:"follower_id"`
+	UserID     string `json:"user_id"`
+	Status     int32  `json:"status"`
 }
 
 type UserInfoRequest struct {
@@ -304,18 +316,18 @@ type UserInfoResponse struct {
 }
 
 type User_chat struct {
-	UserID   string `json:"user_id" gorm:"type:varchar(64)"`
-	RoomID   string `json:"room_id" gorm:"primaryKey;type:varchar(64)"`
-	Leix     int32  `json:"leix" gorm:"default:0;type:int"` // 0: 私聊, 1: 群聊
-	RoomName string `json:"room_name" gorm:"type:varchar(255)"`
+	UserID   string `json:"user_id"`
+	RoomID   string `json:"room_id"`
+	Leix     int32  `json:"leix"` // 0: 私聊, 1: 群聊
+	RoomName string `json:"room_name"`
 }
 
 type User_mfa struct {
-	UserID             string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
-	MFASecret          string `json:"mfa_secret" gorm:"not null;type:varchar(255)"`
-	MFAEnabled         bool   `json:"mfa_enabled" gorm:"default:false;type:boolean"`
-	PasswordHash       string `json:"password_hash" gorm:"not null;type:varchar(255)"`
-	MFA_Pending_secret string `json:"mfa_pending_secret" gorm:"type:varchar(255)"`
+	UserID             string `json:"user_id"`
+	MFASecret          string `json:"mfa_secret"`
+	MFAEnabled         bool   `json:"mfa_enabled"`
+	PasswordHash       string `json:"password_hash"`
+	MFA_Pending_secret string `json:"mfa_pending_secret"`
 }
 
 type UserphotoRequest struct {
@@ -328,27 +340,27 @@ type UserphotoResponse struct {
 }
 
 type VideoBaseinfo struct {
-	VideoID     string `json:"video_id" gorm:"primaryKey;type:varchar(64)"`
-	AuthorID    string `json:"author_id" gorm:"not null;type:varchar(64)"`
-	VideoURL    string `json:"video_url" gorm:"not null;type:varchar(512)"` // 增加 URL 长度
-	CoverURL    string `json:"cover_url" gorm:"type:varchar(512)"`          // 增加 URL 长度
-	Title       string `json:"title" gorm:"not null;type:varchar(255)"`     // 标题通常需要更长
-	Description string `json:"description" gorm:"type:varchar(512)"`        // 增加描述长度
-	CreatedAt   string `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt   string `json:"updated_at" gorm:"autoUpdateTime"`
+	VideoID     string `json:"video_id"`
+	AuthorID    string `json:"author_id"`
+	VideoURL    string `json:"video_url"`
+	CoverURL    string `json:"cover_url"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 	DeletedAt   string `json:"deleted_at"`
 }
 
 type VideoLiker struct {
-	UserID  string `json:"user_id" gorm:"primaryKey;type:varchar(64)"`
-	VideoID string `json:"video_id" gorm:"primaryKey;type:varchar(64)"`
+	UserID  string `json:"user_id"`
+	VideoID string `json:"video_id"`
 }
 
 type VideoPopular struct {
-	VideoID      string `json:"video_id" gorm:"primaryKey;type:varchar(64)"`
-	VisitCount   int64  `json:"visit_count" gorm:"default:0;type:bigint"` // 建议用 bigint 防止溢出
-	LikeCount    int64  `json:"like_count" gorm:"default:0;type:bigint"`
-	CommentCount int64  `json:"comment_count" gorm:"default:0;type:bigint"`
+	VideoID      string `json:"video_id"`
+	VisitCount   int64  `json:"visit_count"`
+	LikeCount    int64  `json:"like_count"`
+	CommentCount int64  `json:"comment_count"`
 }
 
 type VideoPopularRequest struct {
@@ -358,7 +370,7 @@ type VideoPopularRequest struct {
 
 type VideoPopularResponse struct {
 	Base   BaseResponse `json:"base"`
-	Videos []Item       `json:items"`
+	Videos []Item       `json:"items"`
 }
 
 type VideoSearchRequest struct {

@@ -7,8 +7,6 @@ import (
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
-
-	mfa "go_zero-tiktok/internal/middleware/mfa"
 	myutils "go_zero-tiktok/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -33,14 +31,12 @@ func (l *GetMfaqrcodeLogic) GetMfaqrcode(req *types.MfaqrcodeRequest) (resp *typ
 	if err != nil {
 		return nil, xerr.NewUnauthorized("获取用户ID失败")
 	}
-	secret, url, err := mfa.GenerateSecret(l.ctx, userID)
+
+	secret, url, err := l.svcCtx.UserMfaService.GenerateQRCode(l.ctx, userID)
 	if err != nil {
-		return nil, xerr.HandleDaoError(err, "GetMfaqrcode.GenerateSecret")
+		return nil, err
 	}
-	err = l.svcCtx.Dal.User.UpdateUserMFAPendingSecret(l.ctx, userID, secret)
-	if err != nil {
-		return nil, xerr.HandleDaoError(err, "GetMfaqrcode.UpdateUserMFAPendingSecret")
-	}
+
 	resp = &types.MfaqrcodeResponse{
 		Mfa_secret: secret,
 		QRCodeURL:  url,

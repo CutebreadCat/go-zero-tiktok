@@ -3,8 +3,8 @@ package communication
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -31,17 +31,7 @@ func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *typ
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	relations, total, err := l.svcCtx.Dal.UserFollow.GetFansByUserID(l.ctx, userID, req.PageNumber, req.PageSize)
-	if err != nil {
-		return nil, err
-	}
-
-	fansIDs := make([]string, 0, len(relations))
-	for _, relation := range relations {
-		fansIDs = append(fansIDs, relation.FollowerID)
-	}
-
-	fansList, err := l.svcCtx.Dal.User.GetUsersByIDs(l.ctx, fansIDs)
+	fansList, total, err := l.svcCtx.UserFollowService.GetFansList(l.ctx, userID, req.PageNumber, req.PageSize)
 	if err != nil {
 		return nil, err
 	}

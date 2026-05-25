@@ -33,7 +33,8 @@ func (l *JoinChatRoomLogic) JoinChatRoom(req *types.JoinChatRoomRequest) (resp *
 	if req.RoomID == "" {
 		return nil, xerr.NewInvalidParam("聊天室ID不能为空")
 	}
-	if err := l.svcCtx.Dal.Chat.JoinChatRoom(l.ctx, userID, req.RoomID); err != nil {
+
+	if err := l.svcCtx.ChatService.JoinChatRoom(l.ctx, userID, req.RoomID); err != nil {
 		return nil, err
 	}
 

@@ -59,7 +59,7 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 		return nil, xerr.HandleDaoError(err, "PublishVideo.UploadToOSS")
 	}
 
-	if err := l.svcCtx.Dal.Video.CreateVideoFromParams(l.ctx, VideoID, authorID, Videourl, "", req.Title, req.Description); err != nil {
+	if err := l.svcCtx.VideoService.PublishVideo(l.ctx, VideoID, authorID, Videourl, "", req.Title, req.Description); err != nil {
 		return nil, xerr.HandleDaoError(err, "PublishVideo.CreateVideo")
 	}
 	resp = &types.PublishVideoResponse{

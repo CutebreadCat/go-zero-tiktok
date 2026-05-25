@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/spf13/viper"
@@ -112,5 +113,7 @@ func bucket() (*oss.Bucket, error) {
 }
 
 func objectURL(objectKey string) string {
-	return fmt.Sprintf("https://%s.%s/%s", AliConf.OSSAccess.BucketName, AliConf.OSSAccess.Endpoint, objectKey)
+	endpoint := strings.TrimPrefix(AliConf.OSSAccess.Endpoint, "https://")
+	endpoint = strings.TrimPrefix(endpoint, "http://")
+	return fmt.Sprintf("https://%s.%s/%s", AliConf.OSSAccess.BucketName, endpoint, objectKey)
 }

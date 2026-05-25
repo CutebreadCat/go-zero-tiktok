@@ -2,12 +2,10 @@ package interaction
 
 import (
 	"context"
-	"fmt"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -37,15 +35,9 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 
 	switch req.ActionType {
 	case 1:
-		err = l.svcCtx.Dal.VideoLiker.LikeVideo(l.ctx, userID, req.VideoID)
-		if err == nil {
-			err = l.svcCtx.Dal.Popular.UpdateVideoLikeCount(l.ctx, req.VideoID, 1)
-		}
+		err = l.svcCtx.VideoService.LikeVideo(l.ctx, userID, req.VideoID)
 	case 0:
-		err = l.svcCtx.Dal.VideoLiker.CancelLikeVideo(l.ctx, userID, req.VideoID)
-		if err == nil {
-			err = l.svcCtx.Dal.Popular.UpdateVideoLikeCount(l.ctx, req.VideoID, -1)
-		}
+		err = l.svcCtx.VideoService.CancelLikeVideo(l.ctx, userID, req.VideoID)
 	default:
 		return nil, xerr.NewInvalidParam("操作类型无效，仅支持1(点赞)或0(取消点赞)")
 	}
@@ -59,13 +51,7 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 			StatusMsg:  "ok",
 		},
 	}
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-		if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, req.VideoID, 1); err != nil {
-			fmt.Printf("increment visit count failed for video %s: %v\n", req.VideoID, err)
-		}
-	}()
+	l.svcCtx.VideoService.RecordVisit(req.VideoID)
 
 	return
 }

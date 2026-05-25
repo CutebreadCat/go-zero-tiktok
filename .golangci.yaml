@@ -20,15 +20,16 @@ linters:
   disable:
     - wsl
     - nlreturn
+  # 👇 v2 中 linters-settings 必须作为 linters 的子节点 settings
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true
 
-linters-settings:
-  revive:
-    rules:
-      - name: exported
-        disabled: true
-
-issues:
-  exclude-rules:
+# 👇 v2 废弃了 issues.exclude-rules，改用 exclusions
+exclusions:
+  rules:
     - path: _test\.go
       linters:
         - gocognit

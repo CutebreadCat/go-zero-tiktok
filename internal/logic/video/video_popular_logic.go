@@ -24,16 +24,7 @@ func NewVideoPopularLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Vide
 }
 
 func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *types.VideoPopularResponse, err error) {
-	videoPopulars, _, err := l.svcCtx.Dal.Popular.GetPopularVideoIDsByVisitCount(l.ctx, req.PageNum, req.PageSize)
-	if err != nil {
-		return nil, err
-	}
-	videoIDs := make([]string, 0)
-	for _, videoPopular := range videoPopulars {
-		videoIDs = append(videoIDs, videoPopular.VideoID)
-	}
-
-	videos, err := l.svcCtx.Dal.Video.GetVideosByIDs(l.ctx, videoIDs)
+	videos, videoPopulars, err := l.svcCtx.VideoService.GetPopularVideos(l.ctx, req.PageNum, req.PageSize)
 	if err != nil {
 		return nil, err
 	}

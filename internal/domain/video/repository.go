@@ -1,8 +1,7 @@
-package svc
+package video
 
 import (
 	"context"
-
 	"go_zero-tiktok/internal/types"
 )
 
@@ -11,6 +10,7 @@ type IVideoRepo interface {
 	SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
 	GetVideosByIDs(ctx context.Context, videoIDs []string) ([]types.VideoBaseinfo, error)
 	GetVideosByAuthorID(ctx context.Context, authorID string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
+	GetVideoByLastTime(ctx context.Context, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
 }
 
 type IPopularRepo interface {

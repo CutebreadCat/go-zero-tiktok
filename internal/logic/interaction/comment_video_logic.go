@@ -3,9 +3,7 @@ package interaction
 import (
 	"context"
 	"strings"
-	"time"
 
-	"fmt"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/types"
@@ -42,7 +40,7 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 	}
 
 	commentID := myutils.GenerateCommentID()
-	if err := l.svcCtx.Dal.Comment.CreateCommentFromParams(l.ctx, commentID, userID, req.VideoID, commentText, ""); err != nil {
+	if err := l.svcCtx.CommentService.CreateComment(l.ctx, commentID, userID, req.VideoID, commentText, ""); err != nil {
 		return nil, xerr.HandleDaoError(err, "CommentVideo.CreateComment")
 	}
 
@@ -50,13 +48,6 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "评论发布成功"},
 		CommentID: commentID,
 	}
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-		if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, req.VideoID, 1); err != nil {
-			fmt.Printf("increment visit count failed for video %s: %v\n", req.VideoID, err)
-		}
-	}()
 
 	return resp, nil
 }

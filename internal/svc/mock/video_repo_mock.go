@@ -11,6 +11,7 @@ type VideoRepo struct {
 	SearchVideosByKeywordFn   func(ctx context.Context, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
 	GetVideosByIDsFn          func(ctx context.Context, videoIDs []string) ([]types.VideoBaseinfo, error)
 	GetVideosByAuthorIDFn     func(ctx context.Context, authorID string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
+	GetVideoByLastTimeFn      func(ctx context.Context, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
 }
 
 func (m *VideoRepo) CreateVideoFromParams(ctx context.Context, videoID, authorID, videoURL, coverURL, title, description string) error {
@@ -37,6 +38,13 @@ func (m *VideoRepo) GetVideosByIDs(ctx context.Context, videoIDs []string) ([]ty
 func (m *VideoRepo) GetVideosByAuthorID(ctx context.Context, authorID string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
 	if m.GetVideosByAuthorIDFn != nil {
 		return m.GetVideosByAuthorIDFn(ctx, authorID, pageNum, pageSize)
+	}
+	return nil, 0, nil
+}
+
+func (m *VideoRepo) GetVideoByLastTime(ctx context.Context, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+	if m.GetVideoByLastTimeFn != nil {
+		return m.GetVideoByLastTimeFn(ctx, lastTime, pageNum, pageSize)
 	}
 	return nil, 0, nil
 }

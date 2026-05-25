@@ -1,8 +1,7 @@
-package svc
+package userfollow
 
 import (
 	"context"
-
 	"go_zero-tiktok/internal/types"
 )
 
