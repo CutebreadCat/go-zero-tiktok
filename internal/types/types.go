@@ -74,12 +74,14 @@ type DeleteCommentResponse struct {
 }
 
 type FeedVideoRequest struct {
-	PageSize int32 `form:"page_size"`
-	PageNum  int32 `form:"page_num"`
+	LastTime string `form:"last_time"`
+	PageSize int32  `form:"page_size"`
+	PageNum  int32  `form:"page_num"`
 }
 
 type FeedVideoResponse struct {
 	Base   BaseResponse `json:"base"`
+	Total  int64        `json:"total"`
 	Videos []Item       `json:"items"`
 }
 

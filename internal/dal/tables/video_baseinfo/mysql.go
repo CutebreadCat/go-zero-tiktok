@@ -8,6 +8,8 @@ import (
 	"go_zero-tiktok/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 
+	myutils "go_zero-tiktok/internal/utils"
+
 	"gorm.io/gorm"
 )
 
@@ -110,6 +112,29 @@ func GetVideosByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize i
 	if err := dbQuery.Scopes(query.Paginate(int(pageNum), int(pageSize))).
 		Find(&videos).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get videos by visit count failed")
+	}
+	return videos, total, nil
+}
+
+func GetVideoByLastTime(ctx context.Context, db *gorm.DB, lastTime string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
+	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{})
+	if lastTime != "" {
+		RealTime, err := myutils.StrToTime(lastTime, "2004-01-02 15:04:05")
+		if err != nil {
+			return nil, 0, xerr.Wrap(err, "parse last time failed")
+		}
+		dbQuery = dbQuery.Where("created_at < ?", RealTime)
+	}
+
+	var total int64
+	if err := dbQuery.Count(&total).Error; err != nil {
+		return nil, 0, xerr.Wrap(err, "get videos by last time count failed")
+	}
+
+	var videos []VideoBaseinfo
+	if err := dbQuery.Scopes(query.Paginate(int(pageNum), int(pageSize))).
+		Find(&videos).Error; err != nil {
+		return nil, 0, xerr.Wrap(err, "get videos by last time failed")
 	}
 	return videos, total, nil
 }

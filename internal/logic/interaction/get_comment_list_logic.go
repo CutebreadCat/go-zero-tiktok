@@ -32,7 +32,7 @@ func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}
 
-	comments, total, err := l.svcCtx.Dal.Comment.GetCommentsByVideoID(l.ctx, req.VideoID, req.PageNumber, req.PageSize)
+	comments, total, err := l.svcCtx.CommentService.GetCommentsByVideoID(l.ctx, req.VideoID, req.PageNumber, req.PageSize)
 	if err != nil {
 		return nil, err
 	}

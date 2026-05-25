@@ -6,6 +6,7 @@ package video
 import (
 	"context"
 
+	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
@@ -27,7 +28,24 @@ func NewGetFeedVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetF
 }
 
 func (l *GetFeedVideoLogic) GetFeedVideo(req *types.FeedVideoRequest) (resp *types.FeedVideoResponse, err error) {
-	// todo: add your logic here and delete this line
+	videos, total, err := l.svcCtx.VideoService.GetVideosByLastTime(l.ctx, req.LastTime, req.PageNum, req.PageSize)
+	if err != nil {
+		return nil, xerr.Wrap(err, "GetFeedVideo.")
+	}
 
-	return
+	items := make([]types.Item, 0, len(videos))
+	for _, video := range videos {
+		items = append(items, types.Item{
+			Videos: video,
+			VideosPopular: types.VideoPopular{
+				VideoID: video.VideoID,
+			},
+		})
+	}
+
+	return &types.FeedVideoResponse{
+		Base:   types.BaseResponse{StatusCode: 0},
+		Videos: items,
+		Total:  total,
+	}, nil
 }

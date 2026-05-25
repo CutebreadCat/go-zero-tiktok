@@ -3,8 +3,8 @@ package communication
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -31,17 +31,7 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListRequest) (res
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	relations, total, err := l.svcCtx.Dal.UserFollow.GetFriendByUserID(l.ctx, userID, req.PageNumber, req.PageSize)
-	if err != nil {
-		return nil, err
-	}
-
-	friendIDs := make([]string, 0, len(relations))
-	for _, relation := range relations {
-		friendIDs = append(friendIDs, relation.FollowerID)
-	}
-
-	friendList, err := l.svcCtx.Dal.User.GetUsersByIDs(l.ctx, friendIDs)
+	friendList, total, err := l.svcCtx.UserFollowService.GetFriendList(l.ctx, userID, req.PageNumber, req.PageSize)
 	if err != nil {
 		return nil, err
 	}

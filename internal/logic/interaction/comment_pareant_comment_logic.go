@@ -31,10 +31,11 @@ func (l *CommentPareantCommentLogic) CommentPareantComment(req *types.CommentPar
 		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
 	}
 
-	var CommentId string
-	if CommentId, err = l.svcCtx.Dal.Comment.CommentParentComent(l.ctx, UserId, req.CommentText, req.ParentCommentID); err != nil {
+	CommentId, err := l.svcCtx.CommentService.ReplyParentComment(l.ctx, UserId, req.CommentText, req.ParentCommentID)
+	if err != nil {
 		return nil, err
 	}
+
 	resp = &types.CommentPareantCommentResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,

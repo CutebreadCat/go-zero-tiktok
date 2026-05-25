@@ -1,8 +1,7 @@
-package svc
+package comment
 
 import (
 	"context"
-
 	"go_zero-tiktok/internal/types"
 )
 

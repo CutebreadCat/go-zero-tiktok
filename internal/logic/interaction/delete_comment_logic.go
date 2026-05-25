@@ -33,7 +33,8 @@ func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentRequest) (res
 	if err != nil {
 		return nil, xerr.NewUnauthorized("获取用户ID失败")
 	}
-	if err := l.svcCtx.Dal.Comment.DeleteCommentByID(l.ctx, req.CommentID, userid); err != nil {
+
+	if err := l.svcCtx.CommentService.DeleteComment(l.ctx, req.CommentID, userid); err != nil {
 		return nil, err
 	}
 

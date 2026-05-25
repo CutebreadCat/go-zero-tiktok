@@ -67,17 +67,19 @@ type (
   }
 
  FeedVideoRequest  {
-   
+   LastTime string `form:"last_time"`
     PageSize int32  `form:"page_size"`
     PageNum  int32  `form:"page_num"`
  }
 
   FeedVideoResponse  {
       Base   BaseResponse `json:"base"`
+      total int64        `json:"total"`
       videos []Item        `json:"items"`
   }
    Item  {
   Videos VideoBaseinfo      `json:"videos"`
+  
   VideosPopular VideoPopular      `json:"videos_popular"`
 }
 )

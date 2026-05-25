@@ -8,8 +8,6 @@ import (
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
-	mfa "go_zero-tiktok/internal/middleware/mfa"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -28,16 +26,15 @@ func NewBindMfaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *BindMfaLo
 }
 
 func (l *BindMfaLogic) BindMfa(req *types.BindMfaqrcodeRequest) (resp *types.BindMfaqrcodeResponse, err error) {
-	var userId string
-	if userId, err = myutils.GetUserIDFromContext(l.ctx); err != nil {
+	userId, err := myutils.GetUserIDFromContext(l.ctx)
+	if err != nil {
 		return nil, xerr.NewUnauthorized("获取用户ID失败")
 	}
-	if err = mfa.ValidateMfaCode(l.ctx, req.Mfa_secret, req.Mfa_code); err != nil {
-		return nil, xerr.NewInvalidParam("MFA验证失败")
+
+	if err := l.svcCtx.UserMfaService.BindMFA(l.ctx, userId, req.Mfa_secret, req.Mfa_code); err != nil {
+		return nil, err
 	}
-	if err = l.svcCtx.Dal.User.EnableUserMFA(l.ctx, userId); err != nil {
-		return nil, xerr.HandleDaoError(err, "BindMfa.EnableUserMFA")
-	}
+
 	resp = &types.BindMfaqrcodeResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,

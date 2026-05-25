@@ -37,9 +37,9 @@ func (l *SubscribeLogic) Subscribe(req *types.SubscribeRequest) (resp *types.Sub
 
 	switch req.ActionType {
 	case 1:
-		err = l.svcCtx.Dal.UserFollow.FollowUser(l.ctx, followerID, req.ToUserID)
+		err = l.svcCtx.UserFollowService.FollowUser(l.ctx, followerID, req.ToUserID)
 	case 0:
-		err = l.svcCtx.Dal.UserFollow.UnfollowUser(l.ctx, followerID, req.ToUserID)
+		err = l.svcCtx.UserFollowService.UnfollowUser(l.ctx, followerID, req.ToUserID)
 	default:
 		return nil, xerr.NewInvalidParam("操作类型无效，仅支持1(关注)或0(取关)")
 	}

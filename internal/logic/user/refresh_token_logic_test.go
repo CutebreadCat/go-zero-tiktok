@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"go_zero-tiktok/internal/config"
+	userdomain "go_zero-tiktok/internal/domain/user"
 	"go_zero-tiktok/internal/middleware/token"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
@@ -18,7 +19,8 @@ func TestRefreshTokenLogic_RefreshToken_Table(t *testing.T) {
 		Config: config.Config{
 			Auth: config.AuthConfig{AccessSecret: secret},
 		},
-		Rdb: nil,
+		Rdb:             nil,
+		UserAuthService: userdomain.NewAuthService(nil, &svc.TokenAdapter{}, nil, secret, nil),
 	}
 	logic := NewRefreshTokenLogic(context.Background(), svcCtx)
 

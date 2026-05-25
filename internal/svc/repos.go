@@ -2,19 +2,24 @@ package svc
 
 import (
 	repository "go_zero-tiktok/internal/dal/repository"
+	chatdomain "go_zero-tiktok/internal/domain/chat"
+	commentdomain "go_zero-tiktok/internal/domain/comment"
+	userdomain "go_zero-tiktok/internal/domain/user"
+	userfollowdomain "go_zero-tiktok/internal/domain/userfollow"
+	videodomain "go_zero-tiktok/internal/domain/video"
 
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"gorm.io/gorm"
 )
 
 type Repositories struct {
-	User       IUserRepo
-	Video      IVideoRepo
-	Popular    IPopularRepo
-	Comment    ICommentRepo
-	VideoLiker IVideoLikerRepo
-	UserFollow IUserFollowRepo
-	Chat       IChatRepo
+	User       userdomain.IUserRepo
+	Video      videodomain.IVideoRepo
+	Popular    videodomain.IPopularRepo
+	Comment    commentdomain.ICommentRepo
+	VideoLiker videodomain.IVideoLikerRepo
+	UserFollow userfollowdomain.IUserFollowRepo
+	Chat       chatdomain.IChatRepo
 }
 
 func NewRepositories(db *gorm.DB, rdb *redis.Redis) *Repositories {

@@ -2,7 +2,6 @@ package video
 
 import (
 	"context"
-	"fmt"
 
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
@@ -26,12 +25,11 @@ func NewGetVideoListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetV
 }
 
 func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *types.GetVideoListResponse, err error) {
-
 	if req.PageSize > 100 {
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}
 
-	videos, _, err := l.svcCtx.Dal.Video.GetVideosByAuthorID(l.ctx, req.UserID, req.PageNum, req.PageSize)
+	videos, _, err := l.svcCtx.VideoService.GetVideosByAuthor(l.ctx, req.UserID, req.PageNum, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +41,6 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 	if resp.Videos == nil {
 		resp.Videos = []types.VideoBaseinfo{}
 	}
-	go func(ctx context.Context) {
-		for _, video := range videos {
-			if err := l.svcCtx.Dal.Popular.IncreaseVideoVisitCount(ctx, video.VideoID, 1); err != nil {
-				fmt.Printf("increment visit count failed for video %s: %v\n", video.VideoID, err)
-			}
-		}
-	}(l.ctx)
 
 	return resp, nil
 }

@@ -30,7 +30,8 @@ func (l *GetChatRoomsLogic) GetChatRooms(req *types.GetChatRoomsRequest) (resp *
 	if err != nil {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
-	rooms, err := l.svcCtx.Dal.Chat.GetJoinRooms(l.ctx, userID)
+
+	rooms, err := l.svcCtx.ChatService.GetJoinRooms(l.ctx, userID)
 	if err != nil {
 		return nil, err
 	}
