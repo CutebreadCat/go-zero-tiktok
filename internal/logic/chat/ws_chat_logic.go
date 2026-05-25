@@ -6,10 +6,8 @@ package chat
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
-	"go_zero-tiktok/internal/types"
-
 	"github.com/zeromicro/go-zero/core/logx"
+	"go_zero-tiktok/internal/svc"
 )
 
 type WsChatLogic struct {
@@ -26,7 +24,7 @@ func NewWsChatLogic(ctx context.Context, svcCtx *svc.ServiceContext) *WsChatLogi
 	}
 }
 
-func (l *WsChatLogic) WsChat(req *types.WsChatRequest) error {
+func (l *WsChatLogic) WsChat() error {
 	// todo: add your logic here and delete this line
 
 	return nil

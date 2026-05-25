@@ -17,6 +17,9 @@ service tiktok-api {
 
   @handler VideoPopularHandler
   get /video/popular (VideoPopularRequest) returns (VideoPopularResponse)
+
+  @handler GetFeedVideoHandler
+  get /video/feed (FeedVideoRequest) returns (FeedVideoResponse)
 }
 
 type (
@@ -60,8 +63,18 @@ type (
 
   VideoPopularResponse   {
     Base   BaseResponse `json:"base"`
-    videos []Item        `json:items"`
-    
+    videos []Item        `json:"items"`
+  }
+
+ FeedVideoRequest  {
+   
+    PageSize int32  `form:"page_size"`
+    PageNum  int32  `form:"page_num"`
+ }
+
+  FeedVideoResponse  {
+      Base   BaseResponse `json:"base"`
+      videos []Item        `json:"items"`
   }
    Item  {
   Videos VideoBaseinfo      `json:"videos"`

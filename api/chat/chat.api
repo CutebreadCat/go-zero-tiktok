@@ -15,7 +15,7 @@ service tiktok-api {
     @handler GetChatRoomsHandler
     get /chat/rooms (GetChatRoomsRequest) returns (GetChatRoomsResponse)
     @handler WsChatHandler
-    get /chat/ws (WsChatRequest) 
+    get /chat/ws  
     @handler GetMessagesHandler
     get /chat/messages (GetMessagesRequest) returns (GetMessagesResponse)
     @handler JoinChatRoomHandler

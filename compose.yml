@@ -3,9 +3,7 @@ services:
     build: .
     ports:
       - "8888:8888"
-    volumes:
-      - .:/app
-    command: go run .
+    command: ./tiktok
     environment:
       - GIN_MODE=release
       - REDIS_ADDR=redis:6379
