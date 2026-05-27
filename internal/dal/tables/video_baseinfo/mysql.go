@@ -118,8 +118,9 @@ func GetVideosByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize i
 
 func GetVideoByLastTime(ctx context.Context, db *gorm.DB, lastTime string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
 	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{})
+	lastTime = strings.TrimSpace(lastTime)
 	if lastTime != "" {
-		RealTime, err := myutils.StrToTime(lastTime, "2004-01-02 15:04:05")
+		RealTime, err := myutils.StrToTime(lastTime, "")
 		if err != nil {
 			return nil, 0, xerr.Wrap(err, "parse last time failed")
 		}

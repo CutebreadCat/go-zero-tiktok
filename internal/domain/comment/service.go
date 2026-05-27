@@ -5,19 +5,18 @@ import (
 	"fmt"
 	"time"
 
-	videodomain "go_zero-tiktok/internal/domain/video"
 	"go_zero-tiktok/internal/types"
 )
 
 type CommentService struct {
-	commentRepo ICommentRepo
-	popularRepo videodomain.IPopularRepo
+	commentRepo        ICommentRepo
+	videoVisitRecorder IVideoVisitRecorder
 }
 
-func NewCommentService(commentRepo ICommentRepo, popularRepo videodomain.IPopularRepo) *CommentService {
+func NewCommentService(commentRepo ICommentRepo, videoVisitRecorder IVideoVisitRecorder) *CommentService {
 	return &CommentService{
-		commentRepo: commentRepo,
-		popularRepo: popularRepo,
+		commentRepo:        commentRepo,
+		videoVisitRecorder: videoVisitRecorder,
 	}
 }
 
@@ -30,7 +29,7 @@ func (s *CommentService) CreateComment(ctx context.Context, commentID, userID, v
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
-		if err := s.popularRepo.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
+		if err := s.videoVisitRecorder.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
 			fmt.Printf("increment visit count failed for video %s: %v\n", videoID, err)
 		}
 	}()

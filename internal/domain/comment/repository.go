@@ -12,3 +12,7 @@ type ICommentRepo interface {
 	LikeComment(ctx context.Context, commentID string, userID string, likeType int32) error
 	CommentParentComent(ctx context.Context, userID string, commentText string, parentCommentID string) (string, error)
 }
+
+type IVideoVisitRecorder interface {
+	IncreaseVideoVisitCount(ctx context.Context, videoID string, delta int64) error
+}
