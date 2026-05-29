@@ -1,0 +1,31 @@
+ syntax = "v1"
+ 
+ type  (
+  BaseResponse {
+    StatusCode int32  `json:"status_code"`
+    StatusMsg  string `json:"status_msg"`
+  }
+ UserBaseinfo {
+    UserID     string `json:"user_id"`
+    Username   string `json:"username"`
+    Password   string `json:"password"`
+    PhotoURL   string `json:"photo_url"`
+    CreatedAt  string `json:"created_at"`
+    UpdatedAt  string `json:"updated_at"`
+    DeletedAt  string `json:"deleted_at"`
+  }
+
+  UserFollow {
+    FollowerID string `json:"follower_id"`
+    UserID     string `json:"user_id"`
+    Status     int32  `json:"status"`
+  }
+  User_mfa{
+    UserID string `json:"user_id"`
+    MFASecret string `json:"mfa_secret"`
+    MFAEnabled bool `json:"mfa_enabled"`
+    PasswordHash string `json:"password_hash"`
+    MFA_Pending_secret string `json:"mfa_pending_secret"`
+  }
+
+  )

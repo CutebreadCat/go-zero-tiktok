@@ -1,0 +1,110 @@
+syntax = "v1"
+
+import "user_model.api"
+
+@server (
+  group: user
+
+  middleware: RateLimit
+
+  tags:"user"
+)
+service tiktok-api {
+  @handler RegisterHandler
+  post /user/register (RegisterRequest) returns (RegisterResponse)
+
+  @handler LoginHandler
+  post /user/login (LoginRequest) returns (LoginResponse)
+
+  @handler RefreshTokenHandler
+  post /user/token/refresh (RefreshTokenRequest) returns (RefreshTokenResponse)
+
+  @handler GetUserInfoHandler
+  get /user/info (UserInfoRequest) returns (UserInfoResponse)
+
+}
+
+type (
+  RegisterRequest  {
+    Username string `form:"username"`
+    Password string `form:"password"`
+  }
+
+  RegisterResponse  {
+    Base   BaseResponse `json:"base"`
+    UserID string         `json:"user_id"`
+  }
+
+  LoginRequest  {
+    Username string `form:"username"`
+    Password string `form:"password"`
+    MfaCode  string `form:"mfa_code"`
+  }
+
+  LoginResponse  {
+    Base         BaseResponse `json:"base"`
+    UserID       string       `json:"user_id"`
+    AccessToken  string       `json:"access_token"`
+    RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+  }
+
+  UserInfoRequest  {
+    UserID string `form:"user_id"`
+  }
+
+  UserInfoResponse  {
+    Base BaseResponse `json:"base"`
+    User UserBaseinfo `json:"user"`
+  }
+
+  UserphotoRequest  {
+    PhotoURL     string `form:"photo_url"`
+  }
+
+  UserphotoResponse  {
+    StatusCode int32  `json:"status_code"`
+    StatusMsg  string `json:"status_msg"`
+  }
+
+  RefreshTokenRequest {
+    RefreshToken string `cookie:"refresh_token"`
+  }
+  RefreshTokenResponse {
+    Base         BaseResponse `json:"base"`
+    AccessToken  string       `json:"access_token"`
+    RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+  }
+  MfaqrcodeRequest {
+    Mfa_ticket string `form:"mfa_ticket"`
+  }
+  MfaqrcodeResponse {
+    Base BaseResponse `json:"base"`
+    QRCodeURL string `json:"qr_code"`
+    mfa_secret string `json:"mfa_secret"`
+  }
+  BindMfaqrcodeRequest {
+     mfa_secret string `form:"mfa_secret"`
+     mfa_code string `form:"mfa_code"`
+  }
+  BindMfaqrcodeResponse {
+    Base BaseResponse `json:"base"`
+  }
+  JwchLoginRequest {
+    Username string `form:"username"`
+    Password string `form:"password"`
+  }
+  JwchLoginResponse {
+    Base         BaseResponse `json:"base"`
+  }
+  JwchGetUserCookieRequest {
+
+  }
+  JwchGetUserCookieResponse {
+    Base         BaseResponse `json:"base"`
+    JwchID       string       `json:"jwch_id"`
+    Cookie       string       `json:"cookie" `
+  }
+   
+)
+
+
