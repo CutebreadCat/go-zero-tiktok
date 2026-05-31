@@ -3,8 +3,9 @@ package user
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/app/user/rpc/userservice"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -24,21 +25,21 @@ func NewRefreshTokenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Refr
 	}
 }
 
-func (l *RefreshTokenLogic) RefreshToken(req *types.RefreshTokenRequest) (resp *types.RefreshTokenResponse, err error) {
+func (l *RefreshTokenLogic) RefreshToken(req *types.RefreshTokenRequest) (*types.RefreshTokenResponse, error) {
 	if req.RefreshToken == "" {
 		return nil, xerr.NewUnauthorized("刷新令牌不能为空")
 	}
 
-	accessToken, refreshToken, err := l.svcCtx.UserAuthService.RefreshToken(l.ctx, req.RefreshToken)
+	result, err := l.svcCtx.UserRpc.RefreshToken(l.ctx, &userservice.RefreshTokenRequest{
+		RefreshToken: req.RefreshToken,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	resp = &types.RefreshTokenResponse{
+	return &types.RefreshTokenResponse{
 		Base:         types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
-
-	return
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
+	}, nil
 }

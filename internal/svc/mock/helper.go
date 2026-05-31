@@ -10,7 +10,6 @@ import (
 	chatdomain "go_zero-tiktok/internal/domain/chat"
 	commentdomain "go_zero-tiktok/internal/domain/comment"
 	userdomain "go_zero-tiktok/internal/domain/user"
-	userfollowdomain "go_zero-tiktok/internal/domain/userfollow"
 	videodomain "go_zero-tiktok/internal/domain/video"
 	"go_zero-tiktok/internal/svc"
 )
@@ -43,7 +42,7 @@ func NewServiceContext(
 		Dal:                repos,
 		VideoService:       videodomain.NewVideoService(videoRepo, popularRepo, videoLikerRepo),
 		CommentService:     commentdomain.NewCommentService(commentRepo, popularRepo),
-		UserFollowService:  userfollowdomain.NewUserFollowService(userFollowRepo, userRepo),
+		UserFollowService:  userdomain.NewUserFollowService(userFollowRepo, userRepo),
 		ChatService:        chatdomain.NewChatService(chatRepo),
 		UserAuthService:    userdomain.NewAuthService(userRepo, fakeTokenProvider{}, fakeMfaProvider{}, "test-secret", nil),
 		UserMfaService:     userdomain.NewMfaService(userRepo, fakeMfaProvider{}, fakeMfaProvider{}),

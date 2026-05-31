@@ -5,7 +5,6 @@ import (
 	chatdomain "go_zero-tiktok/internal/domain/chat"
 	commentdomain "go_zero-tiktok/internal/domain/comment"
 	userdomain "go_zero-tiktok/internal/domain/user"
-	userfollowdomain "go_zero-tiktok/internal/domain/userfollow"
 	videodomain "go_zero-tiktok/internal/domain/video"
 
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -18,7 +17,7 @@ type Repositories struct {
 	Popular    videodomain.IPopularRepo
 	Comment    commentdomain.ICommentRepo
 	VideoLiker videodomain.IVideoLikerRepo
-	UserFollow userfollowdomain.IUserFollowRepo
+	UserFollow userdomain.IUserFollowRepo
 	Chat       chatdomain.IChatRepo
 }
 

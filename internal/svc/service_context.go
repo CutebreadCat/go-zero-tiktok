@@ -6,12 +6,12 @@ package svc
 import (
 	"context"
 
+	"go_zero-tiktok/app/user/rpc/userservice"
 	"go_zero-tiktok/internal/config"
 	"go_zero-tiktok/internal/dal"
 	chatdomain "go_zero-tiktok/internal/domain/chat"
 	commentdomain "go_zero-tiktok/internal/domain/comment"
 	userdomain "go_zero-tiktok/internal/domain/user"
-	userfollowdomain "go_zero-tiktok/internal/domain/userfollow"
 	videodomain "go_zero-tiktok/internal/domain/video"
 	"go_zero-tiktok/internal/domain/websocket"
 	"go_zero-tiktok/internal/infra/ai"
@@ -25,27 +25,29 @@ import (
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/zrpc"
 	"gorm.io/gorm"
 )
 
 type ServiceContext struct {
-	Config            config.Config
-	DB                *gorm.DB
-	Cache             *wscache.RedisCache
-	Rdb               *redis.Redis
-	Dal               *Repositories
-	VideoService      *videodomain.VideoService
-	CommentService    *commentdomain.CommentService
-	UserFollowService *userfollowdomain.UserFollowService
-	ChatService       *chatdomain.ChatService
-	UserAuthService   *userdomain.AuthService
-	UserMfaService    *userdomain.MfaService
+	Config             config.Config
+	DB                 *gorm.DB
+	Cache              *wscache.RedisCache
+	Rdb                *redis.Redis
+	Dal                *Repositories
+	VideoService       *videodomain.VideoService
+	CommentService     *commentdomain.CommentService
+	UserFollowService  *userdomain.UserFollowService
+	ChatService        *chatdomain.ChatService
+	UserAuthService    *userdomain.AuthService
+	UserMfaService     *userdomain.MfaService
 	UserProfileService *userdomain.ProfileService
-	UserJwchService   *userdomain.JwchService
-	Hub               *websocket.Hub
-	AIChat            *websocket.AIChat
-	MQ                *MQComponents
-	RateLimit         rest.Middleware
+	UserJwchService    *userdomain.JwchService
+	UserRpc            userservice.UserService
+	Hub                *websocket.Hub
+	AIChat             *websocket.AIChat
+	MQ                 *MQComponents
+	RateLimit          rest.Middleware
 }
 
 func NewServiceContext(config config.Config) *ServiceContext {
@@ -68,7 +70,7 @@ func NewServiceContext(config config.Config) *ServiceContext {
 	// 组装 domain service
 	videoSvc := videodomain.NewVideoService(dalRepo.Video, dalRepo.Popular, dalRepo.VideoLiker)
 	commentSvc := commentdomain.NewCommentService(dalRepo.Comment, dalRepo.Popular)
-	userFollowSvc := userfollowdomain.NewUserFollowService(dalRepo.UserFollow, dalRepo.User)
+	userFollowSvc := userdomain.NewUserFollowService(dalRepo.UserFollow, dalRepo.User)
 	chatSvc := chatdomain.NewChatService(dalRepo.Chat)
 	userAuthSvc := userdomain.NewAuthService(dalRepo.User, tokenAdapter, mfaAdapter, config.Auth.AccessSecret, dal.Rdb)
 	userMfaSvc := userdomain.NewMfaService(dalRepo.User, mfaAdapter, mfaAdapter)
@@ -105,6 +107,7 @@ func NewServiceContext(config config.Config) *ServiceContext {
 		UserMfaService:     userMfaSvc,
 		UserProfileService: userProfileSvc,
 		UserJwchService:    userJwchSvc,
+		UserRpc:            userservice.NewUserService(zrpc.MustNewClient(config.UserRpc)),
 		Cache:              c,
 		Hub:                hub,
 		AIChat:             aiChat,

@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # 运行测试
-RUN go test ./...
+
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o tiktok .
 

@@ -2,19 +2,107 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "./user";
+option go_package = "./user_pb";
 
 message LoginRequest {
     string username = 1;
     string password = 2;
+    string mfa_code = 3;
 }
 
 message LoginResponse {
-    string accesstoken = 1;
-    string refreshtoken = 2;
-    string userid = 3;
+    string access_token = 1;
+    string refresh_token = 2;
+    string user_id = 3;
+}
+
+message RegisterRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message RegisterResponse {
+    string user_id = 1;
+}
+
+message RefreshTokenRequest {
+    string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+message GetUserInfoRequest {
+    string user_id = 1;
+}
+
+message UserInfo {
+    string user_id = 1;
+    string username = 2;
+    string photo_url = 3;
+    string created_at = 4;
+    string updated_at = 5;
+}
+
+message GetUserInfoResponse {
+    UserInfo user = 1;
+}
+
+message UpdateUserPhotoRequest {
+    string user_id = 1;
+    bytes photo = 2;
+}
+
+message UpdateUserPhotoResponse {
+    string photo_url = 1;
+}
+
+message GetMfaQRCodeRequest {
+    string user_id = 1;
+}
+
+message GetMfaQRCodeResponse {
+    string mfa_secret = 1;
+    string qr_code_url = 2;
+}
+
+message BindMfaRequest {
+    string user_id = 1;
+    string mfa_secret = 2;
+    string mfa_code = 3;
+}
+
+message BindMfaResponse {
+}
+
+message JwchLoginRequest {
+    string user_id = 1;
+    string username = 2;
+    string password = 3;
+}
+
+message JwchLoginResponse {
+}
+
+message JwchGetUserCookieRequest {
+    string user_id = 1;
+}
+
+message JwchGetUserCookieResponse {
+    string jwch_id = 1;
+    string cookie = 2;
 }
 
 service UserService {
+    rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc Login(LoginRequest) returns (LoginResponse);
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+    rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+    rpc UpdateUserPhoto(UpdateUserPhotoRequest) returns (UpdateUserPhotoResponse);
+    rpc GetMfaQRCode(GetMfaQRCodeRequest) returns (GetMfaQRCodeResponse);
+    rpc BindMfa(BindMfaRequest) returns (BindMfaResponse);
+    rpc JwchLogin(JwchLoginRequest) returns (JwchLoginResponse);
+    rpc JwchGetUserCookie(JwchGetUserCookieRequest) returns (JwchGetUserCookieResponse);
 }

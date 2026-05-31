@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/user/rpc/internal/svc"
-	"go_zero-tiktok/app/user/rpc/user"
+	"go_zero-tiktok/app/user/rpc/user_pb"
+	"go_zero-tiktok/internal/shared/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -23,8 +24,19 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 	}
 }
 
-func (l *LoginLogic) Login(in *user.LoginRequest) (*user.LoginResponse, error) {
-	// todo: add your logic here and delete this line
+func (l *LoginLogic) Login(in *user_pb.LoginRequest) (*user_pb.LoginResponse, error) {
+	if in.Username == "" || in.Password == "" {
+		return nil, xerr.NewInvalidParam("用户名或密码不能为空")
+	}
 
-	return &user.LoginResponse{}, nil
+	result, err := l.svcCtx.UserAuthService.Login(l.ctx, in.Username, in.Password, in.MfaCode)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user_pb.LoginResponse{
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
+		UserId:       result.UserID,
+	}, nil
 }

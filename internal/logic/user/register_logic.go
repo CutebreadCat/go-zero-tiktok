@@ -3,8 +3,9 @@ package user
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/app/user/rpc/userservice"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -24,20 +25,21 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 	}
 }
 
-func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.RegisterResponse, err error) {
+func (l *RegisterLogic) Register(req *types.RegisterRequest) (*types.RegisterResponse, error) {
 	if req.Username == "" || req.Password == "" {
 		return nil, xerr.NewInvalidParam("用户名或密码不能为空")
 	}
 
-	userID, err := l.svcCtx.UserAuthService.Register(l.ctx, req.Username, req.Password)
+	result, err := l.svcCtx.UserRpc.Register(l.ctx, &userservice.RegisterRequest{
+		Username: req.Username,
+		Password: req.Password,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	resp = &types.RegisterResponse{
+	return &types.RegisterResponse{
 		Base:   types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		UserID: userID,
-	}
-
-	return
+		UserID: result.UserId,
+	}, nil
 }

@@ -1,6 +1,16 @@
 Name: user.rpc
-ListenOn: 0.0.0.0:8080
+ListenOn: 0.0.0.0:8890
 Etcd:
   Hosts:
-  - 127.0.0.1:2379
+  - etcd:2379
   Key: user.rpc
+
+DataSource: "root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
+
+JwtAuth:
+  AccessSecret: "your_access_secret"
+  AccessExpire: 3600
+
+AppRedis:
+  Host: redis:6379
+  Type: node

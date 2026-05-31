@@ -1,4 +1,0 @@
-syntax = "v1"
-
-import "user_model.api"
-import "user_public.api"

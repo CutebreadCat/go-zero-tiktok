@@ -4,8 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/app/user/rpc/userservice"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -29,7 +30,21 @@ func NewGetMfaqrcodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetM
 func (l *GetMfaqrcodeLogic) GetMfaqrcode(req *types.MfaqrcodeRequest) (resp *types.MfaqrcodeResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.NewUnauthorized("获取用户ID失败")
+		return nil, xerr.NewUnauthorized("获取用户 ID 失败")
+	}
+
+	if l.svcCtx.UserRpc != nil {
+		result, err := l.svcCtx.UserRpc.GetMfaQRCode(l.ctx, &userservice.GetMfaQRCodeRequest{
+			UserId: userID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &types.MfaqrcodeResponse{
+			Mfa_secret: result.MfaSecret,
+			QRCodeURL:  result.QrCodeUrl,
+			Base:       types.BaseResponse{StatusCode: http.StatusOK, StatusMsg: "获取 secret 成功"},
+		}, nil
 	}
 
 	secret, url, err := l.svcCtx.UserMfaService.GenerateQRCode(l.ctx, userID)
@@ -37,13 +52,9 @@ func (l *GetMfaqrcodeLogic) GetMfaqrcode(req *types.MfaqrcodeRequest) (resp *typ
 		return nil, err
 	}
 
-	resp = &types.MfaqrcodeResponse{
+	return &types.MfaqrcodeResponse{
 		Mfa_secret: secret,
 		QRCodeURL:  url,
-		Base: types.BaseResponse{
-			StatusCode: http.StatusOK,
-			StatusMsg:  "获取secret成功",
-		},
-	}
-	return
+		Base:       types.BaseResponse{StatusCode: http.StatusOK, StatusMsg: "获取 secret 成功"},
+	}, nil
 }

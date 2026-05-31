@@ -3,9 +3,10 @@ package user
 import (
 	"context"
 
+	"go_zero-tiktok/app/user/rpc/userservice"
 	"go_zero-tiktok/internal/middleware/token"
-	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -25,24 +26,30 @@ func NewGetUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 	}
 }
 
-func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (resp *types.UserInfoResponse, err error) {
+func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (*types.UserInfoResponse, error) {
 	userID := token.UserIDFromContext(l.ctx)
 	if userID == "" {
 		userID = req.UserID
 	}
 	if userID == "" {
-		return nil, xerr.NewInvalidParam("用户ID不能为空")
+		return nil, xerr.NewInvalidParam("用户 ID 不能为空")
 	}
 
-	user, err := l.svcCtx.Dal.User.GetUserByID(l.ctx, userID)
+	result, err := l.svcCtx.UserRpc.GetUserInfo(l.ctx, &userservice.GetUserInfoRequest{
+		UserId: userID,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	resp = &types.UserInfoResponse{
+	return &types.UserInfoResponse{
 		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		User: *user,
-	}
-
-	return
+		User: types.UserBaseinfo{
+			UserID:    result.User.UserId,
+			Username:  result.User.Username,
+			PhotoURL:  result.User.PhotoUrl,
+			CreatedAt: result.User.CreatedAt,
+			UpdatedAt: result.User.UpdatedAt,
+		},
+	}, nil
 }

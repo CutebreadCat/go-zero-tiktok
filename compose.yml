@@ -5,16 +5,7 @@ services:
       - "8888:8888"
     command: ./tiktok
     environment:
-      - GIN_MODE=release
-      - REDIS_ADDR=redis:6379
-      - MYSQL_ADDR=mysql:3306
-      - MYSQL_USER=tiktok
-      - MYSQL_PASSWORD=yourpassword
-      - MYSQL_DATABASE=gozero-tiktok
-      - GOPROXY=https://goproxy.cn,direct
-      - GOSUMDB=sum.golang.org
       - XIAOMI_AI_KEY=${XIAOMI_AI_KEY}
-    
     depends_on:
       redis:
         condition: service_started
@@ -22,6 +13,35 @@ services:
         condition: service_started
       kafka:
         condition: service_healthy
+    restart: always
+
+  user-rpc:
+    build:
+      context: .
+      dockerfile: app/user/rpc/Dockerfile
+    ports:
+      - "8890:8890"
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+    restart: always
+
+
+
+  etcd:
+    image: registry.k8s.io/etcd:3.5.17-0
+    command:
+      - etcd
+      - --name=etcd
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd:2379
+    ports:
+      - "2379:2379"
+    volumes:
+      - etcd-data:/etcd-data
     restart: always
 
   redis:
@@ -80,3 +100,4 @@ volumes:
   redis-data:
   mysql-data:
   kafka_data:
+  etcd-data:

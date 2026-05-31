@@ -7,7 +7,7 @@ import (
 	"go_zero-tiktok/app/user/rpc/internal/config"
 	"go_zero-tiktok/app/user/rpc/internal/server"
 	"go_zero-tiktok/app/user/rpc/internal/svc"
-	"go_zero-tiktok/app/user/rpc/user"
+	"go_zero-tiktok/app/user/rpc/user_pb"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
@@ -26,7 +26,7 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
-		user.RegisterUserServiceServer(grpcServer, server.NewUserServiceServer(ctx))
+		user_pb.RegisterUserServiceServer(grpcServer, server.NewUserServiceServer(ctx))
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)
