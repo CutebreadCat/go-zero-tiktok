@@ -3,7 +3,7 @@ package mykafka
 import (
 	"context"
 
-	"go_zero-tiktok/internal/domain/websocket"
+	"go_zero-tiktok/app/chat/domain/websocket"
 	mqcontract "go_zero-tiktok/internal/shared/mq"
 )
 

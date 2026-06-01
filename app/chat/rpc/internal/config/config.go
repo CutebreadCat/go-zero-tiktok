@@ -1,8 +1,19 @@
 package config
 
-import "github.com/zeromicro/go-zero/zrpc"
+import (
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/zrpc"
+)
 
 type Config struct {
 	zrpc.RpcServerConf
-	DataSource string `json:"DataSource"`
+	DataSource string          `json:"DataSource"`
+	Redis      redis.RedisConf `json:"Redis"`
+	Kafka      KafkaConfig     `json:"Kafka"`
+}
+
+type KafkaConfig struct {
+	Brokers []string `json:"Brokers"`
+	Topic   string   `json:"Topic"`
+	GroupID string   `json:"GroupId"`
 }

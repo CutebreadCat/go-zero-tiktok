@@ -7,7 +7,7 @@ ENV GOFLAGS="-buildvcs=false"
 
 WORKDIR /app
 
-RUN apk add --no-cache git ffmpeg
+RUN apk add --no-cache git
 
 # 利用 BuildKit 缓存挂载，避免重复下载依赖
 COPY go.mod go.sum ./
@@ -27,7 +27,7 @@ FROM alpine:latest
 
 WORKDIR /app
 
-RUN apk add --no-cache ca-certificates tzdata ffmpeg
+RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /app/tiktok ./tiktok
 COPY --from=builder /app/etc ./etc

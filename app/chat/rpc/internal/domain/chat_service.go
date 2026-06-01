@@ -43,3 +43,13 @@ func (s *ChatService) GetJoinRooms(ctx context.Context, userID string) ([]string
 func (s *ChatService) GetMessages(ctx context.Context, roomID string, pageSize, pageNum int) ([]*types.MessageChat, error) {
 	return s.chatRepo.GetChatRoomMessage(ctx, roomID, pageSize, pageNum)
 }
+
+// GetChatRoomUsers 获取房间用户列表
+func (s *ChatService) GetChatRoomUsers(ctx context.Context, roomID string) ([]string, error) {
+	return s.chatRepo.GetChatRoomUsers(ctx, roomID)
+}
+
+// StoreChatMessage 存储聊天消息
+func (s *ChatService) StoreChatMessage(ctx context.Context, message *types.MessageChat) error {
+	return s.chatRepo.StoreChatMessage(ctx, message)
+}

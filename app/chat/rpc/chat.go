@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"go_zero-tiktok/app/chat/rpc/chat_pb/chat_pb"
+	"go_zero-tiktok/app/chat/rpc/chat_pb"
 	"go_zero-tiktok/app/chat/rpc/internal/config"
 	"go_zero-tiktok/app/chat/rpc/internal/server"
 	"go_zero-tiktok/app/chat/rpc/internal/svc"

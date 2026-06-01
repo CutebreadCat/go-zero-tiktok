@@ -9,7 +9,7 @@ import (
 	"go_zero-tiktok/internal/svc"
 	myutils "go_zero-tiktok/internal/utils"
 
-	mywebsocket "go_zero-tiktok/internal/domain/websocket"
+	mywebsocket "go_zero-tiktok/app/chat/domain/websocket"
 
 	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"

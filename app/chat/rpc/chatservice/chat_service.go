@@ -7,28 +7,34 @@ package chatservice
 import (
 	"context"
 
-	"go_zero-tiktok/app/chat/rpc/chat_pb/chat_pb"
+	"go_zero-tiktok/app/chat/rpc/chat_pb"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
 type (
-	CreateChatRoomRequest  = chat_pb.CreateChatRoomRequest
-	CreateChatRoomResponse = chat_pb.CreateChatRoomResponse
-	GetChatRoomsRequest    = chat_pb.GetChatRoomsRequest
-	GetChatRoomsResponse   = chat_pb.GetChatRoomsResponse
-	GetMessagesRequest     = chat_pb.GetMessagesRequest
-	GetMessagesResponse    = chat_pb.GetMessagesResponse
-	JoinChatRoomRequest    = chat_pb.JoinChatRoomRequest
-	JoinChatRoomResponse   = chat_pb.JoinChatRoomResponse
-	MessageInfo            = chat_pb.MessageInfo
+	CreateChatRoomRequest    = chat_pb.CreateChatRoomRequest
+	CreateChatRoomResponse   = chat_pb.CreateChatRoomResponse
+	GetChatRoomUsersRequest  = chat_pb.GetChatRoomUsersRequest
+	GetChatRoomUsersResponse = chat_pb.GetChatRoomUsersResponse
+	GetChatRoomsRequest      = chat_pb.GetChatRoomsRequest
+	GetChatRoomsResponse     = chat_pb.GetChatRoomsResponse
+	GetMessagesRequest       = chat_pb.GetMessagesRequest
+	GetMessagesResponse      = chat_pb.GetMessagesResponse
+	JoinChatRoomRequest      = chat_pb.JoinChatRoomRequest
+	JoinChatRoomResponse     = chat_pb.JoinChatRoomResponse
+	MessageInfo              = chat_pb.MessageInfo
+	StoreChatMessageRequest  = chat_pb.StoreChatMessageRequest
+	StoreChatMessageResponse = chat_pb.StoreChatMessageResponse
 
 	ChatService interface {
 		CreateChatRoom(ctx context.Context, in *CreateChatRoomRequest, opts ...grpc.CallOption) (*CreateChatRoomResponse, error)
 		JoinChatRoom(ctx context.Context, in *JoinChatRoomRequest, opts ...grpc.CallOption) (*JoinChatRoomResponse, error)
 		GetChatRooms(ctx context.Context, in *GetChatRoomsRequest, opts ...grpc.CallOption) (*GetChatRoomsResponse, error)
 		GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
+		GetChatRoomUsers(ctx context.Context, in *GetChatRoomUsersRequest, opts ...grpc.CallOption) (*GetChatRoomUsersResponse, error)
+		StoreChatMessage(ctx context.Context, in *StoreChatMessageRequest, opts ...grpc.CallOption) (*StoreChatMessageResponse, error)
 	}
 
 	defaultChatService struct {
@@ -60,4 +66,14 @@ func (m *defaultChatService) GetChatRooms(ctx context.Context, in *GetChatRoomsR
 func (m *defaultChatService) GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error) {
 	client := chat_pb.NewChatServiceClient(m.cli.Conn())
 	return client.GetMessages(ctx, in, opts...)
+}
+
+func (m *defaultChatService) GetChatRoomUsers(ctx context.Context, in *GetChatRoomUsersRequest, opts ...grpc.CallOption) (*GetChatRoomUsersResponse, error) {
+	client := chat_pb.NewChatServiceClient(m.cli.Conn())
+	return client.GetChatRoomUsers(ctx, in, opts...)
+}
+
+func (m *defaultChatService) StoreChatMessage(ctx context.Context, in *StoreChatMessageRequest, opts ...grpc.CallOption) (*StoreChatMessageResponse, error) {
+	client := chat_pb.NewChatServiceClient(m.cli.Conn())
+	return client.StoreChatMessage(ctx, in, opts...)
 }

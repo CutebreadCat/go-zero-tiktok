@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb/chat_pb"
+	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"

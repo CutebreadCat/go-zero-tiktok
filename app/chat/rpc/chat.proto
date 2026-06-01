@@ -49,9 +49,30 @@ message GetMessagesResponse {
     repeated MessageInfo messages = 1;
 }
 
+message GetChatRoomUsersRequest {
+    string room_id = 1;
+}
+
+message GetChatRoomUsersResponse {
+    repeated string user_ids = 1;
+}
+
+message StoreChatMessageRequest {
+    string message_id = 1;
+    string room_id = 2;
+    string sender_id = 3;
+    string content = 4;
+    string created_at = 5;
+}
+
+message StoreChatMessageResponse {
+}
+
 service ChatService {
     rpc CreateChatRoom(CreateChatRoomRequest) returns (CreateChatRoomResponse);
     rpc JoinChatRoom(JoinChatRoomRequest) returns (JoinChatRoomResponse);
     rpc GetChatRooms(GetChatRoomsRequest) returns (GetChatRoomsResponse);
     rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+    rpc GetChatRoomUsers(GetChatRoomUsersRequest) returns (GetChatRoomUsersResponse);
+    rpc StoreChatMessage(StoreChatMessageRequest) returns (StoreChatMessageResponse);
 }

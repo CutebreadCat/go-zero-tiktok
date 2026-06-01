@@ -3,7 +3,7 @@ package svc
 import (
 	"context"
 
-	videopopulartable "go_zero-tiktok/internal/dal/tables/video_popular"
+	videopopulartable "go_zero-tiktok/app/interaction/rpc/internal/dal/tables/video_popular"
 
 	"gorm.io/gorm"
 )

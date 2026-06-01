@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go_zero-tiktok/internal/dal/query"
+	"go_zero-tiktok/app/video/rpc/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 
 	myutils "go_zero-tiktok/internal/utils"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"go_zero-tiktok/internal/dal/query"
+	"go_zero-tiktok/app/communication/rpc/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 
 	"gorm.io/gorm"

@@ -3,7 +3,7 @@ package svc
 import (
 	"context"
 
-	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb/chat_pb"
+	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb"
 	"go_zero-tiktok/internal/types"
 )
 
@@ -29,14 +29,23 @@ func (a *ChatRepoAdapter) GetJoinRooms(ctx context.Context, userID string) ([]st
 
 // GetChatRoomUsers 实现 websocket.RoomRepository 接口
 func (a *ChatRepoAdapter) GetChatRoomUsers(ctx context.Context, roomID string) ([]string, error) {
-	// 注意：当前 proto 中没有定义 GetChatRoomUsers 方法
-	// 这里暂时返回空数组，后续可以在 proto 中添加该方法
-	return []string{}, nil
+	resp, err := a.chatRpc.GetChatRoomUsers(ctx, &chatpb.GetChatRoomUsersRequest{
+		RoomId: roomID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.UserIds, nil
 }
 
 // StoreChatMessage 实现 websocket.MessageRepository 接口
 func (a *ChatRepoAdapter) StoreChatMessage(ctx context.Context, message *types.MessageChat) error {
-	// 注意：当前 proto 中没有定义 StoreChatMessage 方法
-	// 这里暂时返回 nil，后续可以在 proto 中添加该方法
-	return nil
+	_, err := a.chatRpc.StoreChatMessage(ctx, &chatpb.StoreChatMessageRequest{
+		MessageId: message.ID,
+		RoomId:    message.RoomID,
+		SenderId:  message.SenderID,
+		Content:   message.Content,
+		CreatedAt: message.CreatedAt,
+	})
+	return err
 }

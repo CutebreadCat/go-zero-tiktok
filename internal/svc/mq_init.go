@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"go_zero-tiktok/internal/config"
-	"go_zero-tiktok/internal/domain/websocket"
+	"go_zero-tiktok/app/chat/domain/websocket"
 	mykafka "go_zero-tiktok/internal/infra/mq/kafka"
 	mqcontract "go_zero-tiktok/internal/shared/mq"
 )

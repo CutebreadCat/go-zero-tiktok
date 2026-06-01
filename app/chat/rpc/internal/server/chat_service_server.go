@@ -7,7 +7,7 @@ package server
 import (
 	"context"
 
-	"go_zero-tiktok/app/chat/rpc/chat_pb/chat_pb"
+	"go_zero-tiktok/app/chat/rpc/chat_pb"
 	"go_zero-tiktok/app/chat/rpc/internal/logic"
 	"go_zero-tiktok/app/chat/rpc/internal/svc"
 )
@@ -41,4 +41,14 @@ func (s *ChatServiceServer) GetChatRooms(ctx context.Context, in *chat_pb.GetCha
 func (s *ChatServiceServer) GetMessages(ctx context.Context, in *chat_pb.GetMessagesRequest) (*chat_pb.GetMessagesResponse, error) {
 	l := logic.NewGetMessagesLogic(ctx, s.svcCtx)
 	return l.GetMessages(in)
+}
+
+func (s *ChatServiceServer) GetChatRoomUsers(ctx context.Context, in *chat_pb.GetChatRoomUsersRequest) (*chat_pb.GetChatRoomUsersResponse, error) {
+	l := logic.NewGetChatRoomUsersLogic(ctx, s.svcCtx)
+	return l.GetChatRoomUsers(in)
+}
+
+func (s *ChatServiceServer) StoreChatMessage(ctx context.Context, in *chat_pb.StoreChatMessageRequest) (*chat_pb.StoreChatMessageResponse, error) {
+	l := logic.NewStoreChatMessageLogic(ctx, s.svcCtx)
+	return l.StoreChatMessage(in)
 }

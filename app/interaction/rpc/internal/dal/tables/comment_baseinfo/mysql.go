@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"go_zero-tiktok/internal/dal/query"
+	"go_zero-tiktok/app/interaction/rpc/internal/dal/query"
 	"go_zero-tiktok/internal/shared/xerr"
 	myutils "go_zero-tiktok/internal/utils"
 
