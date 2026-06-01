@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package video;
+
+option go_package = "./video_pb";
+
+message PublishVideoRequest {
+    string user_id = 1;
+    string title = 2;
+    string description = 3;
+    bytes video_data = 4;
+    string filename = 5;
+}
+
+message PublishVideoResponse {
+    string video_id = 1;
+}
+
+message GetFeedVideoRequest {
+    string last_time = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message VideoInfo {
+    string video_id = 1;
+    string author_id = 2;
+    string video_url = 3;
+    string cover_url = 4;
+    string title = 5;
+    string description = 6;
+    string created_at = 7;
+}
+
+message GetFeedVideoResponse {
+    repeated VideoInfo videos = 1;
+    int64 total = 2;
+}
+
+message GetVideoListRequest {
+    string author_id = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message GetVideoListResponse {
+    repeated VideoInfo videos = 1;
+    int64 total = 2;
+}
+
+message SearchVideoRequest {
+    string keyword = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message SearchVideoResponse {
+    repeated VideoInfo videos = 1;
+    int64 total = 2;
+}
+
+message GetPopularVideoRequest {
+    int32 page_num = 1;
+    int32 page_size = 2;
+}
+
+message VideoPopularInfo {
+    string video_id = 1;
+    int64 visit_count = 2;
+    int64 like_count = 3;
+}
+
+message GetPopularVideoResponse {
+    repeated VideoInfo videos = 1;
+    repeated VideoPopularInfo populars = 2;
+}
+
+message LikeVideoRequest {
+    string user_id = 1;
+    string video_id = 2;
+    int32 action_type = 3;  // 1-点赞 0-取消点赞
+}
+
+message LikeVideoResponse {
+}
+
+message GetLikeListRequest {
+    string user_id = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message GetLikeListResponse {
+    repeated VideoInfo videos = 1;
+    int64 total = 2;
+}
+
+service VideoService {
+    rpc PublishVideo(PublishVideoRequest) returns (PublishVideoResponse);
+    rpc GetFeedVideo(GetFeedVideoRequest) returns (GetFeedVideoResponse);
+    rpc GetVideoList(GetVideoListRequest) returns (GetVideoListResponse);
+    rpc SearchVideo(SearchVideoRequest) returns (SearchVideoResponse);
+    rpc GetPopularVideo(GetPopularVideoRequest) returns (GetPopularVideoResponse);
+    rpc LikeVideo(LikeVideoRequest) returns (LikeVideoResponse);
+    rpc GetLikeList(GetLikeListRequest) returns (GetLikeListResponse);
+}

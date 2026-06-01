@@ -3,6 +3,7 @@ package video
 import (
 	"context"
 
+	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
@@ -24,18 +25,37 @@ func NewVideoPopularLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Vide
 }
 
 func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *types.VideoPopularResponse, err error) {
-	videos, videoPopulars, err := l.svcCtx.VideoService.GetPopularVideos(l.ctx, req.PageNum, req.PageSize)
+	rpcResp, err := l.svcCtx.VideoRpc.GetPopularVideo(l.ctx, &videopb.GetPopularVideoRequest{
+		PageNum:  req.PageNum,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	items := make([]types.Item, 0, len(videos))
-	for i := 0; i < len(videos); i++ {
-		items = append(items, types.Item{
-			Videos:        videos[i],
-			VideosPopular: videoPopulars[i],
-		})
+	items := make([]types.Item, 0, len(rpcResp.Videos))
+	for i, v := range rpcResp.Videos {
+		item := types.Item{
+			Videos: types.VideoBaseinfo{
+				VideoID:     v.VideoId,
+				AuthorID:    v.AuthorId,
+				VideoURL:    v.VideoUrl,
+				CoverURL:    v.CoverUrl,
+				Title:       v.Title,
+				Description: v.Description,
+				CreatedAt:   v.CreatedAt,
+			},
+		}
+		if i < len(rpcResp.Populars) {
+			item.VideosPopular = types.VideoPopular{
+				VideoID:    rpcResp.Populars[i].VideoId,
+				VisitCount: rpcResp.Populars[i].VisitCount,
+				LikeCount:  rpcResp.Populars[i].LikeCount,
+			}
+		}
+		items = append(items, item)
 	}
+
 	resp = &types.VideoPopularResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,

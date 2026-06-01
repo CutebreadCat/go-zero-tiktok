@@ -3,8 +3,9 @@ package user
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	"go_zero-tiktok/app/user/rpc/userservice"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -26,21 +27,19 @@ func NewBindMfaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *BindMfaLo
 }
 
 func (l *BindMfaLogic) BindMfa(req *types.BindMfaqrcodeRequest) (resp *types.BindMfaqrcodeResponse, err error) {
-	userId, err := myutils.GetUserIDFromContext(l.ctx)
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.NewUnauthorized("获取用户ID失败")
+		return nil, xerr.NewUnauthorized("获取用户 ID 失败")
 	}
 
-	if err := l.svcCtx.UserMfaService.BindMFA(l.ctx, userId, req.Mfa_secret, req.Mfa_code); err != nil {
+	if _, err := l.svcCtx.UserRpc.BindMfa(l.ctx, &userservice.BindMfaRequest{
+		UserId:    userID,
+		MfaSecret: req.Mfa_secret,
+		MfaCode:   req.Mfa_code,
+	}); err != nil {
 		return nil, err
 	}
-
-	resp = &types.BindMfaqrcodeResponse{
-		Base: types.BaseResponse{
-			StatusCode: 0,
-			StatusMsg:  "绑定MFA成功",
-		},
-	}
-
-	return resp, nil
+	return &types.BindMfaqrcodeResponse{
+		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "绑定 MFA 成功"},
+	}, nil
 }

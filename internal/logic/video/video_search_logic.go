@@ -3,6 +3,7 @@ package video
 import (
 	"context"
 
+	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -29,9 +30,26 @@ func (l *VideoSearchLogic) VideoSearch(ctx context.Context, req *types.VideoSear
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}
 
-	videos, _, err := l.svcCtx.VideoService.SearchVideos(ctx, req.Keyword, req.PageNum, req.PageSize)
+	rpcResp, err := l.svcCtx.VideoRpc.SearchVideo(l.ctx, &videopb.SearchVideoRequest{
+		Keyword:  req.Keyword,
+		PageNum:  req.PageNum,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	videos := make([]types.VideoBaseinfo, 0, len(rpcResp.Videos))
+	for _, v := range rpcResp.Videos {
+		videos = append(videos, types.VideoBaseinfo{
+			VideoID:     v.VideoId,
+			AuthorID:    v.AuthorId,
+			VideoURL:    v.VideoUrl,
+			CoverURL:    v.CoverUrl,
+			Title:       v.Title,
+			Description: v.Description,
+			CreatedAt:   v.CreatedAt,
+		})
 	}
 
 	resp = &types.VideoSearchResponse{

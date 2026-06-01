@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package communication;
+
+option go_package = "./communication_pb";
+
+message SubscribeRequest {
+    string follower_id = 1;
+    string user_id = 2;
+    int32 action_type = 3;  // 1-关注 0-取消关注
+}
+
+message SubscribeResponse {
+}
+
+message GetFansListRequest {
+    string user_id = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message UserInfo {
+    string user_id = 1;
+    string username = 2;
+    string photo_url = 3;
+}
+
+message GetFansListResponse {
+    repeated UserInfo users = 1;
+    int64 total = 2;
+}
+
+message GetSubscriberListRequest {
+    string user_id = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message GetSubscriberListResponse {
+    repeated UserInfo users = 1;
+    int64 total = 2;
+}
+
+message GetFriendListRequest {
+    string user_id = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message GetFriendListResponse {
+    repeated UserInfo users = 1;
+    int64 total = 2;
+}
+
+service CommunicationService {
+    rpc Subscribe(SubscribeRequest) returns (SubscribeResponse);
+    rpc GetFansList(GetFansListRequest) returns (GetFansListResponse);
+    rpc GetSubscriberList(GetSubscriberListRequest) returns (GetSubscriberListResponse);
+    rpc GetFriendList(GetFriendListRequest) returns (GetFriendListResponse);
+}

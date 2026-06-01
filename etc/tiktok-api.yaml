@@ -14,6 +14,36 @@ Redis:
   Host: redis:6379  # 注意：go-zero 的 Redis 配置项通常叫 Host，而不是 addr
   Type: node        # 必须指定类型，单机版是 node，集群是 cluster
 
+UserRpc:
+  Etcd:
+    Hosts:
+    - etcd:2379
+    Key: user.rpc
+
+VideoRpc:
+  Etcd:
+    Hosts:
+    - etcd:2379
+    Key: video.rpc
+
+InteractionRpc:
+  Etcd:
+    Hosts:
+    - etcd:2379
+    Key: interaction.rpc
+
+CommunicationRpc:
+  Etcd:
+    Hosts:
+    - etcd:2379
+    Key: communication.rpc
+
+ChatRpc:
+  Etcd:
+    Hosts:
+    - etcd:2379
+    Key: chat.rpc
+
 # 3. JWT 配置
 # 注意：go-zero 的 rest 框架内置识别 "Auth" 这个键名
 # 如果你写 "jwt"，框架可能找不到，导致鉴权失效

@@ -6,7 +6,7 @@ package video
 import (
 	"context"
 
-	"go_zero-tiktok/internal/shared/xerr"
+	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 
@@ -28,17 +28,29 @@ func NewGetFeedVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetF
 }
 
 func (l *GetFeedVideoLogic) GetFeedVideo(req *types.FeedVideoRequest) (resp *types.FeedVideoResponse, err error) {
-	videos, total, err := l.svcCtx.VideoService.GetVideosByLastTime(l.ctx, req.LastTime, req.PageNum, req.PageSize)
+	rpcResp, err := l.svcCtx.VideoRpc.GetFeedVideo(l.ctx, &videopb.GetFeedVideoRequest{
+		LastTime: req.LastTime,
+		PageNum:  req.PageNum,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
-		return nil, xerr.Wrap(err, "GetFeedVideo.")
+		return nil, err
 	}
 
-	items := make([]types.Item, 0, len(videos))
-	for _, video := range videos {
+	items := make([]types.Item, 0, len(rpcResp.Videos))
+	for _, v := range rpcResp.Videos {
 		items = append(items, types.Item{
-			Videos: video,
+			Videos: types.VideoBaseinfo{
+				VideoID:     v.VideoId,
+				AuthorID:    v.AuthorId,
+				VideoURL:    v.VideoUrl,
+				CoverURL:    v.CoverUrl,
+				Title:       v.Title,
+				Description: v.Description,
+				CreatedAt:   v.CreatedAt,
+			},
 			VideosPopular: types.VideoPopular{
-				VideoID: video.VideoID,
+				VideoID: v.VideoId,
 			},
 		})
 	}
@@ -46,6 +58,6 @@ func (l *GetFeedVideoLogic) GetFeedVideo(req *types.FeedVideoRequest) (resp *typ
 	return &types.FeedVideoResponse{
 		Base:   types.BaseResponse{StatusCode: 0},
 		Videos: items,
-		Total:  total,
+		Total:  rpcResp.Total,
 	}, nil
 }

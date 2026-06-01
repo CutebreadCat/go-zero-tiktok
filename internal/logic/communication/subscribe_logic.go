@@ -3,8 +3,9 @@ package communication
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -35,15 +36,11 @@ func (l *SubscribeLogic) Subscribe(req *types.SubscribeRequest) (resp *types.Sub
 		return nil, xerr.NewInvalidParam("被关注用户ID不能为空")
 	}
 
-	switch req.ActionType {
-	case 1:
-		err = l.svcCtx.UserFollowService.FollowUser(l.ctx, followerID, req.ToUserID)
-	case 0:
-		err = l.svcCtx.UserFollowService.UnfollowUser(l.ctx, followerID, req.ToUserID)
-	default:
-		return nil, xerr.NewInvalidParam("操作类型无效，仅支持1(关注)或0(取关)")
-	}
-
+	_, err = l.svcCtx.CommunicationRpc.Subscribe(l.ctx, &communicationpb.SubscribeRequest{
+		FollowerId: followerID,
+		UserId:     req.ToUserID,
+		ActionType: req.ActionType,
+	})
 	if err != nil {
 		return nil, err
 	}

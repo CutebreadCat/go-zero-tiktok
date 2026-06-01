@@ -18,6 +18,10 @@ go_zero-tiktok/
 │   │   ├── repository/ -- 聚合仓储与封装
 │   │   └── tables/ -- 表结构与基础 CRUD
 │   ├── domain/ -- 领域模型
+│   │   ├── chat/ -- 聊天领域
+│   │   ├── comment/ -- 评论领域
+│   │   ├── user/ -- 用户与关注领域
+│   │   ├── video/ -- 视频领域
 │   │   └── websocket/ -- WebSocket 领域
 │   ├── handler/  参数校验层
 │   │   ├── chat/

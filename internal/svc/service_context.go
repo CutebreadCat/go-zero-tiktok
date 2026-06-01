@@ -6,14 +6,13 @@ package svc
 import (
 	"context"
 
+	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb"
+	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	"go_zero-tiktok/app/user/rpc/userservice"
+	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/internal/config"
-	"go_zero-tiktok/internal/dal"
-	chatdomain "go_zero-tiktok/internal/domain/chat"
-	commentdomain "go_zero-tiktok/internal/domain/comment"
-	userdomain "go_zero-tiktok/internal/domain/user"
-	userfollowdomain "go_zero-tiktok/internal/domain/userfollow"
-	videodomain "go_zero-tiktok/internal/domain/video"
-	"go_zero-tiktok/internal/domain/websocket"
+	"go_zero-tiktok/app/chat/domain/websocket"
 	"go_zero-tiktok/internal/infra/ai"
 	wscache "go_zero-tiktok/internal/infra/cache/ws"
 	"go_zero-tiktok/internal/infra/storage/aliyun"
@@ -21,62 +20,47 @@ import (
 	"go_zero-tiktok/internal/middleware/government/breaker"
 	"go_zero-tiktok/internal/middleware/government/limiter"
 
-	"github.com/zeromicro/go-zero/rest"
-
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
-	"gorm.io/gorm"
+	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/zrpc"
 )
 
 type ServiceContext struct {
-	Config            config.Config
-	DB                *gorm.DB
-	Cache             *wscache.RedisCache
-	Rdb               *redis.Redis
-	Dal               *Repositories
-	VideoService      *videodomain.VideoService
-	CommentService    *commentdomain.CommentService
-	UserFollowService *userfollowdomain.UserFollowService
-	ChatService       *chatdomain.ChatService
-	UserAuthService   *userdomain.AuthService
-	UserMfaService    *userdomain.MfaService
-	UserProfileService *userdomain.ProfileService
-	UserJwchService   *userdomain.JwchService
-	Hub               *websocket.Hub
-	AIChat            *websocket.AIChat
-	MQ                *MQComponents
-	RateLimit         rest.Middleware
+	Config config.Config
+	Cache  *wscache.RedisCache
+
+	// RPC Clients
+	UserRpc          userservice.UserService
+	VideoRpc         videopb.VideoServiceClient
+	InteractionRpc   interactionpb.InteractionServiceClient
+	CommunicationRpc communicationpb.CommunicationServiceClient
+	ChatRpc          chatpb.ChatServiceClient
+
+	// WebSocket 相关
+	Hub       *websocket.Hub
+	AIChat    *websocket.AIChat
+	MQ        *MQComponents
+	RateLimit rest.Middleware
 }
 
 func NewServiceContext(config config.Config) *ServiceContext {
-	logx.Must(dal.InitMysql(config.DataSource))
-	dal.InitRedis(config.Redis)
+	// 初始化 Redis
+	rds := redis.MustNewRedis(config.Redis)
+	c := wscache.NewRedisCache(rds)
 
 	// 初始化阿里云配置
 	aliyun.GetAliConfig()
 	aliyun.AliInit()
 
-	c := wscache.NewRedisCache(dal.Rdb)
-	dalRepo := NewRepositories(dal.Db, dal.Rdb)
+	// 创建 RPC clients
+	videoRpc := videopb.NewVideoServiceClient(zrpc.MustNewClient(config.VideoRpc).Conn())
+	interactionRpc := interactionpb.NewInteractionServiceClient(zrpc.MustNewClient(config.InteractionRpc).Conn())
+	communicationRpc := communicationpb.NewCommunicationServiceClient(zrpc.MustNewClient(config.CommunicationRpc).Conn())
+	chatRpc := chatpb.NewChatServiceClient(zrpc.MustNewClient(config.ChatRpc).Conn())
 
-	// 创建适配器
-	tokenAdapter := &TokenAdapter{}
-	mfaAdapter := &MfaAdapter{}
-	storageAdapter := &StorageAdapter{}
-	jwchFactory := &JwchClientFactoryAdapter{}
-
-	// 组装 domain service
-	videoSvc := videodomain.NewVideoService(dalRepo.Video, dalRepo.Popular, dalRepo.VideoLiker)
-	commentSvc := commentdomain.NewCommentService(dalRepo.Comment, dalRepo.Popular)
-	userFollowSvc := userfollowdomain.NewUserFollowService(dalRepo.UserFollow, dalRepo.User)
-	chatSvc := chatdomain.NewChatService(dalRepo.Chat)
-	userAuthSvc := userdomain.NewAuthService(dalRepo.User, tokenAdapter, mfaAdapter, config.Auth.AccessSecret, dal.Rdb)
-	userMfaSvc := userdomain.NewMfaService(dalRepo.User, mfaAdapter, mfaAdapter)
-	userProfileSvc := userdomain.NewProfileService(dalRepo.User, storageAdapter)
-	userJwchSvc := userdomain.NewJwchService(dalRepo.User, jwchFactory)
-
-	aiLimiter := limiter.New(dal.Rdb, ai.DefaultLimitSeconds, ai.DefaultLimitMaxRequests, ai.DefaultLimitKeyPrefix)
-	wsLimiter := limiter.New(dal.Rdb, websocket.DefaultLimitSeconds, websocket.DefaultLimitMaxRequests, websocket.DefaultLimitKeyPrefix)
+	aiLimiter := limiter.New(rds, ai.DefaultLimitSeconds, ai.DefaultLimitMaxRequests, ai.DefaultLimitKeyPrefix)
+	wsLimiter := limiter.New(rds, websocket.DefaultLimitSeconds, websocket.DefaultLimitMaxRequests, websocket.DefaultLimitKeyPrefix)
 	aiBreaker := breaker.New()
 
 	aiAgent, err := ai.NewAgent(context.Background(), aiLimiter, aiBreaker)
@@ -84,31 +68,31 @@ func NewServiceContext(config config.Config) *ServiceContext {
 		logx.Must(err)
 	}
 	aiChat := websocket.NewAIChat(aiAgent, c)
-	// 创建 Hub（先不注入 writer）
-	hub := websocket.NewHub(c, c, c, dalRepo.Chat, dalRepo.Chat, aiChat, wsLimiter)
 
-	// 创建 AI Agent 和 AIChat
+	// 创建 Chat 仓储适配器（通过 gRPC 调用 chat 服务）
+	chatRepoAdapter := NewChatRepoAdapter(chatRpc)
+
+	// 创建 Hub
+	hub := websocket.NewHub(c, c, c, chatRepoAdapter, chatRepoAdapter, aiChat, wsLimiter)
 
 	// 初始化 MQ 并注入 writer
 	mq := InitMQ(config.Kafka, hub, aiChat)
 
 	return &ServiceContext{
-		Config:             config,
-		DB:                 dal.Db,
-		Rdb:                dal.Rdb,
-		Dal:                dalRepo,
-		VideoService:       videoSvc,
-		CommentService:     commentSvc,
-		UserFollowService:  userFollowSvc,
-		ChatService:        chatSvc,
-		UserAuthService:    userAuthSvc,
-		UserMfaService:     userMfaSvc,
-		UserProfileService: userProfileSvc,
-		UserJwchService:    userJwchSvc,
-		Cache:              c,
-		Hub:                hub,
-		AIChat:             aiChat,
-		MQ:                 mq,
-		RateLimit:          middleware.NewRateLimitMiddleware(limiter.New(dal.Rdb, middleware.DefaultRateLimitSeconds, middleware.DefaultRateLimitMaxRequests, middleware.DefaultRateLimitKeyPrefix)).Handle,
+		Config: config,
+
+		// RPC Clients
+		UserRpc:          userservice.NewUserService(zrpc.MustNewClient(config.UserRpc)),
+		VideoRpc:         videoRpc,
+		InteractionRpc:   interactionRpc,
+		CommunicationRpc: communicationRpc,
+		ChatRpc:          chatRpc,
+
+		// WebSocket 相关
+		Cache:     c,
+		Hub:       hub,
+		AIChat:    aiChat,
+		MQ:        mq,
+		RateLimit: middleware.NewRateLimitMiddleware(limiter.New(rds, middleware.DefaultRateLimitSeconds, middleware.DefaultRateLimitMaxRequests, middleware.DefaultRateLimitKeyPrefix)).Handle,
 	}
 }

@@ -3,8 +3,9 @@ package chat
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -34,7 +35,11 @@ func (l *JoinChatRoomLogic) JoinChatRoom(req *types.JoinChatRoomRequest) (resp *
 		return nil, xerr.NewInvalidParam("聊天室ID不能为空")
 	}
 
-	if err := l.svcCtx.ChatService.JoinChatRoom(l.ctx, userID, req.RoomID); err != nil {
+	_, err = l.svcCtx.ChatRpc.JoinChatRoom(l.ctx, &chatpb.JoinChatRoomRequest{
+		UserId: userID,
+		RoomId: req.RoomID,
+	})
+	if err != nil {
 		return nil, err
 	}
 

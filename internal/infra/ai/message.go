@@ -2,7 +2,7 @@ package ai
 
 import (
 	"context"
-	"go_zero-tiktok/internal/domain/websocket"
+	"go_zero-tiktok/app/chat/domain/websocket"
 
 	"github.com/sashabaranov/go-openai"
 )

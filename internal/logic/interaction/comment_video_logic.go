@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"go_zero-tiktok/internal/svc"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -39,14 +40,18 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 		return nil, xerr.NewInvalidParam("评论内容不能为空")
 	}
 
-	commentID := myutils.GenerateCommentID()
-	if err := l.svcCtx.CommentService.CreateComment(l.ctx, commentID, userID, req.VideoID, commentText, ""); err != nil {
+	rpcResp, err := l.svcCtx.InteractionRpc.CommentVideo(l.ctx, &interactionpb.CommentVideoRequest{
+		UserId:      userID,
+		VideoId:     req.VideoID,
+		CommentText: commentText,
+	})
+	if err != nil {
 		return nil, xerr.HandleDaoError(err, "CommentVideo.CreateComment")
 	}
 
 	resp = &types.CommentVideoResponse{
 		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "评论发布成功"},
-		CommentID: commentID,
+		CommentID: rpcResp.CommentId,
 	}
 
 	return resp, nil

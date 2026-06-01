@@ -1,12 +1,11 @@
 package video
 
 import (
-	"bytes"
 	"context"
 
-	"go_zero-tiktok/internal/infra/storage/aliyun"
-	"go_zero-tiktok/internal/svc"
+	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -44,7 +43,6 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 	if err != nil {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
-	VideoID := myutils.GenerateVideoID()
 	filename, ok := l.ctx.Value(publishVideoFilenameKey).(string)
 	if !ok || filename == "" {
 		return nil, xerr.NewInvalidParam("视频文件名缺失")
@@ -53,21 +51,24 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 	if !ok || len(videoBytes) == 0 {
 		return nil, xerr.NewInvalidParam("视频文件内容为空")
 	}
-	objectKey := authorID + "/" + VideoID + "/" + filename
-	var Videourl string
-	if Videourl, err = aliyun.UploadBytesToOSS(bytes.NewReader(videoBytes), objectKey); err != nil {
-		return nil, xerr.HandleDaoError(err, "PublishVideo.UploadToOSS")
-	}
 
-	if err := l.svcCtx.VideoService.PublishVideo(l.ctx, VideoID, authorID, Videourl, "", req.Title, req.Description); err != nil {
+	rpcResp, err := l.svcCtx.VideoRpc.PublishVideo(l.ctx, &videopb.PublishVideoRequest{
+		UserId:      authorID,
+		Title:       req.Title,
+		Description: req.Description,
+		VideoData:   videoBytes,
+		Filename:    filename,
+	})
+	if err != nil {
 		return nil, xerr.HandleDaoError(err, "PublishVideo.CreateVideo")
 	}
+
 	resp = &types.PublishVideoResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		VideoID: VideoID,
+		VideoID: rpcResp.VideoId,
 	}
 
 	return

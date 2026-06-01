@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"go_zero-tiktok/internal/svc"
+	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -41,7 +42,6 @@ func (l *CreateChatRoomLogic) CreateChatRoom(req *types.CreateChatRoomRequest) (
 		return nil, xerr.NewInvalidParam("私聊至少需要一个对方用户")
 	}
 
-	roomID := myutils.GenerateRoomID()
 	userSet := map[string]struct{}{userID: {}}
 	for _, uid := range req.UserIDs {
 		uid = strings.TrimSpace(uid)
@@ -55,7 +55,13 @@ func (l *CreateChatRoomLogic) CreateChatRoom(req *types.CreateChatRoomRequest) (
 		userIDs = append(userIDs, uid)
 	}
 
-	if err := l.svcCtx.ChatService.CreateChatRoom(l.ctx, roomID, req.Types, req.RoomName, userIDs); err != nil {
+	rpcResp, err := l.svcCtx.ChatRpc.CreateChatRoom(l.ctx, &chatpb.CreateChatRoomRequest{
+		UserId:   userID,
+		Type:     req.Types,
+		RoomName: req.RoomName,
+		UserIds:  userIDs,
+	})
+	if err != nil {
 		return nil, err
 	}
 
@@ -64,7 +70,7 @@ func (l *CreateChatRoomLogic) CreateChatRoom(req *types.CreateChatRoomRequest) (
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		RoomID: roomID,
+		RoomID: rpcResp.RoomId,
 	}
 	return resp, nil
 }

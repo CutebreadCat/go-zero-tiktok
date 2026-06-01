@@ -3,6 +3,7 @@ package communication
 import (
 	"context"
 
+	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -31,15 +32,28 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListRequest) (res
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	friendList, total, err := l.svcCtx.UserFollowService.GetFriendList(l.ctx, userID, req.PageNumber, req.PageSize)
+	rpcResp, err := l.svcCtx.CommunicationRpc.GetFriendList(l.ctx, &communicationpb.GetFriendListRequest{
+		UserId:   userID,
+		PageNum:  req.PageNumber,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	friendList := make([]types.UserBaseinfo, 0, len(rpcResp.Users))
+	for _, u := range rpcResp.Users {
+		friendList = append(friendList, types.UserBaseinfo{
+			UserID:   u.UserId,
+			Username: u.Username,
+			PhotoURL: u.PhotoUrl,
+		})
 	}
 
 	resp = &types.GetFriendListResponse{
 		BaseResponse: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
 		FriendList:   friendList,
-		FriendCount:  int32(total),
+		FriendCount:  int32(rpcResp.Total),
 	}
 
 	return resp, nil

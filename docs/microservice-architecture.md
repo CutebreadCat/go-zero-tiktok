@@ -27,7 +27,7 @@
 | 用户模块 | 注册、登录、刷新 token、用户信息、头像、MFA、教务系统登录 | `api/user`、`internal/domain/user`、`internal/logic/user` |
 | 视频模块 | 投稿、视频列表、搜索、推荐 feed、热门视频、视频基础信息 | `api/video`、`internal/domain/video`、`internal/logic/video` |
 | 互动模块 | 视频点赞、评论发布、评论列表、评论点赞、删除评论 | `api/interaction`、`internal/domain/comment`、部分 `internal/domain/video` |
-| 关系模块 | 关注、粉丝、关注列表、好友列表 | `api/communication`、`internal/domain/userfollow` |
+| 关系模块 | 关注、粉丝、关注列表、好友列表 | `api/communication`、`internal/domain/user` |
 | 聊天模块 | 聊天房间、消息列表、加入房间、WebSocket 聊天 | `api/chat`、`internal/domain/chat`、`internal/domain/websocket` |
 | 基础设施 | MySQL、Redis、Kafka、阿里云 OSS、AI Agent、限流、熔断 | `internal/infra`、`internal/middleware`、`internal/dal` |
 
@@ -213,7 +213,7 @@ app/interaction/mq
 
 ### 3.4 关系服务 relation
 
-当前目录名是 `communication`，领域名是 `userfollow`。微服务中建议命名为 `relation`，更贴近关注、粉丝、好友关系。
+当前目录名是 `communication`，领域能力已收敛到 `user`。微服务中建议命名为 `relation`，更贴近关注、粉丝、好友关系。
 
 职责：
 
@@ -601,4 +601,3 @@ payload
 - 统计、通知、消息这类副作用优先事件化。
 
 如果按这个路线走，你的项目既能保留当前单体开发的效率，又能为后续 go-zero 微服务拆分留下清晰的落点。
-

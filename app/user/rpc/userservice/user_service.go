@@ -7,18 +7,43 @@ package userservice
 import (
 	"context"
 
-	"go_zero-tiktok/app/user/rpc/user"
+	"go_zero-tiktok/app/user/rpc/user_pb"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
 type (
-	LoginRequest  = user.LoginRequest
-	LoginResponse = user.LoginResponse
+	BindMfaRequest            = user_pb.BindMfaRequest
+	BindMfaResponse           = user_pb.BindMfaResponse
+	GetMfaQRCodeRequest       = user_pb.GetMfaQRCodeRequest
+	GetMfaQRCodeResponse      = user_pb.GetMfaQRCodeResponse
+	GetUserInfoRequest        = user_pb.GetUserInfoRequest
+	GetUserInfoResponse       = user_pb.GetUserInfoResponse
+	JwchGetUserCookieRequest  = user_pb.JwchGetUserCookieRequest
+	JwchGetUserCookieResponse = user_pb.JwchGetUserCookieResponse
+	JwchLoginRequest          = user_pb.JwchLoginRequest
+	JwchLoginResponse         = user_pb.JwchLoginResponse
+	LoginRequest              = user_pb.LoginRequest
+	LoginResponse             = user_pb.LoginResponse
+	RefreshTokenRequest       = user_pb.RefreshTokenRequest
+	RefreshTokenResponse      = user_pb.RefreshTokenResponse
+	RegisterRequest           = user_pb.RegisterRequest
+	RegisterResponse          = user_pb.RegisterResponse
+	UpdateUserPhotoRequest    = user_pb.UpdateUserPhotoRequest
+	UpdateUserPhotoResponse   = user_pb.UpdateUserPhotoResponse
+	UserInfo                  = user_pb.UserInfo
 
 	UserService interface {
+		Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 		Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+		RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
+		GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
+		UpdateUserPhoto(ctx context.Context, in *UpdateUserPhotoRequest, opts ...grpc.CallOption) (*UpdateUserPhotoResponse, error)
+		GetMfaQRCode(ctx context.Context, in *GetMfaQRCodeRequest, opts ...grpc.CallOption) (*GetMfaQRCodeResponse, error)
+		BindMfa(ctx context.Context, in *BindMfaRequest, opts ...grpc.CallOption) (*BindMfaResponse, error)
+		JwchLogin(ctx context.Context, in *JwchLoginRequest, opts ...grpc.CallOption) (*JwchLoginResponse, error)
+		JwchGetUserCookie(ctx context.Context, in *JwchGetUserCookieRequest, opts ...grpc.CallOption) (*JwchGetUserCookieResponse, error)
 	}
 
 	defaultUserService struct {
@@ -32,7 +57,47 @@ func NewUserService(cli zrpc.Client) UserService {
 	}
 }
 
+func (m *defaultUserService) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
+	return client.Register(ctx, in, opts...)
+}
+
 func (m *defaultUserService) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
-	client := user.NewUserServiceClient(m.cli.Conn())
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
 	return client.Login(ctx, in, opts...)
+}
+
+func (m *defaultUserService) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error) {
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
+	return client.RefreshToken(ctx, in, opts...)
+}
+
+func (m *defaultUserService) GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error) {
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
+	return client.GetUserInfo(ctx, in, opts...)
+}
+
+func (m *defaultUserService) UpdateUserPhoto(ctx context.Context, in *UpdateUserPhotoRequest, opts ...grpc.CallOption) (*UpdateUserPhotoResponse, error) {
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
+	return client.UpdateUserPhoto(ctx, in, opts...)
+}
+
+func (m *defaultUserService) GetMfaQRCode(ctx context.Context, in *GetMfaQRCodeRequest, opts ...grpc.CallOption) (*GetMfaQRCodeResponse, error) {
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
+	return client.GetMfaQRCode(ctx, in, opts...)
+}
+
+func (m *defaultUserService) BindMfa(ctx context.Context, in *BindMfaRequest, opts ...grpc.CallOption) (*BindMfaResponse, error) {
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
+	return client.BindMfa(ctx, in, opts...)
+}
+
+func (m *defaultUserService) JwchLogin(ctx context.Context, in *JwchLoginRequest, opts ...grpc.CallOption) (*JwchLoginResponse, error) {
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
+	return client.JwchLogin(ctx, in, opts...)
+}
+
+func (m *defaultUserService) JwchGetUserCookie(ctx context.Context, in *JwchGetUserCookieRequest, opts ...grpc.CallOption) (*JwchGetUserCookieResponse, error) {
+	client := user_pb.NewUserServiceClient(m.cli.Conn())
+	return client.JwchGetUserCookie(ctx, in, opts...)
 }

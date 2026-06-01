@@ -3,8 +3,9 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -31,7 +32,11 @@ func (l *CommentPareantCommentLogic) CommentPareantComment(req *types.CommentPar
 		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
 	}
 
-	CommentId, err := l.svcCtx.CommentService.ReplyParentComment(l.ctx, UserId, req.CommentText, req.ParentCommentID)
+	rpcResp, err := l.svcCtx.InteractionRpc.ReplyComment(l.ctx, &interactionpb.ReplyCommentRequest{
+		UserId:          UserId,
+		CommentText:     req.CommentText,
+		ParentCommentId: req.ParentCommentID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +46,7 @@ func (l *CommentPareantCommentLogic) CommentPareantComment(req *types.CommentPar
 			StatusCode: 0,
 			StatusMsg:  "评论发布成功",
 		},
-		CommentID: CommentId,
+		CommentID: rpcResp.CommentId,
 	}
 	return resp, nil
 }

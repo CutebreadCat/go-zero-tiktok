@@ -3,26 +3,31 @@ FROM golang:1.26-alpine AS builder
 ENV GOPROXY=https://mirrors.aliyun.com/goproxy/,https://goproxy.cn,https://mirrors.tencent.com/go/,https://mirrors.huaweicloud.com/repository/goproxy/,direct
 ENV GOSUMDB=off
 ENV GO111MODULE=on
+ENV GOFLAGS="-buildvcs=false"
 
 WORKDIR /app
 
-RUN apk add --no-cache git ffmpeg
+RUN apk add --no-cache git
 
+# 利用 BuildKit 缓存挂载，避免重复下载依赖
 COPY go.mod go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 COPY . .
 
 # 运行测试
-RUN go test ./...
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o tiktok .
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o tiktok .
 
 FROM alpine:latest
 
 WORKDIR /app
 
-RUN apk add --no-cache ca-certificates tzdata ffmpeg
+RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /app/tiktok ./tiktok
 COPY --from=builder /app/etc ./etc

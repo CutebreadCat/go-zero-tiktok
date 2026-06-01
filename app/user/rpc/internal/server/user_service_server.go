@@ -9,12 +9,12 @@ import (
 
 	"go_zero-tiktok/app/user/rpc/internal/logic"
 	"go_zero-tiktok/app/user/rpc/internal/svc"
-	"go_zero-tiktok/app/user/rpc/user"
+	"go_zero-tiktok/app/user/rpc/user_pb"
 )
 
 type UserServiceServer struct {
 	svcCtx *svc.ServiceContext
-	user.UnimplementedUserServiceServer
+	user_pb.UnimplementedUserServiceServer
 }
 
 func NewUserServiceServer(svcCtx *svc.ServiceContext) *UserServiceServer {
@@ -23,7 +23,47 @@ func NewUserServiceServer(svcCtx *svc.ServiceContext) *UserServiceServer {
 	}
 }
 
-func (s *UserServiceServer) Login(ctx context.Context, in *user.LoginRequest) (*user.LoginResponse, error) {
+func (s *UserServiceServer) Register(ctx context.Context, in *user_pb.RegisterRequest) (*user_pb.RegisterResponse, error) {
+	l := logic.NewRegisterLogic(ctx, s.svcCtx)
+	return l.Register(in)
+}
+
+func (s *UserServiceServer) Login(ctx context.Context, in *user_pb.LoginRequest) (*user_pb.LoginResponse, error) {
 	l := logic.NewLoginLogic(ctx, s.svcCtx)
 	return l.Login(in)
+}
+
+func (s *UserServiceServer) RefreshToken(ctx context.Context, in *user_pb.RefreshTokenRequest) (*user_pb.RefreshTokenResponse, error) {
+	l := logic.NewRefreshTokenLogic(ctx, s.svcCtx)
+	return l.RefreshToken(in)
+}
+
+func (s *UserServiceServer) GetUserInfo(ctx context.Context, in *user_pb.GetUserInfoRequest) (*user_pb.GetUserInfoResponse, error) {
+	l := logic.NewGetUserInfoLogic(ctx, s.svcCtx)
+	return l.GetUserInfo(in)
+}
+
+func (s *UserServiceServer) UpdateUserPhoto(ctx context.Context, in *user_pb.UpdateUserPhotoRequest) (*user_pb.UpdateUserPhotoResponse, error) {
+	l := logic.NewUpdateUserPhotoLogic(ctx, s.svcCtx)
+	return l.UpdateUserPhoto(in)
+}
+
+func (s *UserServiceServer) GetMfaQRCode(ctx context.Context, in *user_pb.GetMfaQRCodeRequest) (*user_pb.GetMfaQRCodeResponse, error) {
+	l := logic.NewGetMfaQRCodeLogic(ctx, s.svcCtx)
+	return l.GetMfaQRCode(in)
+}
+
+func (s *UserServiceServer) BindMfa(ctx context.Context, in *user_pb.BindMfaRequest) (*user_pb.BindMfaResponse, error) {
+	l := logic.NewBindMfaLogic(ctx, s.svcCtx)
+	return l.BindMfa(in)
+}
+
+func (s *UserServiceServer) JwchLogin(ctx context.Context, in *user_pb.JwchLoginRequest) (*user_pb.JwchLoginResponse, error) {
+	l := logic.NewJwchLoginLogic(ctx, s.svcCtx)
+	return l.JwchLogin(in)
+}
+
+func (s *UserServiceServer) JwchGetUserCookie(ctx context.Context, in *user_pb.JwchGetUserCookieRequest) (*user_pb.JwchGetUserCookieResponse, error) {
+	l := logic.NewJwchGetUserCookieLogic(ctx, s.svcCtx)
+	return l.JwchGetUserCookie(in)
 }

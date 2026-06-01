@@ -3,6 +3,7 @@ package interaction
 import (
 	"context"
 
+	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -31,9 +32,26 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	videos, total, err := l.svcCtx.VideoService.GetLikedVideos(l.ctx, userID, req.PageNumber, req.PageSize)
+	rpcResp, err := l.svcCtx.VideoRpc.GetLikeList(l.ctx, &videopb.GetLikeListRequest{
+		UserId:   userID,
+		PageNum:  req.PageNumber,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	videos := make([]types.VideoBaseinfo, 0, len(rpcResp.Videos))
+	for _, v := range rpcResp.Videos {
+		videos = append(videos, types.VideoBaseinfo{
+			VideoID:     v.VideoId,
+			AuthorID:    v.AuthorId,
+			VideoURL:    v.VideoUrl,
+			CoverURL:    v.CoverUrl,
+			Title:       v.Title,
+			Description: v.Description,
+			CreatedAt:   v.CreatedAt,
+		})
 	}
 
 	resp = &types.GetLikeListResponse{
@@ -42,7 +60,7 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 			StatusMsg:  "ok",
 		},
 		VideoList: videos,
-		LikeCount: int32(total),
+		LikeCount: int32(rpcResp.Total),
 	}
 
 	return

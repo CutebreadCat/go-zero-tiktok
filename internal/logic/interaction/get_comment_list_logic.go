@@ -3,6 +3,7 @@ package interaction
 import (
 	"context"
 
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -32,15 +33,31 @@ func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}
 
-	comments, total, err := l.svcCtx.CommentService.GetCommentsByVideoID(l.ctx, req.VideoID, req.PageNumber, req.PageSize)
+	rpcResp, err := l.svcCtx.InteractionRpc.GetCommentList(l.ctx, &interactionpb.GetCommentListRequest{
+		VideoId:  req.VideoID,
+		PageNum:  req.PageNumber,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	comments := make([]types.CommentBaseinfo, 0, len(rpcResp.Comments))
+	for _, c := range rpcResp.Comments {
+		comments = append(comments, types.CommentBaseinfo{
+			CommentID:       c.CommentId,
+			UserID:          c.UserId,
+			VideoID:         c.VideoId,
+			Content:         c.Content,
+			ParentCommentID: c.ParentCommentId,
+			CreatedAt:       c.CreatedAt,
+		})
 	}
 
 	resp = &types.GetCommentListResponse{
 		Base:         types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
 		CommentList:  comments,
-		CommentCount: int32(total),
+		CommentCount: int32(rpcResp.Total),
 	}
 	if resp.CommentList == nil {
 		resp.CommentList = []types.CommentBaseinfo{}
