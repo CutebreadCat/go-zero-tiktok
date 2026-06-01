@@ -33,27 +33,15 @@ func (l *JwchLoginLogic) JwchLogin(req *types.JwchLoginRequest) (resp *types.Jwc
 		}, nil
 	}
 
-	if l.svcCtx.UserRpc != nil {
-		if _, err := l.svcCtx.UserRpc.JwchLogin(l.ctx, &userservice.JwchLoginRequest{
-			UserId:   userID,
-			Username: req.Username,
-			Password: req.Password,
-		}); err != nil {
-			return &types.JwchLoginResponse{
-				Base: types.BaseResponse{StatusCode: 400, StatusMsg: err.Error()},
-			}, nil
-		}
-		return &types.JwchLoginResponse{
-			Base: types.BaseResponse{StatusCode: 200, StatusMsg: "登录成功"},
-		}, nil
-	}
-
-	if err := l.svcCtx.UserJwchService.Login(l.ctx, userID, req.Username, req.Password); err != nil {
+	if _, err := l.svcCtx.UserRpc.JwchLogin(l.ctx, &userservice.JwchLoginRequest{
+		UserId:   userID,
+		Username: req.Username,
+		Password: req.Password,
+	}); err != nil {
 		return &types.JwchLoginResponse{
 			Base: types.BaseResponse{StatusCode: 400, StatusMsg: err.Error()},
 		}, nil
 	}
-
 	return &types.JwchLoginResponse{
 		Base: types.BaseResponse{StatusCode: 200, StatusMsg: "登录成功"},
 	}, nil

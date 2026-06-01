@@ -32,23 +32,13 @@ func (l *BindMfaLogic) BindMfa(req *types.BindMfaqrcodeRequest) (resp *types.Bin
 		return nil, xerr.NewUnauthorized("获取用户 ID 失败")
 	}
 
-	if l.svcCtx.UserRpc != nil {
-		if _, err := l.svcCtx.UserRpc.BindMfa(l.ctx, &userservice.BindMfaRequest{
-			UserId:    userID,
-			MfaSecret: req.Mfa_secret,
-			MfaCode:   req.Mfa_code,
-		}); err != nil {
-			return nil, err
-		}
-		return &types.BindMfaqrcodeResponse{
-			Base: types.BaseResponse{StatusCode: 0, StatusMsg: "绑定 MFA 成功"},
-		}, nil
-	}
-
-	if err := l.svcCtx.UserMfaService.BindMFA(l.ctx, userID, req.Mfa_secret, req.Mfa_code); err != nil {
+	if _, err := l.svcCtx.UserRpc.BindMfa(l.ctx, &userservice.BindMfaRequest{
+		UserId:    userID,
+		MfaSecret: req.Mfa_secret,
+		MfaCode:   req.Mfa_code,
+	}); err != nil {
 		return nil, err
 	}
-
 	return &types.BindMfaqrcodeResponse{
 		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "绑定 MFA 成功"},
 	}, nil

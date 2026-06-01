@@ -1,0 +1,8 @@
+Name: video.rpc
+ListenOn: 0.0.0.0:8891
+Etcd:
+  Hosts:
+  - etcd:2379
+  Key: video.rpc
+
+DataSource: "root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"

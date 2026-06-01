@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 
+	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb/chat_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -29,19 +30,26 @@ func (l *GetMessagesLogic) GetMessages(req *types.GetMessagesRequest) (resp *typ
 		return nil, xerr.NewInvalidParam("聊天室ID不能为空")
 	}
 
-	pageSize := int(req.PageSize)
-	pageNumber := int(req.PageNumber)
-	messages, err := l.svcCtx.ChatService.GetMessages(l.ctx, req.RoomID, pageSize, pageNumber)
+	rpcResp, err := l.svcCtx.ChatRpc.GetMessages(l.ctx, &chatpb.GetMessagesRequest{
+		RoomId:   req.RoomID,
+		PageNum:  req.PageNumber,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	msgList := make([]types.MessageChat, 0, len(messages))
-	for _, msg := range messages {
-		if msg != nil {
-			msgList = append(msgList, *msg)
-		}
+	msgList := make([]types.MessageChat, 0, len(rpcResp.Messages))
+	for _, msg := range rpcResp.Messages {
+		msgList = append(msgList, types.MessageChat{
+			ID:        msg.MessageId,
+			RoomID:    msg.RoomId,
+			SenderID:  msg.SenderId,
+			Content:   msg.Content,
+			CreatedAt: msg.CreatedAt,
+		})
 	}
+
 	resp = &types.GetMessagesResponse{
 		Base: types.BaseResponse{
 			StatusCode: 0,

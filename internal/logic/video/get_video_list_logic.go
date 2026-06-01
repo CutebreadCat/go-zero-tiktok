@@ -3,6 +3,7 @@ package video
 import (
 	"context"
 
+	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -29,9 +30,26 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}
 
-	videos, _, err := l.svcCtx.VideoService.GetVideosByAuthor(l.ctx, req.UserID, req.PageNum, req.PageSize)
+	rpcResp, err := l.svcCtx.VideoRpc.GetVideoList(l.ctx, &videopb.GetVideoListRequest{
+		AuthorId: req.UserID,
+		PageNum:  req.PageNum,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	videos := make([]types.VideoBaseinfo, 0, len(rpcResp.Videos))
+	for _, v := range rpcResp.Videos {
+		videos = append(videos, types.VideoBaseinfo{
+			VideoID:     v.VideoId,
+			AuthorID:    v.AuthorId,
+			VideoURL:    v.VideoUrl,
+			CoverURL:    v.CoverUrl,
+			Title:       v.Title,
+			Description: v.Description,
+			CreatedAt:   v.CreatedAt,
+		})
 	}
 
 	resp = &types.GetVideoListResponse{

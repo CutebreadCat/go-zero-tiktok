@@ -33,32 +33,17 @@ func (l *JwchGetUserCookieLogic) JwchGetUserCookie(req *types.JwchGetUserCookieR
 		}, nil
 	}
 
-	if l.svcCtx.UserRpc != nil {
-		result, err := l.svcCtx.UserRpc.JwchGetUserCookie(l.ctx, &userservice.JwchGetUserCookieRequest{
-			UserId: userID,
-		})
-		if err != nil {
-			return &types.JwchGetUserCookieResponse{
-				Base: types.BaseResponse{StatusCode: 400, StatusMsg: err.Error()},
-			}, nil
-		}
-		return &types.JwchGetUserCookieResponse{
-			Base:   types.BaseResponse{StatusCode: 200, StatusMsg: "获取成功"},
-			JwchID: result.JwchId,
-			Cookie: result.Cookie,
-		}, nil
-	}
-
-	identifier, cookie, err := l.svcCtx.UserJwchService.GetCookie(l.ctx, userID)
+	result, err := l.svcCtx.UserRpc.JwchGetUserCookie(l.ctx, &userservice.JwchGetUserCookieRequest{
+		UserId: userID,
+	})
 	if err != nil {
 		return &types.JwchGetUserCookieResponse{
 			Base: types.BaseResponse{StatusCode: 400, StatusMsg: err.Error()},
 		}, nil
 	}
-
 	return &types.JwchGetUserCookieResponse{
 		Base:   types.BaseResponse{StatusCode: 200, StatusMsg: "获取成功"},
-		JwchID: identifier,
-		Cookie: cookie,
+		JwchID: result.JwchId,
+		Cookie: result.Cookie,
 	}, nil
 }

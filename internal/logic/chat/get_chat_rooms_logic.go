@@ -3,8 +3,9 @@ package chat
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	chatpb "go_zero-tiktok/app/chat/rpc/chat_pb/chat_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -31,7 +32,9 @@ func (l *GetChatRoomsLogic) GetChatRooms(req *types.GetChatRoomsRequest) (resp *
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	rooms, err := l.svcCtx.ChatService.GetJoinRooms(l.ctx, userID)
+	rpcResp, err := l.svcCtx.ChatRpc.GetChatRooms(l.ctx, &chatpb.GetChatRoomsRequest{
+		UserId: userID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +44,7 @@ func (l *GetChatRoomsLogic) GetChatRooms(req *types.GetChatRoomsRequest) (resp *
 			StatusCode: 0,
 			StatusMsg:  "ok",
 		},
-		RoomsId: rooms,
+		RoomsId: rpcResp.RoomIds,
 	}
 	return resp, nil
 }

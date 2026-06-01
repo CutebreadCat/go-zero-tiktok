@@ -3,8 +3,9 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -34,7 +35,11 @@ func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentRequest) (res
 		return nil, xerr.NewUnauthorized("获取用户ID失败")
 	}
 
-	if err := l.svcCtx.CommentService.DeleteComment(l.ctx, req.CommentID, userid); err != nil {
+	_, err = l.svcCtx.InteractionRpc.DeleteComment(l.ctx, &interactionpb.DeleteCommentRequest{
+		CommentId: req.CommentID,
+		UserId:    userid,
+	})
+	if err != nil {
 		return nil, err
 	}
 

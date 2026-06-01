@@ -33,28 +33,15 @@ func (l *GetMfaqrcodeLogic) GetMfaqrcode(req *types.MfaqrcodeRequest) (resp *typ
 		return nil, xerr.NewUnauthorized("获取用户 ID 失败")
 	}
 
-	if l.svcCtx.UserRpc != nil {
-		result, err := l.svcCtx.UserRpc.GetMfaQRCode(l.ctx, &userservice.GetMfaQRCodeRequest{
-			UserId: userID,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return &types.MfaqrcodeResponse{
-			Mfa_secret: result.MfaSecret,
-			QRCodeURL:  result.QrCodeUrl,
-			Base:       types.BaseResponse{StatusCode: http.StatusOK, StatusMsg: "获取 secret 成功"},
-		}, nil
-	}
-
-	secret, url, err := l.svcCtx.UserMfaService.GenerateQRCode(l.ctx, userID)
+	result, err := l.svcCtx.UserRpc.GetMfaQRCode(l.ctx, &userservice.GetMfaQRCodeRequest{
+		UserId: userID,
+	})
 	if err != nil {
 		return nil, err
 	}
-
 	return &types.MfaqrcodeResponse{
-		Mfa_secret: secret,
-		QRCodeURL:  url,
+		Mfa_secret: result.MfaSecret,
+		QRCodeURL:  result.QrCodeUrl,
 		Base:       types.BaseResponse{StatusCode: http.StatusOK, StatusMsg: "获取 secret 成功"},
 	}, nil
 }

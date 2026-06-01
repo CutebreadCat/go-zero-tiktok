@@ -1,6 +1,8 @@
 services:
   go-zero-tiktokgo:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8888:8888"
     command: ./tiktok
@@ -28,7 +30,61 @@ services:
         condition: service_started
     restart: always
 
+  video-rpc:
+    build:
+      context: .
+      dockerfile: app/video/rpc/Dockerfile
+    ports:
+      - "8891:8891"
+    environment:
+      - GOZERO_LOG_LEVEL=error
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+    restart: always
 
+  interaction-rpc:
+    build:
+      context: .
+      dockerfile: app/interaction/rpc/Dockerfile
+    ports:
+      - "8892:8892"
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+    restart: always
+
+  communication-rpc:
+    build:
+      context: .
+      dockerfile: app/communication/rpc/Dockerfile
+    ports:
+      - "8893:8893"
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+    restart: always
+
+  chat-rpc:
+    build:
+      context: .
+      dockerfile: app/chat/rpc/Dockerfile
+    ports:
+      - "8894:8894"
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    restart: always
 
   etcd:
     image: registry.k8s.io/etcd:3.5.17-0
@@ -38,6 +94,10 @@ services:
       - --data-dir=/etcd-data
       - --listen-client-urls=http://0.0.0.0:2379
       - --advertise-client-urls=http://etcd:2379
+      - --quota-backend-bytes=8589934592
+      - --snapshot-count=1000
+      - --heartbeat-interval=200
+      - --election-timeout=2000
     ports:
       - "2379:2379"
     volumes:

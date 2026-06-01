@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "./chat_pb";
+
+message CreateChatRoomRequest {
+    string user_id = 1;
+    int32 type = 2;          // 0-私聊 1-群聊
+    string room_name = 3;
+    repeated string user_ids = 4;
+}
+
+message CreateChatRoomResponse {
+    string room_id = 1;
+}
+
+message JoinChatRoomRequest {
+    string user_id = 1;
+    string room_id = 2;
+}
+
+message JoinChatRoomResponse {
+}
+
+message GetChatRoomsRequest {
+    string user_id = 1;
+}
+
+message GetChatRoomsResponse {
+    repeated string room_ids = 1;
+}
+
+message GetMessagesRequest {
+    string room_id = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message MessageInfo {
+    string message_id = 1;
+    string room_id = 2;
+    string sender_id = 3;
+    string content = 4;
+    string created_at = 5;
+}
+
+message GetMessagesResponse {
+    repeated MessageInfo messages = 1;
+}
+
+service ChatService {
+    rpc CreateChatRoom(CreateChatRoomRequest) returns (CreateChatRoomResponse);
+    rpc JoinChatRoom(JoinChatRoomRequest) returns (JoinChatRoomResponse);
+    rpc GetChatRooms(GetChatRoomsRequest) returns (GetChatRoomsResponse);
+    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+}

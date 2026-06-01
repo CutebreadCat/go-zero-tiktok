@@ -2,8 +2,10 @@ package interaction
 
 import (
 	"context"
-	"go_zero-tiktok/internal/svc"
+
+	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -33,14 +35,11 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 
-	switch req.ActionType {
-	case 1:
-		err = l.svcCtx.VideoService.LikeVideo(l.ctx, userID, req.VideoID)
-	case 0:
-		err = l.svcCtx.VideoService.CancelLikeVideo(l.ctx, userID, req.VideoID)
-	default:
-		return nil, xerr.NewInvalidParam("操作类型无效，仅支持1(点赞)或0(取消点赞)")
-	}
+	_, err = l.svcCtx.VideoRpc.LikeVideo(l.ctx, &videopb.LikeVideoRequest{
+		UserId:     userID,
+		VideoId:    req.VideoID,
+		ActionType: req.ActionType,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +50,6 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 			StatusMsg:  "ok",
 		},
 	}
-	l.svcCtx.VideoService.RecordVisit(req.VideoID)
 
 	return
 }

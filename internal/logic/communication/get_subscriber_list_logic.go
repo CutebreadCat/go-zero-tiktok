@@ -3,6 +3,7 @@ package communication
 import (
 	"context"
 
+	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -31,15 +32,28 @@ func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListR
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	subscriberList, total, err := l.svcCtx.UserFollowService.GetSubscriberList(l.ctx, userID, req.PageNumber, req.PageSize)
+	rpcResp, err := l.svcCtx.CommunicationRpc.GetSubscriberList(l.ctx, &communicationpb.GetSubscriberListRequest{
+		UserId:   userID,
+		PageNum:  req.PageNumber,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	subscriberList := make([]types.UserBaseinfo, 0, len(rpcResp.Users))
+	for _, u := range rpcResp.Users {
+		subscriberList = append(subscriberList, types.UserBaseinfo{
+			UserID:   u.UserId,
+			Username: u.Username,
+			PhotoURL: u.PhotoUrl,
+		})
 	}
 
 	resp = &types.GetSubscriberListResponse{
 		BaseResponse:    types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
 		SubscriberList:  subscriberList,
-		SubscriberCount: int32(total),
+		SubscriberCount: int32(rpcResp.Total),
 	}
 
 	return resp, nil

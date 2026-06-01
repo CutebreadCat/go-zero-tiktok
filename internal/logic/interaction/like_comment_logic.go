@@ -3,8 +3,9 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/internal/svc"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
 	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
 	myutils "go_zero-tiktok/internal/utils"
 
@@ -37,7 +38,12 @@ func (l *LikeCommentLogic) LikeComment(req *types.LikeCommentRequest) (resp *typ
 		return nil, xerr.NewInvalidParam("无效的点赞类型")
 	}
 
-	if err := l.svcCtx.CommentService.LikeComment(l.ctx, req.CommentID, userId, req.Liketype); err != nil {
+	_, err = l.svcCtx.InteractionRpc.LikeComment(l.ctx, &interactionpb.LikeCommentRequest{
+		CommentId: req.CommentID,
+		UserId:    userId,
+		LikeType:  req.Liketype,
+	})
+	if err != nil {
 		return nil, err
 	}
 

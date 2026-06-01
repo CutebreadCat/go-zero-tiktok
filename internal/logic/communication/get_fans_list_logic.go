@@ -3,6 +3,7 @@ package communication
 import (
 	"context"
 
+	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
 	"go_zero-tiktok/internal/shared/xerr"
 	"go_zero-tiktok/internal/svc"
 	"go_zero-tiktok/internal/types"
@@ -31,15 +32,28 @@ func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *typ
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	fansList, total, err := l.svcCtx.UserFollowService.GetFansList(l.ctx, userID, req.PageNumber, req.PageSize)
+	rpcResp, err := l.svcCtx.CommunicationRpc.GetFansList(l.ctx, &communicationpb.GetFansListRequest{
+		UserId:   userID,
+		PageNum:  req.PageNumber,
+		PageSize: req.PageSize,
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	fansList := make([]types.UserBaseinfo, 0, len(rpcResp.Users))
+	for _, u := range rpcResp.Users {
+		fansList = append(fansList, types.UserBaseinfo{
+			UserID:   u.UserId,
+			Username: u.Username,
+			PhotoURL: u.PhotoUrl,
+		})
 	}
 
 	resp = &types.GetFansListResponse{
 		BaseResponse: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
 		FansList:     fansList,
-		FansCount:    int32(total),
+		FansCount:    int32(rpcResp.Total),
 	}
 
 	return resp, nil

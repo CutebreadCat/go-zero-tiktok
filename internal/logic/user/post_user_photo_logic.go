@@ -34,27 +34,16 @@ func (l *PostUserPhotoLogic) PostUserPhoto(req *types.UserphotoRequest, file mul
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	if l.svcCtx.UserRpc != nil {
-		photo, err := io.ReadAll(file)
-		if err != nil {
-			return nil, xerr.Wrap(err, "PostUserPhoto.ReadAll")
-		}
-		if _, err := l.svcCtx.UserRpc.UpdateUserPhoto(l.ctx, &userservice.UpdateUserPhotoRequest{
-			UserId: userID,
-			Photo:  photo,
-		}); err != nil {
-			return nil, err
-		}
-		return &types.UserphotoResponse{
-			StatusCode: 200,
-			StatusMsg:  "照片上传成功",
-		}, nil
+	photo, err := io.ReadAll(file)
+	if err != nil {
+		return nil, xerr.Wrap(err, "PostUserPhoto.ReadAll")
 	}
-
-	if err := l.svcCtx.UserProfileService.UpdatePhoto(l.ctx, userID, file); err != nil {
+	if _, err := l.svcCtx.UserRpc.UpdateUserPhoto(l.ctx, &userservice.UpdateUserPhotoRequest{
+		UserId: userID,
+		Photo:  photo,
+	}); err != nil {
 		return nil, err
 	}
-
 	return &types.UserphotoResponse{
 		StatusCode: 200,
 		StatusMsg:  "照片上传成功",
