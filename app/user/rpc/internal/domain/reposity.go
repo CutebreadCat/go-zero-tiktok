@@ -2,7 +2,7 @@ package user_service
 
 import (
 	"context"
-	"go_zero-tiktok/internal/types"
+	"go_zero-tiktok/pkg/contract"
 )
 
 type IUserRepo interface {

@@ -5,7 +5,7 @@
 
 # ---docker相关文件---
 compose.yml
-Dockerfile*
+Dockerfile
 .dockerignore
 
 # ---相关文档---

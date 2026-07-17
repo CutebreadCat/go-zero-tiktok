@@ -61,7 +61,7 @@ go_zero-tiktok/
 ├── .gitignore
 ├── .golangci.yaml
 ├── compose.yml
-├── Dockerfile
+├── app/gateway/api/Dockerfile
 ├── go.mod
 ├── go.sum
 ├── Makefile

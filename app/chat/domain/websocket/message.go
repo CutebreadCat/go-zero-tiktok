@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"go_zero-tiktok/internal/types"
+	"go_zero-tiktok/pkg/contract"
 
 	"github.com/google/uuid"
 )

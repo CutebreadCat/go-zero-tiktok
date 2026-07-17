@@ -7,7 +7,7 @@ Etcd:
 
 DataSource: "root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
 
-Redis:
+AppRedis:
   Host: redis:6379
   Type: node
 

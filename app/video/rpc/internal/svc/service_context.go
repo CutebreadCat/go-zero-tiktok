@@ -3,7 +3,7 @@ package svc
 import (
 	"go_zero-tiktok/app/video/rpc/internal/config"
 	videodomain "go_zero-tiktok/app/video/rpc/internal/domain"
-	"go_zero-tiktok/internal/infra/storage/aliyun"
+	"go_zero-tiktok/pkg/storage/aliyun"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/driver/mysql"

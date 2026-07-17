@@ -4,8 +4,8 @@ import (
 	"context"
 
 	userbasetable "go_zero-tiktok/app/communication/rpc/internal/dal/tables/user_baseinfo"
-	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/pkg/contract"
+	myutils "go_zero-tiktok/pkg/utils"
 
 	"gorm.io/gorm"
 )

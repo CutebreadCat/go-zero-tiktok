@@ -4,7 +4,7 @@ import (
 	"context"
 
 	userfollowtable "go_zero-tiktok/app/communication/rpc/internal/dal/tables/user_follow"
-	"go_zero-tiktok/internal/types"
+	"go_zero-tiktok/pkg/contract"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"

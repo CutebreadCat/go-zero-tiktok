@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	mqcontract "go_zero-tiktok/internal/shared/mq"
+	mqcontract "go_zero-tiktok/pkg/mq"
 )
 
 // ============ 事件数据结构 ============

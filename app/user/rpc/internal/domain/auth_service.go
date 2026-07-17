@@ -3,8 +3,8 @@ package user_service
 import (
 	"context"
 
-	"go_zero-tiktok/internal/shared/xerr"
-	myutils "go_zero-tiktok/internal/utils"
+	myutils "go_zero-tiktok/pkg/utils"
+	"go_zero-tiktok/pkg/xerr"
 )
 
 // TokenProvider token 生成与管理接口

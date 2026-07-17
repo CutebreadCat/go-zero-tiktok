@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"go_zero-tiktok/app/video/rpc/internal/dal/query"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 
-	myutils "go_zero-tiktok/internal/utils"
+	myutils "go_zero-tiktok/pkg/utils"
 
 	"gorm.io/gorm"
 )

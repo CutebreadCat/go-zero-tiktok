@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	userbasetable "go_zero-tiktok/app/user/rpc/internal/dal/tables/user_baseinfo"
-	"go_zero-tiktok/internal/shared/xerr"
-	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/pkg/contract"
+	myutils "go_zero-tiktok/pkg/utils"
+	"go_zero-tiktok/pkg/xerr"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"

@@ -6,8 +6,8 @@ import (
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
 	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
-	"go_zero-tiktok/internal/shared/xerr"
-	myutils "go_zero-tiktok/internal/utils"
+	myutils "go_zero-tiktok/pkg/utils"
+	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )

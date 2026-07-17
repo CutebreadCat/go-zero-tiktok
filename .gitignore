@@ -26,6 +26,7 @@ go.work.sum
 
 # env file
 .env
+/pkg/storage/aliyun/aliconfig.yaml
 /internal/infra/storage/aliyun/aliconfig.yaml
 /testdata
 /.gocache

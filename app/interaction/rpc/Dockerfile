@@ -28,7 +28,7 @@ RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /app/interaction-rpc ./interaction-rpc
 COPY --from=builder /app/app/interaction/rpc/etc ./app/interaction/rpc/etc
-COPY --from=builder /app/internal/infra/storage/aliyun/aliconfig.yaml ./internal/infra/storage/aliyun/aliconfig.yaml
+COPY --from=builder /app/pkg/storage/aliyun/aliconfig_example.yaml ./pkg/storage/aliyun/aliconfig.yaml
 
 EXPOSE 8892
 

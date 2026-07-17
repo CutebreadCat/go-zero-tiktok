@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	commenttable "go_zero-tiktok/app/interaction/rpc/internal/dal/tables/comment_baseinfo"
-	"go_zero-tiktok/internal/shared/xerr"
-	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/pkg/contract"
+	myutils "go_zero-tiktok/pkg/utils"
+	"go_zero-tiktok/pkg/xerr"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"

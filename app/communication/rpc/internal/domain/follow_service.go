@@ -3,7 +3,7 @@ package domain
 import (
 	"context"
 
-	"go_zero-tiktok/internal/types"
+	"go_zero-tiktok/pkg/contract"
 )
 
 type UserFollowService struct {

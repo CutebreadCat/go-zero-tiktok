@@ -11,7 +11,8 @@ go_zero-tiktok/
 │   ├── user/
 │   └── video/
 ├── docs/ -- 文档与说明
-├── etc/ -- 配置文件
+├── app/ -- 网关与领域 RPC 服务
+│   └── */etc/ -- 各服务独立配置文件
 ├── internal/ -- 内部业务代码
 │   ├── config/ -- 配置加载
 │   ├── dal/ -- 数据访问层
@@ -57,7 +58,7 @@ go_zero-tiktok/
 ├── .gitignore
 ├── .golangci.yaml
 ├── compose.yml
-├── Dockerfile
+├── app/gateway/api/Dockerfile
 ├── go.mod
 ├── go.sum
 ├── Makefile
@@ -78,9 +79,8 @@ export XIAOMI_AI_KEY="你的api密钥"
 退出后运行这行命令
 source /etc/profile
 配置阿里云oss服务:
-cp ./internal/infra/storage/aliyun/aliconfig_example.yaml ./internal/infra/storage/aliyun/aliconfig.yaml
+cp ./pkg/storage/aliyun/aliconfig_example.yaml ./pkg/storage/aliyun/aliconfig.yaml
 在生成的aliconfig.yaml文件下面填写对应的配置即可
 最后运行
 docker-compose up --build
 ```
-

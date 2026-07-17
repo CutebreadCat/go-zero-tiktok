@@ -3,7 +3,7 @@ package svc
 import (
 	"io"
 
-	"go_zero-tiktok/internal/infra/storage/aliyun"
+	"go_zero-tiktok/pkg/storage/aliyun"
 )
 
 type StorageAdapter struct{}

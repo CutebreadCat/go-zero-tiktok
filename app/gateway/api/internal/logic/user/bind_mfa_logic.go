@@ -1,0 +1,45 @@
+package user
+
+import (
+	"context"
+
+	"go_zero-tiktok/app/gateway/api/internal/svc"
+	"go_zero-tiktok/app/gateway/api/internal/types"
+	"go_zero-tiktok/app/user/rpc/userservice"
+	myutils "go_zero-tiktok/pkg/utils"
+	"go_zero-tiktok/pkg/xerr"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type BindMfaLogic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+func NewBindMfaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *BindMfaLogic {
+	return &BindMfaLogic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *BindMfaLogic) BindMfa(req *types.BindMfaqrcodeRequest) (resp *types.BindMfaqrcodeResponse, err error) {
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
+	if err != nil {
+		return nil, xerr.NewUnauthorized("获取用户 ID 失败")
+	}
+
+	if _, err := l.svcCtx.UserRpc.BindMfa(l.ctx, &userservice.BindMfaRequest{
+		UserId:    userID,
+		MfaSecret: req.Mfa_secret,
+		MfaCode:   req.Mfa_code,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.BindMfaqrcodeResponse{
+		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "绑定 MFA 成功"},
+	}, nil
+}

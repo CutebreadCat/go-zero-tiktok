@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"go_zero-tiktok/internal/shared/xerr"
-	"go_zero-tiktok/internal/types"
+	"go_zero-tiktok/pkg/contract"
+	"go_zero-tiktok/pkg/xerr"
 )
 
 type ObjectStorage interface {

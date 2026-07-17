@@ -3,8 +3,8 @@ package svc
 import (
 	"go_zero-tiktok/app/chat/rpc/internal/config"
 	chatdomain "go_zero-tiktok/app/chat/rpc/internal/domain"
-	wscache "go_zero-tiktok/internal/infra/cache/ws"
-	mykafka "go_zero-tiktok/internal/infra/mq/kafka"
+	wscache "go_zero-tiktok/app/chat/rpc/internal/infra/cache/ws"
+	mykafka "go_zero-tiktok/app/chat/rpc/internal/infra/mq/kafka"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -32,7 +32,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	logx.Must(err)
 
 	// 初始化 Redis
-	rds := redis.MustNewRedis(c.Redis)
+	rds := redis.MustNewRedis(c.AppRedis)
 	wsCache := wscache.NewRedisCache(rds)
 
 	dalRepo := NewRepositories(db)

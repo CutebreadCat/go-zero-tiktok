@@ -4,8 +4,8 @@ import (
 	"context"
 
 	videobasetable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_baseinfo"
-	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/pkg/contract"
+	myutils "go_zero-tiktok/pkg/utils"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"

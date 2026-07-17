@@ -5,7 +5,7 @@ import (
 	userrepo "go_zero-tiktok/app/user/rpc/internal/dal/reposity"
 	userbasetable "go_zero-tiktok/app/user/rpc/internal/dal/tables/user_baseinfo"
 	userdomain "go_zero-tiktok/app/user/rpc/internal/domain"
-	"go_zero-tiktok/internal/infra/storage/aliyun"
+	"go_zero-tiktok/pkg/storage/aliyun"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"

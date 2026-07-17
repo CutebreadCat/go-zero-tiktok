@@ -8,7 +8,7 @@ import (
 type Config struct {
 	zrpc.RpcServerConf
 	DataSource string          `json:"DataSource"`
-	Redis      redis.RedisConf `json:"Redis"`
+	AppRedis   redis.RedisConf `json:"AppRedis"`
 	Kafka      KafkaConfig     `json:"Kafka"`
 }
 

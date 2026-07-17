@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"go_zero-tiktok/internal/types"
+	"go_zero-tiktok/pkg/contract"
 )
 
 type VideoService struct {

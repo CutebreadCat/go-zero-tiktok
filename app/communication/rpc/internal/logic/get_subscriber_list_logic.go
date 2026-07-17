@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
 	"go_zero-tiktok/app/communication/rpc/internal/svc"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )

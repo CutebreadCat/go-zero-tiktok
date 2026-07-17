@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	userdomain "go_zero-tiktok/app/user/rpc/internal/domain"
-	"go_zero-tiktok/internal/infra/storage/aliyun"
-	"go_zero-tiktok/internal/middleware/mfa"
-	"go_zero-tiktok/internal/middleware/token"
+	"go_zero-tiktok/app/user/rpc/internal/mfa"
+	"go_zero-tiktok/pkg/jwt"
+	"go_zero-tiktok/pkg/storage/aliyun"
 
 	"github.com/west2-online/jwch"
 	"github.com/zeromicro/go-zero/core/stores/redis"

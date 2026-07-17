@@ -4,8 +4,8 @@ import (
 	"context"
 
 	chattable "go_zero-tiktok/app/chat/rpc/internal/dal/tables/chat"
-	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/pkg/contract"
+	myutils "go_zero-tiktok/pkg/utils"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"

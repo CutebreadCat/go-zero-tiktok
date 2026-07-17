@@ -2,8 +2,8 @@ package domain
 
 import (
 	"context"
+	"go_zero-tiktok/pkg/contract"
 	"io"
-	"go_zero-tiktok/internal/types"
 )
 
 type IVideoRepo interface {

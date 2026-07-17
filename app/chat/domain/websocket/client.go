@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	myutils "go_zero-tiktok/internal/utils"
+	myutils "go_zero-tiktok/pkg/utils"
 
 	"github.com/google/uuid"
 	ws "github.com/gorilla/websocket"

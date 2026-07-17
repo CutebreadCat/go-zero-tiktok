@@ -1,21 +1,25 @@
 services:
-  go-zero-tiktokgo:
+  gateway:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: app/gateway/api/Dockerfile
     ports:
       - "8888:8888"
-    command: ./tiktok
-    environment:
-      - XIAOMI_AI_KEY=${XIAOMI_AI_KEY}
+    command: ./gateway -f etc/tiktok-api.yaml
     depends_on:
-      redis:
+      etcd:
         condition: service_started
-      mysql:
+      user-rpc:
         condition: service_started
-      kafka:
-        condition: service_healthy
-    restart: always
+      video-rpc:
+        condition: service_started
+      interaction-rpc:
+        condition: service_started
+      communication-rpc:
+        condition: service_started
+      chat-rpc:
+        condition: service_started
+    restart: unless-stopped
 
   user-rpc:
     build:
@@ -28,7 +32,9 @@ services:
         condition: service_started
       mysql:
         condition: service_started
-    restart: always
+      redis:
+        condition: service_started
+    restart: unless-stopped
 
   video-rpc:
     build:
@@ -37,13 +43,13 @@ services:
     ports:
       - "8891:8891"
     environment:
-      - GOZERO_LOG_LEVEL=error
+      GOZERO_LOG_LEVEL: error
     depends_on:
       etcd:
         condition: service_started
       mysql:
         condition: service_started
-    restart: always
+    restart: unless-stopped
 
   interaction-rpc:
     build:
@@ -56,7 +62,7 @@ services:
         condition: service_started
       mysql:
         condition: service_started
-    restart: always
+    restart: unless-stopped
 
   communication-rpc:
     build:
@@ -69,7 +75,7 @@ services:
         condition: service_started
       mysql:
         condition: service_started
-    restart: always
+    restart: unless-stopped
 
   chat-rpc:
     build:
@@ -82,82 +88,8 @@ services:
         condition: service_started
       mysql:
         condition: service_started
+      redis:
+        condition: service_started
       kafka:
         condition: service_healthy
-    restart: always
-
-  etcd:
-    image: registry.k8s.io/etcd:3.5.17-0
-    command:
-      - etcd
-      - --name=etcd
-      - --data-dir=/etcd-data
-      - --listen-client-urls=http://0.0.0.0:2379
-      - --advertise-client-urls=http://etcd:2379
-      - --quota-backend-bytes=8589934592
-      - --snapshot-count=1000
-      - --heartbeat-interval=200
-      - --election-timeout=2000
-    ports:
-      - "2379:2379"
-    volumes:
-      - etcd-data:/etcd-data
-    restart: always
-
-  redis:
-    image: redis:7.2-alpine
-    ports:
-      - "6888:6379"
-    restart: always
-    volumes:
-      - redis-data:/data
-
-  mysql:
-    image: mysql:8.0
-    ports:
-      - "3309:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=yourpassword
-      - MYSQL_DATABASE=gozero-tiktok
-      - MYSQL_USER=gozero-tiktok
-      - MYSQL_PASSWORD=yourpassword
-    restart: always
-    volumes:
-      - mysql-data:/var/lib/mysql
-  kafka:
-    image: apache/kafka:4.0.0
-    ports:
-      - "9092:9092"
-    environment:
-      # KRaft 模式配置
-      - KAFKA_NODE_ID=1
-      - KAFKA_PROCESS_ROLES=broker,controller
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
-      # 监听器配置
-      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      # 自动创建 Topic
-      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
-      # Group 协调器配置
-      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-      - KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS=1
-      # 消费者组超时配置（给容器启动更多缓冲时间）
-      - KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS=6000
-      - KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS=60000
-    volumes:
-      - kafka_data:/var/lib/kafka/data
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 9092 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-volumes:
-  redis-data:
-  mysql-data:
-  kafka_data:
-  etcd-data:
+    restart: unless-stopped

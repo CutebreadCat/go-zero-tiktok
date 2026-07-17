@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"go_zero-tiktok/app/chat/rpc/internal/dal/query"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 
 	"gorm.io/gorm"
 )

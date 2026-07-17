@@ -4,7 +4,7 @@ import (
 	"context"
 
 	videopopulartable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_popular"
-	"go_zero-tiktok/internal/types"
+	"go_zero-tiktok/pkg/contract"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"

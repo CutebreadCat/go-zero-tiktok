@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	mqcontract "go_zero-tiktok/internal/shared/mq"
-	"go_zero-tiktok/internal/types"
+	"go_zero-tiktok/pkg/contract"
+	mqcontract "go_zero-tiktok/pkg/mq"
 )
 
 type MessageHandler struct {

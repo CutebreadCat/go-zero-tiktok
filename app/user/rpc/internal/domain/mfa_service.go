@@ -3,7 +3,7 @@ package user_service
 import (
 	"context"
 
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 )
 
 type MfaSecretGenerator interface {

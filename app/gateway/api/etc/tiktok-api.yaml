@@ -1,0 +1,32 @@
+Name: tiktok-api
+Host: 0.0.0.0
+Port: 8888
+
+Auth:
+  AccessSecret: "your_access_secret"
+  AccessExpire: 3600
+
+UserRpc:
+  Etcd:
+    Hosts: [etcd:2379]
+    Key: user.rpc
+
+VideoRpc:
+  Etcd:
+    Hosts: [etcd:2379]
+    Key: video.rpc
+
+InteractionRpc:
+  Etcd:
+    Hosts: [etcd:2379]
+    Key: interaction.rpc
+
+CommunicationRpc:
+  Etcd:
+    Hosts: [etcd:2379]
+    Key: communication.rpc
+
+ChatRpc:
+  Etcd:
+    Hosts: [etcd:2379]
+    Key: chat.rpc
