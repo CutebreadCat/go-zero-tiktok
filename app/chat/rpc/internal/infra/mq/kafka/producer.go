@@ -2,8 +2,8 @@ package mykafka
 
 import (
 	"context"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"go_zero-tiktok/pkg/xerr"
-	"log"
 
 	"encoding/json"
 
@@ -41,7 +41,7 @@ func (k *KafakaProducer) SendMessage(ctx context.Context, m *mqcontract.Event) e
 		return xerr.Wrap(err, "KafakaProducer.SendMessage.Marshal")
 	}
 
-	log.Printf("发送消息到 Kafka, topic=%s, key=%s", m.Msg.Topic, string(m.Msg.Key))
+	appLogger.Infof("发送消息到 Kafka, topic=%s, key=%s", m.Msg.Topic, string(m.Msg.Key))
 	err = k.writer.WriteMessages(ctx, kafka.Message{
 		Key:   m.Msg.Key,
 		Value: payload,
@@ -49,7 +49,7 @@ func (k *KafakaProducer) SendMessage(ctx context.Context, m *mqcontract.Event) e
 	if err != nil {
 		return xerr.Wrap(err, "KafakaProducer.SendMessage.WriteMessages")
 	}
-	log.Printf("消息成功写入 Kafka")
+	appLogger.Info("消息成功写入 Kafka")
 	return nil
 }
 

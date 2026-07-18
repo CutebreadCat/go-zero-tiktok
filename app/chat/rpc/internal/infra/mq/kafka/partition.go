@@ -3,65 +3,54 @@ package mykafka
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
 
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"go_zero-tiktok/app/chat/rpc/internal/infra/mq"
-
 	mqcontract "go_zero-tiktok/pkg/mq"
 )
 
 type Readder interface {
-	Fetch(ctx context.Context) (*mqcontract.Event, error)
-	Commit(ctx context.Context, msg *mqcontract.Message) error
+	Fetch(context.Context) (*mqcontract.Event, error)
+	Commit(context.Context, *mqcontract.Message) error
 }
-
 type Partition struct {
 	reader Readder
 	pool   *mq.WorkerPool
 }
 
 func NewPartition(reader Readder, pool *mq.WorkerPool) *Partition {
-	return &Partition{
-		reader: reader,
-		pool:   pool,
-	}
+	return &Partition{reader: reader, pool: pool}
 }
 
 func (p *Partition) Start(ctx context.Context) {
-	log.Printf("Partition fetcher 启动...")
+	appLogger.Info("partition fetcher starting")
 	go func() {
-		log.Printf("Partition fetcher goroutine 已启动")
+		appLogger.Info("partition fetcher goroutine started")
 		for {
 			select {
 			case <-ctx.Done():
-				log.Printf("Partition fetcher 停止: %v", ctx.Err())
+				appLogger.Infof("partition fetcher stopped: %v", ctx.Err())
 				return
 			default:
-				event, err := p.reader.Fetch(ctx)
-				if err != nil {
-					if errors.Is(err, context.DeadlineExceeded) {
-						continue
-					}
-					log.Printf("Partition fetch 错误: %v", err)
-					time.Sleep(partitionFetchRetryWait)
+			}
+			event, err := p.reader.Fetch(ctx)
+			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
 					continue
 				}
-
-				log.Printf("Partition 获取消息: key=%s, topic=%s", string(event.Msg.Key), event.Msg.Topic)
-
-				msg := event.Msg
-				commit_func := func() {
-					err := p.reader.Commit(ctx, msg)
-					if err != nil {
-						log.Printf("提交消息失败: %v", err)
-					} else {
-						log.Printf("消息已提交: key=%s", string(msg.Key))
-					}
-				}
-
-				p.pool.Submit(event, commit_func)
+				appLogger.Errorf("partition fetch failed: %v", err)
+				time.Sleep(partitionFetchRetryWait)
+				continue
 			}
+			msg := event.Msg
+			p.pool.Submit(event, func() {
+				if err := p.reader.Commit(ctx, msg); err != nil {
+					appLogger.Errorf("commit message failed: %v", err)
+				} else {
+					appLogger.Infof("message committed: key=%s", string(msg.Key))
+				}
+			})
 		}
 	}()
 }

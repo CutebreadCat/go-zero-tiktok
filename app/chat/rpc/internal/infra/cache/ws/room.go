@@ -2,8 +2,8 @@ package ws
 
 import (
 	"context"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"go_zero-tiktok/pkg/xerr"
-	"log"
 )
 
 func (c *RedisCache) RoomOnlineKey(roomID string) string {
@@ -13,31 +13,31 @@ func (c *RedisCache) RoomOnlineKey(roomID string) string {
 func (c *RedisCache) JoinRoom(ctx context.Context, roomID string, userID string) error {
 	_, err := c.client.Sadd(c.RoomOnlineKey(roomID), userID)
 	if err != nil {
-		log.Printf("无法将用户 %s 添加到房间 %s: %v", userID, roomID, err)
+		appLogger.Infof("鏃犳硶灏嗙敤鎴?%s 娣诲姞鍒版埧闂?%s: %v", userID, roomID, err)
 		return xerr.Wrap(err, "RedisCache.JoinRoom")
 	}
 
 	_ = c.client.Expire(c.RoomOnlineKey(roomID), onlineExpireSeconds)
 
-	log.Printf("用户 %s 已加入房间 %s", userID, roomID)
+	appLogger.Infof("鐢ㄦ埛 %s 宸插姞鍏ユ埧闂?%s", userID, roomID)
 	return nil
 }
 
 func (c *RedisCache) LeaveRoom(ctx context.Context, roomID string, userID string) error {
 	_, err := c.client.Srem(c.RoomOnlineKey(roomID), userID)
 	if err != nil {
-		log.Printf("无法将用户 %s 从房间 %s 移除: %v", userID, roomID, err)
+		appLogger.Infof("鏃犳硶灏嗙敤鎴?%s 浠庢埧闂?%s 绉婚櫎: %v", userID, roomID, err)
 		return xerr.Wrap(err, "RedisCache.LeaveRoom")
 	}
 
-	log.Printf("用户 %s 已离开房间 %s", userID, roomID)
+	appLogger.Infof("鐢ㄦ埛 %s 宸茬寮€鎴块棿 %s", userID, roomID)
 	return nil
 }
 
 func (c *RedisCache) GetRoomOnlineUsers(ctx context.Context, roomID string) ([]string, error) {
 	users, err := c.client.Smembers(c.RoomOnlineKey(roomID))
 	if err != nil {
-		log.Printf("无法获取房间 %s 在线用户列表: %v", roomID, err)
+		appLogger.Infof("鏃犳硶鑾峰彇鎴块棿 %s 鍦ㄧ嚎鐢ㄦ埛鍒楄〃: %v", roomID, err)
 		return nil, xerr.Wrap(err, "RedisCache.GetRoomOnlineUsers")
 	}
 	return users, nil
@@ -46,7 +46,7 @@ func (c *RedisCache) GetRoomOnlineUsers(ctx context.Context, roomID string) ([]s
 func (c *RedisCache) IsUserInRoom(ctx context.Context, roomID string, userID string) (bool, error) {
 	exists, err := c.client.Sismember(c.RoomOnlineKey(roomID), userID)
 	if err != nil {
-		log.Printf("无法检查用户 %s 是否在房间 %s: %v", userID, roomID, err)
+		appLogger.Infof("鏃犳硶妫€鏌ョ敤鎴?%s 鏄惁鍦ㄦ埧闂?%s: %v", userID, roomID, err)
 		return false, xerr.Wrap(err, "RedisCache.IsUserInRoom")
 	}
 	return exists, nil
@@ -55,7 +55,7 @@ func (c *RedisCache) IsUserInRoom(ctx context.Context, roomID string, userID str
 func (c *RedisCache) GetRoomOnlineCount(ctx context.Context, roomID string) (int64, error) {
 	count, err := c.client.Scard(c.RoomOnlineKey(roomID))
 	if err != nil {
-		log.Printf("无法获取房间 %s 在线用户数量: %v", roomID, err)
+		appLogger.Infof("鏃犳硶鑾峰彇鎴块棿 %s 鍦ㄧ嚎鐢ㄦ埛鏁伴噺: %v", roomID, err)
 		return 0, xerr.Wrap(err, "RedisCache.GetRoomOnlineCount")
 	}
 	return count, nil
@@ -63,7 +63,7 @@ func (c *RedisCache) GetRoomOnlineCount(ctx context.Context, roomID string) (int
 
 func (c *RedisCache) RoomHeartBeat(ctx context.Context, roomID string) error {
 	if err := c.client.Expire(c.RoomOnlineKey(roomID), onlineExpireSeconds); err != nil {
-		log.Printf("房间 %s 心跳续命 TTL 失败: %v", roomID, err)
+		appLogger.Infof("鎴块棿 %s 蹇冭烦缁懡 TTL 澶辫触: %v", roomID, err)
 		return xerr.Wrap(err, "RedisCache.RoomHeartBeat")
 	}
 	return nil

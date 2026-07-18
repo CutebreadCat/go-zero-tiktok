@@ -2,8 +2,8 @@ package aliyun
 
 import (
 	"fmt"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"io"
-	"log"
 	"strings"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -29,7 +29,7 @@ func GetAliConfig() {
 	viper.AddConfigPath(aliConfigPkgPath)
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("读取阿里云配置失败: %v", err)
+		appLogger.Errorf("读取阿里云配置失败: %v", err)
 		return
 	}
 
@@ -37,7 +37,7 @@ func GetAliConfig() {
 	AliConf.OSSAccess.Secret = viper.GetString(ossAccessSecretKey)
 	AliConf.OSSAccess.Endpoint = viper.GetString(ossAccessEndpointKey)
 	AliConf.OSSAccess.BucketName = viper.GetString(ossAccessBucketNameKey)
-	log.Println("阿里云配置已加载")
+	appLogger.Info("阿里云配置已加载")
 }
 
 func AliInit() {
@@ -46,18 +46,18 @@ func AliInit() {
 	accessKeySecret := AliConf.OSSAccess.Secret
 
 	if endpoint == "" || accessKeyID == "" || accessKeySecret == "" {
-		log.Println("阿里云配置不完整，OSS 上传已禁用")
+		appLogger.Warn("阿里云配置不完整，OSS 上传已禁用")
 		return
 	}
 
 	client, err := oss.New(endpoint, accessKeyID, accessKeySecret)
 	if err != nil {
-		log.Printf("初始化阿里云 OSS 客户端失败: %v", err)
+		appLogger.Errorf("初始化阿里云 OSS 客户端失败: %v", err)
 		return
 	}
 
 	AliClient = client
-	log.Println("阿里云 OSS 客户端已初始化")
+	appLogger.Info("阿里云 OSS 客户端已初始化")
 }
 
 func UploadFileToOSS(localFilePath, objectKey string) (string, error) {

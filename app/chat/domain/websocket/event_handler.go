@@ -3,7 +3,7 @@ package websocket
 import (
 	"context"
 	"fmt"
-	"log"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"time"
 
 	"go_zero-tiktok/pkg/contract"
@@ -19,14 +19,14 @@ func NewMessageHandler(messages MessageManager) *MessageHandler {
 }
 
 func (h *MessageHandler) Consume(ctx context.Context, e *mqcontract.Event) error {
-	fmt.Printf("消费消息事件: type=%s, data=%+v\n", e.Type, e.Data)
+	fmt.Printf("娑堣垂娑堟伅浜嬩欢: type=%s, data=%+v\n", e.Type, e.Data)
 	event, ok := e.Data.(*MessageEvent)
 	if !ok {
-		fmt.Printf("事件数据类型无效: %T\n", e.Data)
+		fmt.Printf("浜嬩欢鏁版嵁绫诲瀷鏃犳晥: %T\n", e.Data)
 		return nil
 	}
 
-	log.Printf("MQ 消费消息: room=%s, sender=%s", event.RoomID, event.SenderID)
+	appLogger.Infof("MQ 娑堣垂娑堟伅: room=%s, sender=%s", event.RoomID, event.SenderID)
 
 	msg := &types.MessageChat{
 		RoomID:    event.RoomID,
@@ -50,11 +50,11 @@ func NewUnreadHandler(messages MessageManager) *UnreadHandler {
 func (h *UnreadHandler) Consume(ctx context.Context, e *mqcontract.Event) error {
 	event, ok := e.Data.(*UnreadEvent)
 	if !ok {
-		fmt.Printf("未读事件数据类型无效: %T\n", e.Data)
+		fmt.Printf("鏈浜嬩欢鏁版嵁绫诲瀷鏃犳晥: %T\n", e.Data)
 		return nil
 	}
 
-	fmt.Printf("MQ 消费未读事件: room=%s, user=%s\n", event.RoomID, event.UserID)
+	fmt.Printf("MQ 娑堣垂鏈浜嬩欢: room=%s, user=%s\n", event.RoomID, event.UserID)
 	h.messages.HandleGetUnreadByUserID(ctx, event.UserID, event.RoomID)
 	return nil
 }
@@ -70,11 +70,11 @@ func NewRoomHandler(rooms RoomManager) *RoomHandler {
 func (h *RoomHandler) Consume(ctx context.Context, e *mqcontract.Event) error {
 	event, ok := e.Data.(*RoomEvent)
 	if !ok {
-		fmt.Printf("房间事件数据类型无效: %T\n", e.Data)
+		fmt.Printf("鎴块棿浜嬩欢鏁版嵁绫诲瀷鏃犳晥: %T\n", e.Data)
 		return nil
 	}
 
-	fmt.Printf("MQ 消费房间事件: action=%s, room=%s, user=%s\n", event.Action, event.RoomID, event.UserID)
+	fmt.Printf("MQ 娑堣垂鎴块棿浜嬩欢: action=%s, room=%s, user=%s\n", event.Action, event.RoomID, event.UserID)
 	return nil
 }
 
@@ -90,15 +90,15 @@ func NewAIChatHandler(ai *AIChat, rooms RoomManager) *AIChatHandler {
 func (h *AIChatHandler) Consume(ctx context.Context, e *mqcontract.Event) error {
 	event, ok := e.Data.(*AIChatEvent)
 	if !ok {
-		fmt.Printf("AI 聊天事件数据类型无效: %T\n", e.Data)
+		fmt.Printf("AI 鑱婂ぉ浜嬩欢鏁版嵁绫诲瀷鏃犳晥: %T\n", e.Data)
 		return nil
 	}
 
-	fmt.Printf("MQ 消费 AI 聊天事件: room=%s, user=%s\n", event.RoomID, event.UserID)
+	fmt.Printf("MQ 娑堣垂 AI 鑱婂ぉ浜嬩欢: room=%s, user=%s\n", event.RoomID, event.UserID)
 
 	reply, err := h.ai.ExecuteAI(ctx, event.UserID, event.RoomID)
 	if err != nil {
-		fmt.Printf("执行 AI 失败 (用户 %s, 房间 %s): %v\n", event.UserID, event.RoomID, err)
+		fmt.Printf("鎵ц AI 澶辫触 (鐢ㄦ埛 %s, 鎴块棿 %s): %v\n", event.UserID, event.RoomID, err)
 		return nil
 	}
 

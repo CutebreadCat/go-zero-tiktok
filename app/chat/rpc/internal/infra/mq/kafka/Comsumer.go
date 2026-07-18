@@ -2,9 +2,9 @@ package mykafka
 
 import (
 	"context"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	mqcontract "go_zero-tiktok/pkg/mq"
 	"go_zero-tiktok/pkg/xerr"
-	"log"
 
 	kafkaGo "github.com/segmentio/kafka-go"
 
@@ -50,7 +50,7 @@ func (k *KafkaReader) Fetch(ctx context.Context) (*mqcontract.Event, error) {
 }
 
 func (k *KafkaReader) Commit(ctx context.Context, msg *mqcontract.Message) error {
-	log.Printf("消息已处理: topic=%s, partition=%d, offset=%d", msg.Topic, msg.Partition, msg.Offset)
+	appLogger.Infof("消息已处理: topic=%s, partition=%d, offset=%d", msg.Topic, msg.Partition, msg.Offset)
 	return nil
 }
 

@@ -7,10 +7,11 @@ import (
 	"flag"
 	"fmt"
 
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"go_zero-tiktok/app/gateway/api/internal/config"
 	"go_zero-tiktok/app/gateway/api/internal/handler"
+	token "go_zero-tiktok/app/gateway/api/internal/middleware/token"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
-	token "go_zero-tiktok/pkg/jwt"
 	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/conf"
@@ -25,6 +26,12 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	level := "info"
+	if c.Mode == "dev" || c.Mode == "test" {
+		level = "debug"
+	}
+	appLogger.Init("gateway-api", level)
+	defer appLogger.Close()
 
 	server := rest.MustNewServer(c.RestConf, token.WithAuth(c.Auth.AccessSecret))
 	defer server.Stop()

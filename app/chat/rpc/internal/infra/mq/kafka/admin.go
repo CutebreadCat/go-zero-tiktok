@@ -3,7 +3,7 @@ package mykafka
 import (
 	"context"
 	"fmt"
-	"log"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"strings"
 
 	"github.com/segmentio/kafka-go"
@@ -18,7 +18,7 @@ type TopicConfig struct {
 type MyKafa struct{}
 
 func (m *MyKafa) BatchEnsureTopics(ctx context.Context, brokers []string, topics []TopicConfig) error {
-	log.Println("开始初始化 Kafka Topics...")
+	appLogger.Info("寮€濮嬪垵濮嬪寲 Kafka Topics...")
 
 	conn, err := kafka.DialContext(ctx, "tcp", brokers[0])
 	if err != nil {
@@ -36,14 +36,14 @@ func (m *MyKafa) BatchEnsureTopics(ctx context.Context, brokers []string, topics
 		err := conn.CreateTopics(config)
 		if err != nil {
 			if strings.Contains(err.Error(), "TopicAlreadyExists") {
-				log.Printf("Topic [%s] 已存在，跳过", t.Name)
+				appLogger.Infof("Topic [%s] 宸插瓨鍦紝璺宠繃", t.Name)
 				continue
 			}
 			return fmt.Errorf("failed to create topic [%s]: %w", t.Name, err)
 		}
-		log.Printf("Topic [%s] 创建成功 (分区:%d, 副本:%d)", t.Name, t.Partitions, t.ReplicationFactor)
+		appLogger.Infof("Topic [%s] 鍒涘缓鎴愬姛 (鍒嗗尯:%d, 鍓湰:%d)", t.Name, t.Partitions, t.ReplicationFactor)
 	}
 
-	log.Println("所有 Topic 初始化完成")
+	appLogger.Info("all Kafka topics initialized")
 	return nil
 }

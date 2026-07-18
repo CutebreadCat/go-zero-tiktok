@@ -4,8 +4,8 @@
 package video
 
 import (
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"io"
-	"log"
 	"net/http"
 
 	"go_zero-tiktok/app/gateway/api/internal/logic/video"
@@ -25,19 +25,19 @@ func PublishVideoHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 		reader, fileheader, err := r.FormFile("video_file")
 		if err != nil {
-			log.Printf("failed to get video file from form: %v", err)
+			appLogger.Infof("failed to get video file from form: %v", err)
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 		if err := myutils.CheckVideo(reader); err != nil {
-			log.Printf("failed to check video file: %v", err)
+			appLogger.Infof("failed to check video file: %v", err)
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 
 		videoBytes, err := io.ReadAll(reader)
 		if err != nil {
-			log.Printf("failed to read video file bytes: %v", err)
+			appLogger.Infof("failed to read video file bytes: %v", err)
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}

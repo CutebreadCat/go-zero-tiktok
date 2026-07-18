@@ -5,10 +5,10 @@ import (
 	"io"
 	"mime/multipart"
 
+	token "go_zero-tiktok/app/gateway/api/internal/middleware/token"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	"go_zero-tiktok/app/user/rpc/userservice"
-	"go_zero-tiktok/pkg/jwt"
 	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/logx"

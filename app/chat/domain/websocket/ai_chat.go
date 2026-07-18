@@ -3,7 +3,7 @@ package websocket
 import (
 	"context"
 
-	"log"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 
 	"go_zero-tiktok/pkg/contract"
 	"go_zero-tiktok/pkg/xerr"
@@ -52,7 +52,7 @@ func (a *AIChat) CheckAndEnqueue(ctx context.Context, userID, roomID string, msg
 	}
 
 	if count < aiTriggerMsgCount {
-		log.Printf("用户 %s 在房间 %s 的 AI 消息计数为 %d，等待达到 %d", userID, roomID, count, aiTriggerMsgCount)
+		appLogger.Infof("鐢ㄦ埛 %s 鍦ㄦ埧闂?%s 鐨?AI 娑堟伅璁℃暟涓?%d锛岀瓑寰呰揪鍒?%d", userID, roomID, count, aiTriggerMsgCount)
 		return false, nil
 	}
 
@@ -62,10 +62,10 @@ func (a *AIChat) CheckAndEnqueue(ctx context.Context, userID, roomID string, msg
 func (a *AIChat) ExecuteAI(ctx context.Context, userID, roomID string) (Message, error) {
 	defer func() {
 		if err := a.Cache.ClearAIMessage(ctx, userID, roomID); err != nil {
-			log.Printf("清除 AI 消息计数失败 (用户 %s, 房间 %s): %v", userID, roomID, err)
+			appLogger.Infof("娓呴櫎 AI 娑堟伅璁℃暟澶辫触 (鐢ㄦ埛 %s, 鎴块棿 %s): %v", userID, roomID, err)
 		}
 		if err := a.Cache.ClearAIStream(ctx, userID, roomID); err != nil {
-			log.Printf("清除 AI 流失败 (用户 %s, 房间 %s): %v", userID, roomID, err)
+			appLogger.Infof("娓呴櫎 AI 娴佸け璐?(鐢ㄦ埛 %s, 鎴块棿 %s): %v", userID, roomID, err)
 		}
 	}()
 

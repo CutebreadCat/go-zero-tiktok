@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"context"
-	"log"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"time"
 
 	myutils "go_zero-tiktok/pkg/utils"
@@ -28,7 +28,7 @@ func (c *Client) ReadLoop() {
 		}
 
 		if allowed, err := c.Hub.limiter.Allow(c.UserID); err != nil {
-			log.Printf("限流检查失败: %v", err)
+			appLogger.Infof("闄愭祦妫€鏌ュけ璐? %v", err)
 			continue
 		} else if !allowed {
 			c.Send <- map[string]string{typeKey: MessageTypeError, rateLimitMessageKey: wsRateLimitMessage}
@@ -46,7 +46,7 @@ func (c *Client) ReadLoop() {
 		case MessageTypePing:
 			c.Send <- map[string]string{"req": MessageTypePong}
 		default:
-			log.Printf("未知的消息类型: %s", msg.Typek)
+			appLogger.Infof("鏈煡鐨勬秷鎭被鍨? %s", msg.Typek)
 			continue
 		}
 	}
@@ -61,12 +61,12 @@ func (c *Client) WriteLoop() {
 			_ = c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
 			c.Cmu.Lock()
 			if !ok {
-				log.Println("发送通道已关闭，退出 WriteLoop")
+				appLogger.Info("鍙戦€侀€氶亾宸插叧闂紝閫€鍑?WriteLoop")
 				c.Cmu.Unlock()
 				return
 			}
 			if err := c.Conn.WriteJSON(message); err != nil {
-				log.Printf("写入消息到客户端 %s 失败: %v", c.UserID, err)
+				appLogger.Infof("鍐欏叆娑堟伅鍒板鎴风 %s 澶辫触: %v", c.UserID, err)
 				c.Cmu.Unlock()
 				return
 			}
@@ -74,7 +74,7 @@ func (c *Client) WriteLoop() {
 		case <-ticker.C:
 			_ = c.Conn.SetWriteDeadline(time.Now().Add(pongWait))
 			if err := c.Conn.WriteMessage(ws.PingMessage, nil); err != nil {
-				log.Printf("发送 ping 到客户端 %s 失败: %v", c.UserID, err)
+				appLogger.Infof("鍙戦€?ping 鍒板鎴风 %s 澶辫触: %v", c.UserID, err)
 				return
 			}
 		}

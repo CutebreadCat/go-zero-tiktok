@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"go_zero-tiktok/app/video/rpc/internal/config"
 	"go_zero-tiktok/app/video/rpc/internal/server"
 	"go_zero-tiktok/app/video/rpc/internal/svc"
@@ -23,6 +24,12 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	level := "info"
+	if c.Mode == service.DevMode || c.Mode == service.TestMode {
+		level = "debug"
+	}
+	appLogger.Init("video-rpc", level)
+	defer appLogger.Close()
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {

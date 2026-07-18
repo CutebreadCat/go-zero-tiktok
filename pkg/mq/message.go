@@ -2,7 +2,7 @@ package mqcontract
 
 import (
 	"encoding/json"
-	"log"
+	appLogger "go_zero-tiktok/Prometheus/logger"
 	"sync"
 )
 
@@ -52,7 +52,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 		Data json.RawMessage `json:"Data"`
 	}
 	if err := json.Unmarshal(data, &raw); err != nil {
-		log.Printf("反序列化失败: %v", err)
+		appLogger.Errorf("反序列化失败: %v", err)
 		return err
 	}
 	e.Type = raw.Type
