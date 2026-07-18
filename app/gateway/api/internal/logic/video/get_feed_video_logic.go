@@ -10,20 +10,20 @@ import (
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/Prometheus/logger"
 )
 
 type GetFeedVideoLogic struct {
-	logx.Logger
+	*logger.ContextLogger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
 func NewGetFeedVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFeedVideoLogic {
 	return &GetFeedVideoLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
+		ContextLogger: logger.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
 	}
 }
 

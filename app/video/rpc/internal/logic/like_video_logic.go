@@ -7,20 +7,20 @@ import (
 	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/Prometheus/logger"
 )
 
 type LikeVideoLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewLikeVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeVideoLogic {
 	return &LikeVideoLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 

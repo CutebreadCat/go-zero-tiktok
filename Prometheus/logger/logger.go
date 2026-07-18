@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -16,13 +17,15 @@ import (
 type controlLogger struct {
 	// loggerMu protects access to the active logger pointer only. It is never
 	// held while zap encodes or writes a log entry.
-	loggerMu     sync.RWMutex
-	logger       *Logger
-	hooksMu      sync.RWMutex
-	hooks        []func(zapcore.Entry) error
-	done         atomic.Bool
-	rotationMu   sync.Mutex
-	rotationStop chan struct{}
+	loggerMu      sync.RWMutex
+	logger        *Logger
+	hooksMu       sync.RWMutex
+	hooks         []func(zapcore.Entry) error
+	contextMu     sync.RWMutex
+	contextFields []func(context.Context) []zap.Field
+	done          atomic.Bool
+	rotationMu    sync.Mutex
+	rotationStop  chan struct{}
 }
 
 // setLogger replaces the active logger used by the package-level facade.
@@ -123,6 +126,7 @@ func (l *Logger) Close() error {
 // keeps package-level logging safe before main has selected its final path.
 func init() {
 	control.hooks = make([]func(zapcore.Entry) error, 0)
+	control.contextFields = []func(context.Context) []zap.Field{defaultContextFields}
 	InitStdout()
 }
 

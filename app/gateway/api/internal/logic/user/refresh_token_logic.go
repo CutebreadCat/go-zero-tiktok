@@ -8,20 +8,20 @@ import (
 	"go_zero-tiktok/app/user/rpc/userservice"
 	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/Prometheus/logger"
 )
 
 type RefreshTokenLogic struct {
-	logx.Logger
+	*logger.ContextLogger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
 func NewRefreshTokenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *RefreshTokenLogic {
 	return &RefreshTokenLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
+		ContextLogger: logger.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
 	}
 }
 

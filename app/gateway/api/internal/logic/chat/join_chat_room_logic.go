@@ -9,20 +9,20 @@ import (
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/Prometheus/logger"
 )
 
 type JoinChatRoomLogic struct {
-	logx.Logger
+	*logger.ContextLogger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
 func NewJoinChatRoomLogic(ctx context.Context, svcCtx *svc.ServiceContext) *JoinChatRoomLogic {
 	return &JoinChatRoomLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
+		ContextLogger: logger.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
 	}
 }
 

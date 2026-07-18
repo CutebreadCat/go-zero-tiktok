@@ -9,20 +9,20 @@ import (
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/Prometheus/logger"
 )
 
 type CommentVideoLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewCommentVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CommentVideoLogic {
 	return &CommentVideoLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 

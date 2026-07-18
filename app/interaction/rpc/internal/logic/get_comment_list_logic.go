@@ -7,20 +7,20 @@ import (
 	"go_zero-tiktok/app/interaction/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/Prometheus/logger"
 )
 
 type GetCommentListLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewGetCommentListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCommentListLogic {
 	return &GetCommentListLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 

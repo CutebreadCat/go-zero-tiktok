@@ -8,20 +8,20 @@ import (
 	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
 	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/Prometheus/logger"
 )
 
 type GetVideoListLogic struct {
-	logx.Logger
+	*logger.ContextLogger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
 func NewGetVideoListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetVideoListLogic {
 	return &GetVideoListLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
+		ContextLogger: logger.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
 	}
 }
 

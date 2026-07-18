@@ -7,20 +7,20 @@ import (
 	"go_zero-tiktok/app/chat/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/Prometheus/logger"
 )
 
 type JoinChatRoomLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewJoinChatRoomLogic(ctx context.Context, svcCtx *svc.ServiceContext) *JoinChatRoomLogic {
 	return &JoinChatRoomLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 
