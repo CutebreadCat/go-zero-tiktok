@@ -6,3 +6,8 @@ Etcd:
   Key: interaction.rpc
 
 DataSource: "root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
+VideoRpc:
+  Etcd:
+    Hosts:
+    - etcd:2379
+    Key: video.rpc

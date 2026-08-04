@@ -3,9 +3,10 @@ package logic
 import (
 	"bytes"
 	"context"
+	"strconv"
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	"go_zero-tiktok/app/video/rpc/video_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -27,7 +28,7 @@ func NewPublishVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Publ
 }
 
 func (l *PublishVideoLogic) PublishVideo(in *video_pb.PublishVideoRequest) (*video_pb.PublishVideoResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
 	if in.Title == "" {
@@ -38,7 +39,7 @@ func (l *PublishVideoLogic) PublishVideo(in *video_pb.PublishVideoRequest) (*vid
 	}
 
 	videoID := myutils.GenerateVideoID()
-	objectKey := in.UserId + "/" + videoID + "/" + in.Filename
+	objectKey := strconv.FormatInt(in.UserId, 10) + "/" + strconv.FormatInt(videoID, 10) + "/" + in.Filename
 
 	videoURL, err := l.svcCtx.Storage.UploadFile(bytes.NewReader(in.VideoData), objectKey)
 	if err != nil {

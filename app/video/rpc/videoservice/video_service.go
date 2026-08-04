@@ -7,29 +7,31 @@ package videoservice
 import (
 	"context"
 
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	"go_zero-tiktok/app/video/rpc/video_pb"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
 type (
-	GetFeedVideoRequest     = video_pb.GetFeedVideoRequest
-	GetFeedVideoResponse    = video_pb.GetFeedVideoResponse
-	GetLikeListRequest      = video_pb.GetLikeListRequest
-	GetLikeListResponse     = video_pb.GetLikeListResponse
-	GetPopularVideoRequest  = video_pb.GetPopularVideoRequest
-	GetPopularVideoResponse = video_pb.GetPopularVideoResponse
-	GetVideoListRequest     = video_pb.GetVideoListRequest
-	GetVideoListResponse    = video_pb.GetVideoListResponse
-	LikeVideoRequest        = video_pb.LikeVideoRequest
-	LikeVideoResponse       = video_pb.LikeVideoResponse
-	PublishVideoRequest     = video_pb.PublishVideoRequest
-	PublishVideoResponse    = video_pb.PublishVideoResponse
-	SearchVideoRequest      = video_pb.SearchVideoRequest
-	SearchVideoResponse     = video_pb.SearchVideoResponse
-	VideoInfo               = video_pb.VideoInfo
-	VideoPopularInfo        = video_pb.VideoPopularInfo
+	GetFeedVideoRequest             = video_pb.GetFeedVideoRequest
+	GetFeedVideoResponse            = video_pb.GetFeedVideoResponse
+	GetLikeListRequest              = video_pb.GetLikeListRequest
+	GetLikeListResponse             = video_pb.GetLikeListResponse
+	GetPopularVideoRequest          = video_pb.GetPopularVideoRequest
+	GetPopularVideoResponse         = video_pb.GetPopularVideoResponse
+	GetVideoListRequest             = video_pb.GetVideoListRequest
+	GetVideoListResponse            = video_pb.GetVideoListResponse
+	IncreaseVideoVisitCountRequest  = video_pb.IncreaseVideoVisitCountRequest
+	IncreaseVideoVisitCountResponse = video_pb.IncreaseVideoVisitCountResponse
+	LikeVideoRequest                = video_pb.LikeVideoRequest
+	LikeVideoResponse               = video_pb.LikeVideoResponse
+	PublishVideoRequest             = video_pb.PublishVideoRequest
+	PublishVideoResponse            = video_pb.PublishVideoResponse
+	SearchVideoRequest              = video_pb.SearchVideoRequest
+	SearchVideoResponse             = video_pb.SearchVideoResponse
+	VideoInfo                       = video_pb.VideoInfo
+	VideoPopularInfo                = video_pb.VideoPopularInfo
 
 	VideoService interface {
 		PublishVideo(ctx context.Context, in *PublishVideoRequest, opts ...grpc.CallOption) (*PublishVideoResponse, error)
@@ -39,6 +41,7 @@ type (
 		GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
 		LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error)
 		GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error)
+		IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
 	}
 
 	defaultVideoService struct {
@@ -85,4 +88,9 @@ func (m *defaultVideoService) LikeVideo(ctx context.Context, in *LikeVideoReques
 func (m *defaultVideoService) GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error) {
 	client := video_pb.NewVideoServiceClient(m.cli.Conn())
 	return client.GetLikeList(ctx, in, opts...)
+}
+
+func (m *defaultVideoService) IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error) {
+	client := video_pb.NewVideoServiceClient(m.cli.Conn())
+	return client.IncreaseVideoVisitCount(ctx, in, opts...)
 }

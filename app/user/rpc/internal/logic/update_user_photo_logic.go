@@ -26,7 +26,7 @@ func NewUpdateUserPhotoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *U
 }
 
 func (l *UpdateUserPhotoLogic) UpdateUserPhoto(in *user_pb.UpdateUserPhotoRequest) (*user_pb.UpdateUserPhotoResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户 ID 不能为空")
 	}
 	if len(in.Photo) == 0 {

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	"go_zero-tiktok/app/video/rpc/video_pb"
 	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/Prometheus/logger"
@@ -25,10 +25,10 @@ func NewLikeVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeVid
 }
 
 func (l *LikeVideoLogic) LikeVideo(in *video_pb.LikeVideoRequest) (*video_pb.LikeVideoResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
-	if in.VideoId == "" {
+	if in.VideoId == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 

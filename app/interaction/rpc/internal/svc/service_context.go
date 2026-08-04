@@ -21,7 +21,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	logx.Must(err)
 
 	dalRepo := NewRepositories(db)
-	videoVisitAdapter := NewVideoVisitAdapter(db)
+	videoVisitAdapter := NewVideoVisitAdapter(c)
 
 	return &ServiceContext{
 		Config:         c,

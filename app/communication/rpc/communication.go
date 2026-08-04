@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	appLogger "go_zero-tiktok/Prometheus/logger"
-	"go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
+	"go_zero-tiktok/app/communication/rpc/communication_pb"
 	"go_zero-tiktok/app/communication/rpc/internal/config"
 	"go_zero-tiktok/app/communication/rpc/internal/server"
 	"go_zero-tiktok/app/communication/rpc/internal/svc"

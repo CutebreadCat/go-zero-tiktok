@@ -15,8 +15,4 @@ service tiktok-api {
   get /user/mfa/qrcode (MfaqrcodeRequest) returns (MfaqrcodeResponse)
   @handler BindMfaHandler
   post /user/mfa/bind (BindMfaqrcodeRequest) returns (BindMfaqrcodeResponse)
-  @handler JwchLoginHandler
-  post /user/jwch/login (JwchLoginRequest) returns (JwchLoginResponse)
-  @handler JwchGetUserCookieHandler
-  get /user/jwch/cookie (JwchGetUserCookieRequest) returns (JwchGetUserCookieResponse)
 }

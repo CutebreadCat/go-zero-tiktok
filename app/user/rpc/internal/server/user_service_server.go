@@ -43,6 +43,11 @@ func (s *UserServiceServer) GetUserInfo(ctx context.Context, in *user_pb.GetUser
 	return l.GetUserInfo(in)
 }
 
+func (s *UserServiceServer) BatchGetUserInfo(ctx context.Context, in *user_pb.BatchGetUserInfoRequest) (*user_pb.BatchGetUserInfoResponse, error) {
+	l := logic.NewBatchGetUserInfoLogic(ctx, s.svcCtx)
+	return l.BatchGetUserInfo(in)
+}
+
 func (s *UserServiceServer) UpdateUserPhoto(ctx context.Context, in *user_pb.UpdateUserPhotoRequest) (*user_pb.UpdateUserPhotoResponse, error) {
 	l := logic.NewUpdateUserPhotoLogic(ctx, s.svcCtx)
 	return l.UpdateUserPhoto(in)
@@ -56,14 +61,4 @@ func (s *UserServiceServer) GetMfaQRCode(ctx context.Context, in *user_pb.GetMfa
 func (s *UserServiceServer) BindMfa(ctx context.Context, in *user_pb.BindMfaRequest) (*user_pb.BindMfaResponse, error) {
 	l := logic.NewBindMfaLogic(ctx, s.svcCtx)
 	return l.BindMfa(in)
-}
-
-func (s *UserServiceServer) JwchLogin(ctx context.Context, in *user_pb.JwchLoginRequest) (*user_pb.JwchLoginResponse, error) {
-	l := logic.NewJwchLoginLogic(ctx, s.svcCtx)
-	return l.JwchLogin(in)
-}
-
-func (s *UserServiceServer) JwchGetUserCookie(ctx context.Context, in *user_pb.JwchGetUserCookieRequest) (*user_pb.JwchGetUserCookieResponse, error) {
-	l := logic.NewJwchGetUserCookieLogic(ctx, s.svcCtx)
-	return l.JwchGetUserCookie(in)
 }

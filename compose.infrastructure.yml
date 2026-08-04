@@ -67,6 +67,14 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  # One-off migration runner (not started by `infra-up`; use `make migrate-up`)
+  migrate:
+    image: migrate/migrate:v4.19.1
+    profiles: ["migrate"]
+    volumes:
+      - ./migrations:/migrations
+    entrypoint: ["sh", "-c", "echo 'Run: make migrate-up' && sleep 3600"]
+
 volumes:
   redis-data:
   mysql-data:

@@ -5,8 +5,8 @@ package communication;
 option go_package = "./communication_pb";
 
 message SubscribeRequest {
-    string follower_id = 1;
-    string user_id = 2;
+    int64 follower_id = 1;
+    int64 user_id = 2;
     int32 action_type = 3;  // 1-关注 0-取消关注
 }
 
@@ -14,13 +14,13 @@ message SubscribeResponse {
 }
 
 message GetFansListRequest {
-    string user_id = 1;
+    int64 user_id = 1;
     int32 page_num = 2;
     int32 page_size = 3;
 }
 
 message UserInfo {
-    string user_id = 1;
+    int64 user_id = 1;
     string username = 2;
     string photo_url = 3;
 }
@@ -31,7 +31,7 @@ message GetFansListResponse {
 }
 
 message GetSubscriberListRequest {
-    string user_id = 1;
+    int64 user_id = 1;
     int32 page_num = 2;
     int32 page_size = 3;
 }
@@ -42,7 +42,7 @@ message GetSubscriberListResponse {
 }
 
 message GetFriendListRequest {
-    string user_id = 1;
+    int64 user_id = 1;
     int32 page_num = 2;
     int32 page_size = 3;
 }

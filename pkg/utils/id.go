@@ -22,45 +22,36 @@ func init() {
 	}
 }
 
-// GenerateUserID 生成用户ID,格式: u + 雪花ID
-// 例如: u123456789012345678
-func GenerateUserID() string {
-	return fmt.Sprintf("u%d", snowflakeNode.Generate().Int64())
+// GenerateUserID 生成用户ID
+func GenerateUserID() int64 {
+	return snowflakeNode.Generate().Int64()
 }
 
-// GenerateVideoID 生成视频ID,格式: v + 雪花ID
-// 例如: v123456789012345678
-func GenerateVideoID() string {
-	return fmt.Sprintf("v%d", snowflakeNode.Generate().Int64())
+// GenerateVideoID 生成视频ID
+func GenerateVideoID() int64 {
+	return snowflakeNode.Generate().Int64()
 }
 
-func GenerateCommentID() string {
-	return fmt.Sprintf("c%d", snowflakeNode.Generate().Int64())
+func GenerateCommentID() int64 {
+	return snowflakeNode.Generate().Int64()
 }
 
-func GenerateRoomID() string {
-	return fmt.Sprintf("r%d", snowflakeNode.Generate().Int64())
+func GenerateRoomID() int64 {
+	return snowflakeNode.Generate().Int64()
 }
-func GenerateMessageID() string {
-	return fmt.Sprintf("m%d", snowflakeNode.Generate().Int64())
+
+func GenerateMessageID() int64 {
+	return snowflakeNode.Generate().Int64()
 }
-func GetUserIDFromContext(ctx context.Context) (string, error) {
+
+func GetUserIDFromContext(ctx context.Context) (int64, error) {
 	if ctx == nil {
-		return "", xerr.New(500, "上下文为空")
+		return 0, xerr.New(500, "上下文为空")
 	}
 
-	if uid, ok := ctx.Value(ctxkey.UserID).(string); ok && uid != "" {
+	if uid, ok := ctx.Value(ctxkey.UserID).(int64); ok && uid != 0 {
 		return uid, nil
 	}
 
-	keys := []string{"user_id", "userId", "uid", "UserID"}
-	for _, key := range keys {
-		if v := ctx.Value(key); v != nil {
-			if uid, ok := v.(string); ok && uid != "" {
-				return uid, nil
-			}
-		}
-	}
-
-	return "", xerr.New(401, "用户未登录或登录已过期")
+	return 0, xerr.New(401, "用户未登录或登录已过期")
 }

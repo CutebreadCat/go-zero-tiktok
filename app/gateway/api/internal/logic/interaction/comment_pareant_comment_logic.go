@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 

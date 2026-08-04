@@ -2,6 +2,7 @@ package user_service
 
 import (
 	"context"
+	"strconv"
 
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
@@ -9,12 +10,12 @@ import (
 
 // TokenProvider token 生成与管理接口
 type TokenProvider interface {
-	GenerateAccessToken(secret, userID string) (string, error)
-	GenerateRefreshToken(secret, userID string) (string, error)
-	SaveRefreshToken(ctx context.Context, rdb interface{}, refreshToken, userID string) error
+	GenerateAccessToken(secret string, userID int64) (string, error)
+	GenerateRefreshToken(secret string, userID int64) (string, error)
+	SaveRefreshToken(ctx context.Context, rdb interface{}, refreshToken string, userID int64) error
 	ParseToken(secret, tokenStr string) (interface{}, error)
-	GetRefreshTokenUserID(ctx context.Context, rdb interface{}, refreshToken string) (string, error)
-	RotateRefreshToken(ctx context.Context, rdb interface{}, oldToken, newToken, userID string) error
+	GetRefreshTokenUserID(ctx context.Context, rdb interface{}, refreshToken string) (int64, error)
+	RotateRefreshToken(ctx context.Context, rdb interface{}, oldToken, newToken string, userID int64) error
 }
 
 // MfaProvider MFA 验证接口
@@ -23,7 +24,7 @@ type MfaProvider interface {
 }
 
 type LoginResult struct {
-	UserID       string
+	UserID       int64
 	AccessToken  string
 	RefreshToken string
 }
@@ -47,14 +48,14 @@ func NewAuthService(userRepo IUserRepo, token TokenProvider, mfa MfaProvider, se
 }
 
 // Register 用户注册
-func (s *AuthService) Register(ctx context.Context, username, password string) (string, error) {
+func (s *AuthService) Register(ctx context.Context, username, password string) (int64, error) {
 	if _, err := s.userRepo.GetUserByUsername(ctx, username); err == nil {
-		return "", xerr.NewInvalidParam("用户名已存在，请更换后重试")
+		return 0, xerr.NewInvalidParam("用户名已存在，请更换后重试")
 	}
 
 	userID := myutils.GenerateUserID()
 	if err := s.userRepo.CreateUserFromParams(ctx, userID, username, myutils.HashPassword(password), ""); err != nil {
-		return "", xerr.HandleDaoError(err, "Register.CreateUser")
+		return 0, xerr.HandleDaoError(err, "Register.CreateUser")
 	}
 
 	return userID, nil
@@ -132,7 +133,8 @@ func (s *AuthService) RefreshToken(ctx context.Context, oldRefreshToken string) 
 	if err != nil {
 		return "", "", xerr.NewUnauthorized("获取用户ID失败")
 	}
-	if userID != cp.GetUserID() {
+	claimsUserID, err := strconv.ParseInt(cp.GetUserID(), 10, 64)
+	if err != nil || userID != claimsUserID {
 		return "", "", xerr.NewUnauthorized("刷新令牌不匹配")
 	}
 

@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 
-	"go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
+	"go_zero-tiktok/app/communication/rpc/communication_pb"
 	"go_zero-tiktok/app/communication/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -25,7 +25,7 @@ func NewGetSubscriberListLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 }
 
 func (l *GetSubscriberListLogic) GetSubscriberList(in *communication_pb.GetSubscriberListRequest) (*communication_pb.GetSubscriberListResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
 	if in.PageSize <= 0 || in.PageSize > 100 {

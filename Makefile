@@ -2,7 +2,8 @@
         infra-up infra-stop \
         build-local run-gateway-local run-user-local run-video-local \
         run-interaction-local run-communication-local run-all-local \
-        test vet fmt api-get db-shell mysql
+        test vet fmt api-get db-shell mysql \
+        migrate-up migrate-down
 
 # go-zero code generation
 api-build:
@@ -78,3 +79,18 @@ db-shell:
 	docker compose -f compose.infrastructure.yml exec mysql mysql -uroot -pyourpassword
 
 mysql: db-shell
+
+# Database migrations (run against the docker mysql container only, never local MySQL)
+MIGRATE_DSN := mysql://root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local
+
+migrate-up:
+	docker compose -f compose.infrastructure.yml --profile migrate run --rm --no-deps \
+		-e MIGRATE_DSN="$(MIGRATE_DSN)" \
+		--entrypoint migrate migrate \
+		-path /migrations -database "$$MIGRATE_DSN" up
+
+migrate-down:
+	docker compose -f compose.infrastructure.yml --profile migrate run --rm --no-deps \
+		-e MIGRATE_DSN="$(MIGRATE_DSN)" \
+		--entrypoint migrate migrate \
+		-path /migrations -database "$$MIGRATE_DSN" down 1

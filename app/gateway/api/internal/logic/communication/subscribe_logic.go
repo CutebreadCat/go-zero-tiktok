@@ -3,7 +3,7 @@ package communication
 import (
 	"context"
 
-	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
+	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	myutils "go_zero-tiktok/pkg/utils"
@@ -32,7 +32,7 @@ func (l *SubscribeLogic) Subscribe(req *types.SubscribeRequest) (resp *types.Sub
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	if req.ToUserID == "" {
+	if req.ToUserID == 0 {
 		return nil, xerr.NewInvalidParam("被关注用户ID不能为空")
 	}
 

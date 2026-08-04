@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	videopb "go_zero-tiktok/app/video/rpc/video_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -31,7 +31,7 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 	if err != nil {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
-	if req.VideoID == "" {
+	if req.VideoID == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 

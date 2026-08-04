@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/Prometheus/logger"
@@ -26,7 +26,7 @@ func NewGetCommentListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 }
 
 func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (resp *types.GetCommentListResponse, err error) {
-	if req.VideoID == "" {
+	if req.VideoID == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 	if req.PageSize > 100 {

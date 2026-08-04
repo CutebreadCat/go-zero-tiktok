@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 
-	"go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	"go_zero-tiktok/app/interaction/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -25,10 +25,10 @@ func NewDeleteCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Del
 }
 
 func (l *DeleteCommentLogic) DeleteComment(in *interaction_pb.DeleteCommentRequest) (*interaction_pb.DeleteCommentResponse, error) {
-	if in.CommentId == "" {
+	if in.CommentId == 0 {
 		return nil, xerr.NewInvalidParam("评论ID不能为空")
 	}
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
 

@@ -19,13 +19,13 @@ func NewUserFollowService(followRepo IUserFollowRepo, userRepo IUserRepo) *UserF
 }
 
 // GetFansList 获取粉丝列表（关系 ID 水合为用户详情）
-func (s *UserFollowService) GetFansList(ctx context.Context, userID string, pageNum, pageSize int32) ([]types.UserBaseinfo, int64, error) {
+func (s *UserFollowService) GetFansList(ctx context.Context, userID int64, pageNum, pageSize int32) ([]types.UserBaseinfo, int64, error) {
 	relations, total, err := s.followRepo.GetFansByUserID(ctx, userID, pageNum, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	fansIDs := make([]string, 0, len(relations))
+	fansIDs := make([]int64, 0, len(relations))
 	for _, relation := range relations {
 		fansIDs = append(fansIDs, relation.FollowerID)
 	}
@@ -43,13 +43,13 @@ func (s *UserFollowService) GetFansList(ctx context.Context, userID string, page
 }
 
 // GetSubscriberList 获取关注列表（关系 ID 水合为用户详情）
-func (s *UserFollowService) GetSubscriberList(ctx context.Context, userID string, pageNum, pageSize int32) ([]types.UserBaseinfo, int64, error) {
+func (s *UserFollowService) GetSubscriberList(ctx context.Context, userID int64, pageNum, pageSize int32) ([]types.UserBaseinfo, int64, error) {
 	relations, total, err := s.followRepo.GetFollowingByFollowerID(ctx, userID, pageNum, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	subscriberIDs := make([]string, 0, len(relations))
+	subscriberIDs := make([]int64, 0, len(relations))
 	for _, relation := range relations {
 		subscriberIDs = append(subscriberIDs, relation.UserID)
 	}
@@ -67,15 +67,15 @@ func (s *UserFollowService) GetSubscriberList(ctx context.Context, userID string
 }
 
 // GetFriendList 获取好友列表（关系 ID 水合为用户详情）
-func (s *UserFollowService) GetFriendList(ctx context.Context, userID string, pageNum, pageSize int32) ([]types.UserBaseinfo, int64, error) {
+func (s *UserFollowService) GetFriendList(ctx context.Context, userID int64, pageNum, pageSize int32) ([]types.UserBaseinfo, int64, error) {
 	relations, total, err := s.followRepo.GetFriendByUserID(ctx, userID, pageNum, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	friendIDs := make([]string, 0, len(relations))
+	friendIDs := make([]int64, 0, len(relations))
 	for _, relation := range relations {
-		friendIDs = append(friendIDs, relation.FollowerID)
+		friendIDs = append(friendIDs, relation.UserID)
 	}
 
 	if len(friendIDs) == 0 {
@@ -91,11 +91,11 @@ func (s *UserFollowService) GetFriendList(ctx context.Context, userID string, pa
 }
 
 // FollowUser 关注用户
-func (s *UserFollowService) FollowUser(ctx context.Context, followerID, userID string) error {
+func (s *UserFollowService) FollowUser(ctx context.Context, followerID, userID int64) error {
 	return s.followRepo.FollowUser(ctx, followerID, userID)
 }
 
 // UnfollowUser 取消关注
-func (s *UserFollowService) UnfollowUser(ctx context.Context, followerID, userID string) error {
+func (s *UserFollowService) UnfollowUser(ctx context.Context, followerID, userID int64) error {
 	return s.followRepo.UnfollowUser(ctx, followerID, userID)
 }

@@ -18,21 +18,21 @@ func NewVideoPopularRepo(db *gorm.DB) *VideoPopularRepo {
 	return &VideoPopularRepo{db: db}
 }
 
-func (r *VideoPopularRepo) CreatePopularVideo(ctx context.Context, videoID string) error {
+func (r *VideoPopularRepo) CreatePopularVideo(ctx context.Context, videoID int64) error {
 	if err := videopopulartable.CreatePopularVideo(ctx, r.db, videoID); err != nil {
 		return pkgerrors.WithMessage(err, "VideoPopularRepo.CreatePopularVideo")
 	}
 	return nil
 }
 
-func (r *VideoPopularRepo) IncreaseVideoVisitCount(ctx context.Context, videoID string, delta int64) error {
+func (r *VideoPopularRepo) IncreaseVideoVisitCount(ctx context.Context, videoID int64, delta int64) error {
 	if err := videopopulartable.IncreaseVideoVisitCount(ctx, r.db, videoID, delta); err != nil {
 		return pkgerrors.WithMessage(err, "VideoPopularRepo.IncreaseVideoVisitCount")
 	}
 	return nil
 }
 
-func (r *VideoPopularRepo) UpdateVideoLikeCount(ctx context.Context, videoID string, delta int64) error {
+func (r *VideoPopularRepo) UpdateVideoLikeCount(ctx context.Context, videoID int64, delta int64) error {
 	if err := videopopulartable.UpdateVideoLikeCount(ctx, r.db, videoID, delta); err != nil {
 		return pkgerrors.WithMessage(err, "VideoPopularRepo.UpdateVideoLikeCount")
 	}

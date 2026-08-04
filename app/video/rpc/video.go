@@ -8,7 +8,7 @@ import (
 	"go_zero-tiktok/app/video/rpc/internal/config"
 	"go_zero-tiktok/app/video/rpc/internal/server"
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	"go_zero-tiktok/app/video/rpc/video_pb"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"

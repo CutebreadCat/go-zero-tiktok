@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -27,7 +27,7 @@ func NewDeleteCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Del
 }
 
 func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentRequest) (resp *types.DeleteCommentResponse, err error) {
-	if req.CommentID == "" {
+	if req.CommentID == 0 {
 		return nil, xerr.NewInvalidParam("评论ID不能为空")
 	}
 	userid, err := myutils.GetUserIDFromContext(l.ctx)

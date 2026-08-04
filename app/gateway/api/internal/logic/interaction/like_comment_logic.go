@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -31,7 +31,7 @@ func (l *LikeCommentLogic) LikeComment(req *types.LikeCommentRequest) (resp *typ
 	if err != nil {
 		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
 	}
-	if userId == "" {
+	if userId == 0 {
 		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
 	}
 	if req.Liketype != 1 && req.Liketype != 0 {

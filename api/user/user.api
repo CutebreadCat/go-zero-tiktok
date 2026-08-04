@@ -32,7 +32,7 @@ type (
 
   RegisterResponse  {
     Base   BaseResponse `json:"base"`
-    UserID string              `json:"user_id"`
+    UserID int64              `json:"user_id,string"`
   }
 
   LoginRequest  {
@@ -43,13 +43,13 @@ type (
 
   LoginResponse  {
     Base         BaseResponse `json:"base"`
-    UserID       string       `json:"user_id"`
+    UserID       int64        `json:"user_id,string"`
     AccessToken  string       `json:"access_token"`
     RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
   }
 
   UserInfoRequest  {
-    UserID string `form:"user_id"`
+    UserID int64 `form:"user_id"`
   }
 
   UserInfoResponse  {
@@ -89,20 +89,4 @@ type (
   BindMfaqrcodeResponse {
     Base BaseResponse `json:"base"`
   }
-  JwchLoginRequest {
-    Username string `form:"username"`
-    Password string `form:"password"`
-  }
-  JwchLoginResponse {
-    Base         BaseResponse `json:"base"`
-  }
-  JwchGetUserCookieRequest {
-
-  }
-  JwchGetUserCookieResponse {
-    Base         BaseResponse `json:"base"`
-    JwchID       string       `json:"jwch_id"`
-    Cookie       string       `json:"cookie" `
-  }
-   
 )

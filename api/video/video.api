@@ -31,11 +31,11 @@ type (
 
   PublishVideoResponse  {
     Base    BaseResponse `json:"base"`
-    VideoID string              `json:"video_id"`
+    VideoID int64              `json:"video_id,string"`
   }
 
   GetVideoListRequest  {
-    UserID   string  `form:"user_id"`
+    UserID   int64  `form:"user_id"`
     PageSize int32  `form:"page_size"`
     PageNum  int32  `form:"page_num"`
   }

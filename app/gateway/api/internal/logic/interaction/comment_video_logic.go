@@ -6,7 +6,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -32,7 +32,7 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 	if err != nil {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
-	if req.VideoID == "" {
+	if req.VideoID == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 	commentText := strings.TrimSpace(req.CommentText)

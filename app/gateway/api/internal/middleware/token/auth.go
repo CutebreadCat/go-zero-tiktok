@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"go_zero-tiktok/pkg/ctxkey"
@@ -49,7 +50,8 @@ func AuthMiddleware(secret string) rest.Middleware {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), ctxkey.UserID, claims.UserID)
+			userID, _ := strconv.ParseInt(claims.UserID, 10, 64)
+			ctx := context.WithValue(r.Context(), ctxkey.UserID, userID)
 			next(w, r.WithContext(ctx))
 		}
 	}
@@ -64,10 +66,10 @@ var publicPaths = map[string]struct{}{
 	"/video/search":       {},
 }
 
-func UserIDFromContext(ctx context.Context) string {
+func UserIDFromContext(ctx context.Context) int64 {
 	if ctx == nil {
-		return ""
+		return 0
 	}
-	userID, _ := ctx.Value(ctxkey.UserID).(string)
+	userID, _ := ctx.Value(ctxkey.UserID).(int64)
 	return userID
 }

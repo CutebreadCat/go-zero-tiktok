@@ -8,7 +8,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	videopb "go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	videopb "go_zero-tiktok/app/video/rpc/video_pb"
 
 	logger "go_zero-tiktok/Prometheus/logger"
 )

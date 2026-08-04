@@ -7,7 +7,7 @@ package communicationservice
 import (
 	"context"
 
-	"go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
+	"go_zero-tiktok/app/communication/rpc/communication_pb"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"

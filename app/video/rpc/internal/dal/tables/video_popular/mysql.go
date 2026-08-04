@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreatePopularVideo(ctx context.Context, db *gorm.DB, videoID string) error {
+func CreatePopularVideo(ctx context.Context, db *gorm.DB, videoID int64) error {
 	record := &VideoPopular{
 		VideoID:      videoID,
 		VisitCount:   0,
@@ -25,7 +25,7 @@ func CreatePopularVideo(ctx context.Context, db *gorm.DB, videoID string) error 
 	return nil
 }
 
-func IncreaseVideoVisitCount(ctx context.Context, db *gorm.DB, videoID string, delta int64) error {
+func IncreaseVideoVisitCount(ctx context.Context, db *gorm.DB, videoID int64, delta int64) error {
 	if delta <= 0 {
 		delta = 1
 	}
@@ -41,7 +41,7 @@ func IncreaseVideoVisitCount(ctx context.Context, db *gorm.DB, videoID string, d
 	return nil
 }
 
-func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID string, delta int64) error {
+func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID int64, delta int64) error {
 	result := db.WithContext(ctx).
 		Model(&VideoPopular{}).
 		Where("video_id = ?", videoID).
@@ -51,7 +51,7 @@ func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID string, delt
 	}
 
 	if result.RowsAffected == 0 {
-		return xerr.Wrap(fmt.Errorf("video %s not found", videoID), "update video like count failed")
+		return xerr.Wrap(fmt.Errorf("video %d not found", videoID), "update video like count failed")
 	}
 
 	return nil

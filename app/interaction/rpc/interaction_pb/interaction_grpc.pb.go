@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: interaction.proto
+// source: app/interaction/rpc/interaction.proto
 
 package interaction_pb
 
@@ -269,5 +269,5 @@ var InteractionService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "interaction.proto",
+	Metadata: "app/interaction/rpc/interaction.proto",
 }

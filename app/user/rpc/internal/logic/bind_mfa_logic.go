@@ -25,7 +25,7 @@ func NewBindMfaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *BindMfaLo
 }
 
 func (l *BindMfaLogic) BindMfa(in *user_pb.BindMfaRequest) (*user_pb.BindMfaResponse, error) {
-	if in.UserId == "" || in.MfaSecret == "" || in.MfaCode == "" {
+	if in.UserId == 0 || in.MfaSecret == "" || in.MfaCode == "" {
 		return nil, xerr.NewInvalidParam("MFA 参数不能为空")
 	}
 

@@ -28,10 +28,10 @@ func NewGetUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 
 func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (*types.UserInfoResponse, error) {
 	userID := token.UserIDFromContext(l.ctx)
-	if userID == "" {
+	if userID == 0 {
 		userID = req.UserID
 	}
-	if userID == "" {
+	if userID == 0 {
 		return nil, xerr.NewInvalidParam("用户 ID 不能为空")
 	}
 

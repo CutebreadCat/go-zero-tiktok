@@ -3,6 +3,7 @@ package user_service
 import (
 	"context"
 	"io"
+	"strconv"
 
 	"go_zero-tiktok/pkg/contract"
 	"go_zero-tiktok/pkg/xerr"
@@ -25,12 +26,16 @@ func NewProfileService(userRepo IUserRepo, storage ObjectStorage) *ProfileServic
 	}
 }
 
-func (s *ProfileService) GetUserByID(ctx context.Context, userID string) (*types.UserBaseinfo, error) {
+func (s *ProfileService) GetUserByID(ctx context.Context, userID int64) (*types.UserBaseinfo, error) {
 	return s.userRepo.GetUserByID(ctx, userID)
 }
 
-func (s *ProfileService) UpdatePhoto(ctx context.Context, userID string, file io.Reader) (string, error) {
-	objectKey := "user_photos/" + userID + "/" + "profile_photo.jpg"
+func (s *ProfileService) GetUsersByIDs(ctx context.Context, userIDs []int64) ([]types.UserBaseinfo, error) {
+	return s.userRepo.GetUsersByIDs(ctx, userIDs)
+}
+
+func (s *ProfileService) UpdatePhoto(ctx context.Context, userID int64, file io.Reader) (string, error) {
+	objectKey := "user_photos/" + strconv.FormatInt(userID, 10) + "/" + "profile_photo.jpg"
 
 	userinfo, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {

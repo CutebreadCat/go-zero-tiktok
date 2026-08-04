@@ -3,7 +3,7 @@ package communication
 import (
 	"context"
 
-	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
+	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	myutils "go_zero-tiktok/pkg/utils"

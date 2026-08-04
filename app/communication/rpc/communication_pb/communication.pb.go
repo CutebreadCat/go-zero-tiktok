@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.1
-// source: communication.proto
+// source: app/communication/rpc/communication.proto
 
 package communication_pb
 
@@ -23,8 +23,8 @@ const (
 
 type SubscribeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FollowerId    string                 `protobuf:"bytes,1,opt,name=follower_id,json=followerId,proto3" json:"follower_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	FollowerId    int64                  `protobuf:"varint,1,opt,name=follower_id,json=followerId,proto3" json:"follower_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	ActionType    int32                  `protobuf:"varint,3,opt,name=action_type,json=actionType,proto3" json:"action_type,omitempty"` // 1-关注 0-取消关注
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -32,7 +32,7 @@ type SubscribeRequest struct {
 
 func (x *SubscribeRequest) Reset() {
 	*x = SubscribeRequest{}
-	mi := &file_communication_proto_msgTypes[0]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *SubscribeRequest) String() string {
 func (*SubscribeRequest) ProtoMessage() {}
 
 func (x *SubscribeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[0]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,21 +57,21 @@ func (x *SubscribeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscribeRequest.ProtoReflect.Descriptor instead.
 func (*SubscribeRequest) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{0}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SubscribeRequest) GetFollowerId() string {
+func (x *SubscribeRequest) GetFollowerId() int64 {
 	if x != nil {
 		return x.FollowerId
 	}
-	return ""
+	return 0
 }
 
-func (x *SubscribeRequest) GetUserId() string {
+func (x *SubscribeRequest) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
-	return ""
+	return 0
 }
 
 func (x *SubscribeRequest) GetActionType() int32 {
@@ -89,7 +89,7 @@ type SubscribeResponse struct {
 
 func (x *SubscribeResponse) Reset() {
 	*x = SubscribeResponse{}
-	mi := &file_communication_proto_msgTypes[1]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -101,7 +101,7 @@ func (x *SubscribeResponse) String() string {
 func (*SubscribeResponse) ProtoMessage() {}
 
 func (x *SubscribeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[1]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -114,12 +114,12 @@ func (x *SubscribeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscribeResponse.ProtoReflect.Descriptor instead.
 func (*SubscribeResponse) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{1}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{1}
 }
 
 type GetFansListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	PageNum       int32                  `protobuf:"varint,2,opt,name=page_num,json=pageNum,proto3" json:"page_num,omitempty"`
 	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -128,7 +128,7 @@ type GetFansListRequest struct {
 
 func (x *GetFansListRequest) Reset() {
 	*x = GetFansListRequest{}
-	mi := &file_communication_proto_msgTypes[2]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -140,7 +140,7 @@ func (x *GetFansListRequest) String() string {
 func (*GetFansListRequest) ProtoMessage() {}
 
 func (x *GetFansListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[2]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -153,14 +153,14 @@ func (x *GetFansListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFansListRequest.ProtoReflect.Descriptor instead.
 func (*GetFansListRequest) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{2}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *GetFansListRequest) GetUserId() string {
+func (x *GetFansListRequest) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
-	return ""
+	return 0
 }
 
 func (x *GetFansListRequest) GetPageNum() int32 {
@@ -179,7 +179,7 @@ func (x *GetFansListRequest) GetPageSize() int32 {
 
 type UserInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	PhotoUrl      string                 `protobuf:"bytes,3,opt,name=photo_url,json=photoUrl,proto3" json:"photo_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -188,7 +188,7 @@ type UserInfo struct {
 
 func (x *UserInfo) Reset() {
 	*x = UserInfo{}
-	mi := &file_communication_proto_msgTypes[3]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -200,7 +200,7 @@ func (x *UserInfo) String() string {
 func (*UserInfo) ProtoMessage() {}
 
 func (x *UserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[3]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -213,14 +213,14 @@ func (x *UserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
 func (*UserInfo) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{3}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *UserInfo) GetUserId() string {
+func (x *UserInfo) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
-	return ""
+	return 0
 }
 
 func (x *UserInfo) GetUsername() string {
@@ -247,7 +247,7 @@ type GetFansListResponse struct {
 
 func (x *GetFansListResponse) Reset() {
 	*x = GetFansListResponse{}
-	mi := &file_communication_proto_msgTypes[4]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -259,7 +259,7 @@ func (x *GetFansListResponse) String() string {
 func (*GetFansListResponse) ProtoMessage() {}
 
 func (x *GetFansListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[4]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -272,7 +272,7 @@ func (x *GetFansListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFansListResponse.ProtoReflect.Descriptor instead.
 func (*GetFansListResponse) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{4}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetFansListResponse) GetUsers() []*UserInfo {
@@ -291,7 +291,7 @@ func (x *GetFansListResponse) GetTotal() int64 {
 
 type GetSubscriberListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	PageNum       int32                  `protobuf:"varint,2,opt,name=page_num,json=pageNum,proto3" json:"page_num,omitempty"`
 	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -300,7 +300,7 @@ type GetSubscriberListRequest struct {
 
 func (x *GetSubscriberListRequest) Reset() {
 	*x = GetSubscriberListRequest{}
-	mi := &file_communication_proto_msgTypes[5]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -312,7 +312,7 @@ func (x *GetSubscriberListRequest) String() string {
 func (*GetSubscriberListRequest) ProtoMessage() {}
 
 func (x *GetSubscriberListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[5]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -325,14 +325,14 @@ func (x *GetSubscriberListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSubscriberListRequest.ProtoReflect.Descriptor instead.
 func (*GetSubscriberListRequest) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{5}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetSubscriberListRequest) GetUserId() string {
+func (x *GetSubscriberListRequest) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
-	return ""
+	return 0
 }
 
 func (x *GetSubscriberListRequest) GetPageNum() int32 {
@@ -359,7 +359,7 @@ type GetSubscriberListResponse struct {
 
 func (x *GetSubscriberListResponse) Reset() {
 	*x = GetSubscriberListResponse{}
-	mi := &file_communication_proto_msgTypes[6]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -371,7 +371,7 @@ func (x *GetSubscriberListResponse) String() string {
 func (*GetSubscriberListResponse) ProtoMessage() {}
 
 func (x *GetSubscriberListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[6]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -384,7 +384,7 @@ func (x *GetSubscriberListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSubscriberListResponse.ProtoReflect.Descriptor instead.
 func (*GetSubscriberListResponse) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{6}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetSubscriberListResponse) GetUsers() []*UserInfo {
@@ -403,7 +403,7 @@ func (x *GetSubscriberListResponse) GetTotal() int64 {
 
 type GetFriendListRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	PageNum       int32                  `protobuf:"varint,2,opt,name=page_num,json=pageNum,proto3" json:"page_num,omitempty"`
 	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -412,7 +412,7 @@ type GetFriendListRequest struct {
 
 func (x *GetFriendListRequest) Reset() {
 	*x = GetFriendListRequest{}
-	mi := &file_communication_proto_msgTypes[7]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -424,7 +424,7 @@ func (x *GetFriendListRequest) String() string {
 func (*GetFriendListRequest) ProtoMessage() {}
 
 func (x *GetFriendListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[7]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -437,14 +437,14 @@ func (x *GetFriendListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFriendListRequest.ProtoReflect.Descriptor instead.
 func (*GetFriendListRequest) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{7}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *GetFriendListRequest) GetUserId() string {
+func (x *GetFriendListRequest) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
-	return ""
+	return 0
 }
 
 func (x *GetFriendListRequest) GetPageNum() int32 {
@@ -471,7 +471,7 @@ type GetFriendListResponse struct {
 
 func (x *GetFriendListResponse) Reset() {
 	*x = GetFriendListResponse{}
-	mi := &file_communication_proto_msgTypes[8]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -483,7 +483,7 @@ func (x *GetFriendListResponse) String() string {
 func (*GetFriendListResponse) ProtoMessage() {}
 
 func (x *GetFriendListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_communication_proto_msgTypes[8]
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -496,7 +496,7 @@ func (x *GetFriendListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFriendListResponse.ProtoReflect.Descriptor instead.
 func (*GetFriendListResponse) Descriptor() ([]byte, []int) {
-	return file_communication_proto_rawDescGZIP(), []int{8}
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetFriendListResponse) GetUsers() []*UserInfo {
@@ -513,38 +513,38 @@ func (x *GetFriendListResponse) GetTotal() int64 {
 	return 0
 }
 
-var File_communication_proto protoreflect.FileDescriptor
+var File_app_communication_rpc_communication_proto protoreflect.FileDescriptor
 
-const file_communication_proto_rawDesc = "" +
+const file_app_communication_rpc_communication_proto_rawDesc = "" +
 	"\n" +
-	"\x13communication.proto\x12\rcommunication\"m\n" +
+	")app/communication/rpc/communication.proto\x12\rcommunication\"m\n" +
 	"\x10SubscribeRequest\x12\x1f\n" +
-	"\vfollower_id\x18\x01 \x01(\tR\n" +
+	"\vfollower_id\x18\x01 \x01(\x03R\n" +
 	"followerId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1f\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x1f\n" +
 	"\vaction_type\x18\x03 \x01(\x05R\n" +
 	"actionType\"\x13\n" +
 	"\x11SubscribeResponse\"e\n" +
 	"\x12GetFansListRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
 	"\bpage_num\x18\x02 \x01(\x05R\apageNum\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\\\n" +
 	"\bUserInfo\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1b\n" +
 	"\tphoto_url\x18\x03 \x01(\tR\bphotoUrl\"Z\n" +
 	"\x13GetFansListResponse\x12-\n" +
 	"\x05users\x18\x01 \x03(\v2\x17.communication.UserInfoR\x05users\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\"k\n" +
 	"\x18GetSubscriberListRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
 	"\bpage_num\x18\x02 \x01(\x05R\apageNum\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"`\n" +
 	"\x19GetSubscriberListResponse\x12-\n" +
 	"\x05users\x18\x01 \x03(\v2\x17.communication.UserInfoR\x05users\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\"g\n" +
 	"\x14GetFriendListRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x19\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
 	"\bpage_num\x18\x02 \x01(\x05R\apageNum\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\\\n" +
 	"\x15GetFriendListResponse\x12-\n" +
@@ -557,19 +557,19 @@ const file_communication_proto_rawDesc = "" +
 	"\rGetFriendList\x12#.communication.GetFriendListRequest\x1a$.communication.GetFriendListResponseB\x14Z\x12./communication_pbb\x06proto3"
 
 var (
-	file_communication_proto_rawDescOnce sync.Once
-	file_communication_proto_rawDescData []byte
+	file_app_communication_rpc_communication_proto_rawDescOnce sync.Once
+	file_app_communication_rpc_communication_proto_rawDescData []byte
 )
 
-func file_communication_proto_rawDescGZIP() []byte {
-	file_communication_proto_rawDescOnce.Do(func() {
-		file_communication_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_communication_proto_rawDesc), len(file_communication_proto_rawDesc)))
+func file_app_communication_rpc_communication_proto_rawDescGZIP() []byte {
+	file_app_communication_rpc_communication_proto_rawDescOnce.Do(func() {
+		file_app_communication_rpc_communication_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_app_communication_rpc_communication_proto_rawDesc), len(file_app_communication_rpc_communication_proto_rawDesc)))
 	})
-	return file_communication_proto_rawDescData
+	return file_app_communication_rpc_communication_proto_rawDescData
 }
 
-var file_communication_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
-var file_communication_proto_goTypes = []any{
+var file_app_communication_rpc_communication_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_app_communication_rpc_communication_proto_goTypes = []any{
 	(*SubscribeRequest)(nil),          // 0: communication.SubscribeRequest
 	(*SubscribeResponse)(nil),         // 1: communication.SubscribeResponse
 	(*GetFansListRequest)(nil),        // 2: communication.GetFansListRequest
@@ -580,7 +580,7 @@ var file_communication_proto_goTypes = []any{
 	(*GetFriendListRequest)(nil),      // 7: communication.GetFriendListRequest
 	(*GetFriendListResponse)(nil),     // 8: communication.GetFriendListResponse
 }
-var file_communication_proto_depIdxs = []int32{
+var file_app_communication_rpc_communication_proto_depIdxs = []int32{
 	3, // 0: communication.GetFansListResponse.users:type_name -> communication.UserInfo
 	3, // 1: communication.GetSubscriberListResponse.users:type_name -> communication.UserInfo
 	3, // 2: communication.GetFriendListResponse.users:type_name -> communication.UserInfo
@@ -599,26 +599,26 @@ var file_communication_proto_depIdxs = []int32{
 	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_communication_proto_init() }
-func file_communication_proto_init() {
-	if File_communication_proto != nil {
+func init() { file_app_communication_rpc_communication_proto_init() }
+func file_app_communication_rpc_communication_proto_init() {
+	if File_app_communication_rpc_communication_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_communication_proto_rawDesc), len(file_communication_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_app_communication_rpc_communication_proto_rawDesc), len(file_app_communication_rpc_communication_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_communication_proto_goTypes,
-		DependencyIndexes: file_communication_proto_depIdxs,
-		MessageInfos:      file_communication_proto_msgTypes,
+		GoTypes:           file_app_communication_rpc_communication_proto_goTypes,
+		DependencyIndexes: file_app_communication_rpc_communication_proto_depIdxs,
+		MessageInfos:      file_app_communication_rpc_communication_proto_msgTypes,
 	}.Build()
-	File_communication_proto = out.File
-	file_communication_proto_goTypes = nil
-	file_communication_proto_depIdxs = nil
+	File_app_communication_rpc_communication_proto = out.File
+	file_app_communication_rpc_communication_proto_goTypes = nil
+	file_app_communication_rpc_communication_proto_depIdxs = nil
 }

@@ -30,9 +30,9 @@ func CreateUser(ctx context.Context, db *gorm.DB, user *UserBaseinfo) error {
 	return nil
 }
 
-func GetUserByID(ctx context.Context, db *gorm.DB, userID string) (*UserBaseinfo, error) {
+func GetUserByID(ctx context.Context, db *gorm.DB, userID int64) (*UserBaseinfo, error) {
 	var user UserBaseinfo
-	err := db.WithContext(ctx).Where("user_id = ?", userID).First(&user).Error
+	err := db.WithContext(ctx).Where("user_id = ? AND status = 1", userID).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, xerr.NewInvalidParam("用户不存在")
@@ -45,7 +45,7 @@ func GetUserByID(ctx context.Context, db *gorm.DB, userID string) (*UserBaseinfo
 
 func GetUserByUsername(ctx context.Context, db *gorm.DB, username string) (*UserBaseinfo, error) {
 	var user UserBaseinfo
-	err := db.WithContext(ctx).Where("username = ?", username).First(&user).Error
+	err := db.WithContext(ctx).Where("username = ? AND status = 1", username).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, xerr.NewInvalidParam("用户不存在")
@@ -55,8 +55,8 @@ func GetUserByUsername(ctx context.Context, db *gorm.DB, username string) (*User
 	return &user, nil
 }
 
-func UpdateUserPhotoByID(ctx context.Context, db *gorm.DB, userID string, photoURL string) error {
-	result := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).Update("photo_url", photoURL)
+func UpdateUserPhotoByID(ctx context.Context, db *gorm.DB, userID int64, photoURL string) error {
+	result := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ? AND status = 1", userID).Update("photo_url", photoURL)
 	if result.Error != nil {
 		return xerr.Wrap(result.Error, "update user photo failed")
 	}
@@ -67,19 +67,33 @@ func UpdateUserPhotoByID(ctx context.Context, db *gorm.DB, userID string, photoU
 	return nil
 }
 
-func GetUsersByIDs(ctx context.Context, db *gorm.DB, userIDs []string) ([]UserBaseinfo, error) {
+func GetUsersByIDs(ctx context.Context, db *gorm.DB, userIDs []int64) ([]UserBaseinfo, error) {
 	if len(userIDs) == 0 {
 		return []UserBaseinfo{}, nil
 	}
 
 	var users []UserBaseinfo
-	if err := db.WithContext(ctx).Where("user_id IN ?", userIDs).Find(&users).Error; err != nil {
+	if err := db.WithContext(ctx).Where("user_id IN ? AND status = 1", userIDs).Find(&users).Error; err != nil {
 		return nil, xerr.Wrap(err, "get users by ids failed")
 	}
 	return users, nil
 }
 
-func CheckUserExistsMFA(ctx context.Context, db *gorm.DB, userID string) (bool, error) {
+// DeleteUserByID 软删除用户：status 置 0（0已删），同一用户名可重新注册。
+func DeleteUserByID(ctx context.Context, db *gorm.DB, userID int64) error {
+	result := db.WithContext(ctx).Model(&UserBaseinfo{}).
+		Where("user_id = ? AND status = 1", userID).
+		Update("status", 0)
+	if result.Error != nil {
+		return xerr.Wrap(result.Error, "delete user failed")
+	}
+	if result.RowsAffected == 0 {
+		return xerr.NewInvalidParam("用户不存在或已删除")
+	}
+	return nil
+}
+
+func CheckUserExistsMFA(ctx context.Context, db *gorm.DB, userID int64) (bool, error) {
 	var userMFA UserMFA
 	err := db.WithContext(ctx).Where("user_id = ?", userID).First(&userMFA).Error
 	if err != nil {
@@ -91,7 +105,7 @@ func CheckUserExistsMFA(ctx context.Context, db *gorm.DB, userID string) (bool, 
 	return userMFA.MFAEnabled, nil
 }
 
-func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID string, secret string) error {
+func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID int64, secret string) error {
 	result := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).Update("mfa_pending_secret", secret)
 	if result.Error != nil {
 		return xerr.Wrap(result.Error, "update user mfa secret failed")
@@ -102,7 +116,7 @@ func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID string,
 	return nil
 }
 
-func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID string) (string, error) {
+func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID int64) (string, error) {
 	var userMFA UserMFA
 	err := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).First(&userMFA).Error
 	if err != nil {
@@ -114,7 +128,7 @@ func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID string) (string,
 	return userMFA.MFAPendingSecret, nil
 }
 
-func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID string) (string, error) {
+func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID int64) (string, error) {
 	var userMFA UserMFA
 	err := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).First(&userMFA).Error
 	if err != nil {
@@ -124,30 +138,4 @@ func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID string) (str
 		return "", xerr.Wrap(err, "find user mfa secret failed")
 	}
 	return userMFA.MFASecret, nil
-}
-
-func UpdateUserJwchInfo(ctx context.Context, db *gorm.DB, userID string, jwchID string, jwchPassword string) error {
-	result := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).Updates(map[string]interface{}{
-		"jwch_id":       jwchID,
-		"jwch_password": jwchPassword,
-	})
-	if result.Error != nil {
-		return xerr.Wrap(result.Error, "update user jwch info failed")
-	}
-	if result.RowsAffected == 0 {
-		return xerr.NewInvalidParam("没有进行更新")
-	}
-	return nil
-}
-
-func GetUserJwchInfo(ctx context.Context, db *gorm.DB, userID string) (string, string, error) {
-	var user UserBaseinfo
-	err := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).First(&user).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", "", xerr.NewInvalidParam("用户不存在")
-		}
-		return "", "", xerr.Wrap(err, "get user jwch info failed")
-	}
-	return user.JwchID, user.JwchPassword, nil
 }

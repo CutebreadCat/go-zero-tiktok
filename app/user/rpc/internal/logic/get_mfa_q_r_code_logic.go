@@ -25,7 +25,7 @@ func NewGetMfaQRCodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetM
 }
 
 func (l *GetMfaQRCodeLogic) GetMfaQRCode(in *user_pb.GetMfaQRCodeRequest) (*user_pb.GetMfaQRCodeResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户 ID 不能为空")
 	}
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	"go_zero-tiktok/app/video/rpc/video_pb"
 	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/Prometheus/logger"
@@ -25,7 +25,7 @@ func NewGetLikeListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetLi
 }
 
 func (l *GetLikeListLogic) GetLikeList(in *video_pb.GetLikeListRequest) (*video_pb.GetLikeListResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
 	if in.PageSize <= 0 || in.PageSize > 100 {

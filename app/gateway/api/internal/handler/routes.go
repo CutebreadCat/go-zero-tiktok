@@ -127,16 +127,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: user.PostUserPhotoHandler(serverCtx),
 				},
 				{
-					Method:  http.MethodGet,
-					Path:    "/user/jwch/cookie",
-					Handler: user.JwchGetUserCookieHandler(serverCtx),
-				},
-				{
-					Method:  http.MethodPost,
-					Path:    "/user/jwch/login",
-					Handler: user.JwchLoginHandler(serverCtx),
-				},
-				{
 					Method:  http.MethodPost,
 					Path:    "/user/mfa/bind",
 					Handler: user.BindMfaHandler(serverCtx),

@@ -9,7 +9,7 @@ import (
 
 	"go_zero-tiktok/app/video/rpc/internal/logic"
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	"go_zero-tiktok/app/video/rpc/video_pb"
 )
 
 type VideoServiceServer struct {
@@ -56,4 +56,9 @@ func (s *VideoServiceServer) LikeVideo(ctx context.Context, in *video_pb.LikeVid
 func (s *VideoServiceServer) GetLikeList(ctx context.Context, in *video_pb.GetLikeListRequest) (*video_pb.GetLikeListResponse, error) {
 	l := logic.NewGetLikeListLogic(ctx, s.svcCtx)
 	return l.GetLikeList(in)
+}
+
+func (s *VideoServiceServer) IncreaseVideoVisitCount(ctx context.Context, in *video_pb.IncreaseVideoVisitCountRequest) (*video_pb.IncreaseVideoVisitCountResponse, error) {
+	l := logic.NewIncreaseVideoVisitCountLogic(ctx, s.svcCtx)
+	return l.IncreaseVideoVisitCount(in)
 }

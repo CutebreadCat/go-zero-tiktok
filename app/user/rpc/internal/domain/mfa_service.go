@@ -7,7 +7,7 @@ import (
 )
 
 type MfaSecretGenerator interface {
-	GenerateSecret(ctx context.Context, userID string) (secret, url string, err error)
+	GenerateSecret(ctx context.Context, userID int64) (secret, url string, err error)
 }
 
 type MfaService struct {
@@ -24,7 +24,7 @@ func NewMfaService(userRepo IUserRepo, mfaGen MfaSecretGenerator, mfa MfaProvide
 	}
 }
 
-func (s *MfaService) GenerateQRCode(ctx context.Context, userID string) (secret, url string, err error) {
+func (s *MfaService) GenerateQRCode(ctx context.Context, userID int64) (secret, url string, err error) {
 	secret, url, err = s.mfaGen.GenerateSecret(ctx, userID)
 	if err != nil {
 		return "", "", xerr.HandleDaoError(err, "GetMfaqrcode.GenerateSecret")
@@ -35,7 +35,7 @@ func (s *MfaService) GenerateQRCode(ctx context.Context, userID string) (secret,
 	return secret, url, nil
 }
 
-func (s *MfaService) BindMFA(ctx context.Context, userID, secret, code string) error {
+func (s *MfaService) BindMFA(ctx context.Context, userID int64, secret, code string) error {
 	if err := s.mfa.ValidateMfaCode(ctx, secret, code); err != nil {
 		return xerr.NewInvalidParam("MFA验证失败")
 	}

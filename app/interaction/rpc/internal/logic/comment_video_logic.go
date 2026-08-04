@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	"go_zero-tiktok/app/interaction/rpc/internal/svc"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
@@ -27,10 +27,10 @@ func NewCommentVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Comm
 }
 
 func (l *CommentVideoLogic) CommentVideo(in *interaction_pb.CommentVideoRequest) (*interaction_pb.CommentVideoResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
-	if in.VideoId == "" {
+	if in.VideoId == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 	commentText := strings.TrimSpace(in.CommentText)
@@ -39,7 +39,7 @@ func (l *CommentVideoLogic) CommentVideo(in *interaction_pb.CommentVideoRequest)
 	}
 
 	commentID := myutils.GenerateCommentID()
-	if err := l.svcCtx.CommentService.CreateComment(l.ctx, commentID, in.UserId, in.VideoId, commentText, ""); err != nil {
+	if err := l.svcCtx.CommentService.CreateComment(l.ctx, commentID, in.UserId, in.VideoId, commentText, 0); err != nil {
 		return nil, xerr.HandleDaoError(err, "CommentVideo.CreateComment")
 	}
 

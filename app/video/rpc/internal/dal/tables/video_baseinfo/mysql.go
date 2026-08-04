@@ -2,7 +2,9 @@ package video_baseinfo
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"go_zero-tiktok/app/video/rpc/internal/dal/query"
@@ -10,13 +12,35 @@ import (
 
 	myutils "go_zero-tiktok/pkg/utils"
 
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
 
 func CreateVideo(ctx context.Context, db *gorm.DB, video *VideoBaseinfo) error {
+	// 三段式幂等：先查
+	var existed VideoBaseinfo
+	err := db.WithContext(ctx).Where("video_id = ?", video.VideoID).First(&existed).Error
+	if err == nil {
+		// 幂等：同一视频已发布，直接返回成功
+		return nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return xerr.Wrap(err, "check video exist failed")
+	}
+
+	// 再插
 	if err := db.WithContext(ctx).Create(video).Error; err != nil {
+		// 撞 1062 唯一键后重查，命中则视为幂等成功
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			var exist VideoBaseinfo
+			if err2 := db.WithContext(ctx).Where("video_id = ?", video.VideoID).First(&exist).Error; err2 == nil {
+				return nil
+			}
+		}
 		return xerr.Wrap(err, "create video failed")
 	}
+
 	return nil
 }
 
@@ -40,13 +64,13 @@ func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pag
 	return videos, total, nil
 }
 
-func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]VideoBaseinfo, error) {
+func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []int64) ([]VideoBaseinfo, error) {
 	if len(videoIDs) == 0 {
 		return []VideoBaseinfo{}, nil
 	}
 	quotedIDs := make([]string, len(videoIDs))
 	for i, id := range videoIDs {
-		quotedIDs[i] = fmt.Sprintf("'%s'", id)
+		quotedIDs[i] = strconv.FormatInt(id, 10)
 	}
 	idsForOrder := strings.Join(quotedIDs, ",")
 
@@ -61,7 +85,7 @@ func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]Vide
 	return videos, nil
 }
 
-func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
+func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID int64, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
 	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{}).Where("author_id = ?", authorID)
 
 	var total int64

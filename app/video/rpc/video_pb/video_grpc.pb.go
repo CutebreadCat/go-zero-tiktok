@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: video.proto
+// source: app/video/rpc/video.proto
 
 package video_pb
 
@@ -19,13 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VideoService_PublishVideo_FullMethodName    = "/video.VideoService/PublishVideo"
-	VideoService_GetFeedVideo_FullMethodName    = "/video.VideoService/GetFeedVideo"
-	VideoService_GetVideoList_FullMethodName    = "/video.VideoService/GetVideoList"
-	VideoService_SearchVideo_FullMethodName     = "/video.VideoService/SearchVideo"
-	VideoService_GetPopularVideo_FullMethodName = "/video.VideoService/GetPopularVideo"
-	VideoService_LikeVideo_FullMethodName       = "/video.VideoService/LikeVideo"
-	VideoService_GetLikeList_FullMethodName     = "/video.VideoService/GetLikeList"
+	VideoService_PublishVideo_FullMethodName            = "/video.VideoService/PublishVideo"
+	VideoService_GetFeedVideo_FullMethodName            = "/video.VideoService/GetFeedVideo"
+	VideoService_GetVideoList_FullMethodName            = "/video.VideoService/GetVideoList"
+	VideoService_SearchVideo_FullMethodName             = "/video.VideoService/SearchVideo"
+	VideoService_GetPopularVideo_FullMethodName         = "/video.VideoService/GetPopularVideo"
+	VideoService_LikeVideo_FullMethodName               = "/video.VideoService/LikeVideo"
+	VideoService_GetLikeList_FullMethodName             = "/video.VideoService/GetLikeList"
+	VideoService_IncreaseVideoVisitCount_FullMethodName = "/video.VideoService/IncreaseVideoVisitCount"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -39,6 +40,7 @@ type VideoServiceClient interface {
 	GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
 	LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error)
 	GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error)
+	IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
 }
 
 type videoServiceClient struct {
@@ -119,6 +121,16 @@ func (c *videoServiceClient) GetLikeList(ctx context.Context, in *GetLikeListReq
 	return out, nil
 }
 
+func (c *videoServiceClient) IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IncreaseVideoVisitCountResponse)
+	err := c.cc.Invoke(ctx, VideoService_IncreaseVideoVisitCount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type VideoServiceServer interface {
 	GetPopularVideo(context.Context, *GetPopularVideoRequest) (*GetPopularVideoResponse, error)
 	LikeVideo(context.Context, *LikeVideoRequest) (*LikeVideoResponse, error)
 	GetLikeList(context.Context, *GetLikeListRequest) (*GetLikeListResponse, error)
+	IncreaseVideoVisitCount(context.Context, *IncreaseVideoVisitCountRequest) (*IncreaseVideoVisitCountResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -160,6 +173,9 @@ func (UnimplementedVideoServiceServer) LikeVideo(context.Context, *LikeVideoRequ
 }
 func (UnimplementedVideoServiceServer) GetLikeList(context.Context, *GetLikeListRequest) (*GetLikeListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetLikeList not implemented")
+}
+func (UnimplementedVideoServiceServer) IncreaseVideoVisitCount(context.Context, *IncreaseVideoVisitCountRequest) (*IncreaseVideoVisitCountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IncreaseVideoVisitCount not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -308,6 +324,24 @@ func _VideoService_GetLikeList_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_IncreaseVideoVisitCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IncreaseVideoVisitCountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).IncreaseVideoVisitCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_IncreaseVideoVisitCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).IncreaseVideoVisitCount(ctx, req.(*IncreaseVideoVisitCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -343,7 +377,11 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetLikeList",
 			Handler:    _VideoService_GetLikeList_Handler,
 		},
+		{
+			MethodName: "IncreaseVideoVisitCount",
+			Handler:    _VideoService_IncreaseVideoVisitCount_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "video.proto",
+	Metadata: "app/video/rpc/video.proto",
 }

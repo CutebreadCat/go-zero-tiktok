@@ -30,7 +30,7 @@ func NewPostUserPhotoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Pos
 
 func (l *PostUserPhotoLogic) PostUserPhoto(req *types.UserphotoRequest, file multipart.File) (resp *types.UserphotoResponse, err error) {
 	userID := token.UserIDFromContext(l.ctx)
-	if userID == "" {
+	if userID == 0 {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 

@@ -34,7 +34,7 @@ service tiktok-api {
 
 type (
   LikeVideoRequest  {
-    VideoID    string `form:"video_id"`
+    VideoID    int64 `form:"video_id"`
     ActionType int32  `form:"action_type"`
   }
 
@@ -54,17 +54,17 @@ type (
   }
 
   CommentVideoRequest  {
-    VideoID     string `form:"video_id"`
+    VideoID     int64 `form:"video_id"`
     CommentText string `form:"comment_text"`
   }
 
   CommentVideoResponse  {
     Base      BaseResponse `json:"base_response"`
-    CommentID string              `json:"comment_id"`
+    CommentID int64              `json:"comment_id,string"`
   }
 
   GetCommentListRequest  {
-    VideoID    string `form:"video_id"`
+    VideoID    int64 `form:"video_id"`
     PageNumber int32  `form:"page_number"`
     PageSize   int32  `form:"page_size"`
   }
@@ -76,7 +76,7 @@ type (
   }
 
   DeleteCommentRequest  {
-    CommentID string `form:"comment_id"`
+    CommentID int64 `form:"comment_id"`
   }
 
   DeleteCommentResponse  {
@@ -84,7 +84,7 @@ type (
   }
 
   LikeCommentRequest  {
-    CommentID string `form:"comment_id"`
+    CommentID int64 `form:"comment_id"`
     Liketype  int32  `form:"like_type"`
   }
 
@@ -93,11 +93,11 @@ type (
   }
 
   CommentPareantCommentRequest  {
-    ParentCommentID string `form:"parent_comment_id"`
+    ParentCommentID int64 `form:"parent_comment_id"`
     CommentText string `form:"comment_text"`
   }
   CommentPareantCommentResponse  {
     Base BaseResponse `json:"base_response"`
-    CommentID string              `json:"comment_id"`
+    CommentID int64              `json:"comment_id,string"`
   }
 )

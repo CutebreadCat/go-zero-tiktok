@@ -6,15 +6,16 @@ import (
 
 // CommentBaseinfo 评论基础信息数据库模型
 type CommentBaseinfo struct {
-	CommentID       string     `gorm:"primaryKey;type:varchar(64);column:comment_id"`
-	UserID          string     `gorm:"not null;type:varchar(64);column:user_id"`
-	VideoID         string     `gorm:"not null;type:varchar(64);column:video_id"`
-	Content         string     `gorm:"not null;type:varchar(1024);column:content"`
+	CommentID       int64      `gorm:"primaryKey;type:bigint;column:comment_id"`
+	UserID          int64      `gorm:"not null;type:bigint;column:user_id"`
+	VideoID         int64      `gorm:"not null;type:bigint;column:video_id"`
+	Content         string     `gorm:"not null;type:varchar(512);column:content"`
 	CreatedAt       time.Time  `gorm:"autoCreateTime;column:created_at"`
 	UpdatedAt       time.Time  `gorm:"autoUpdateTime;column:updated_at"`
 	DeletedAt       *time.Time `gorm:"column:deleted_at"`
-	LikeCount       int32      `gorm:"default:0;type:int;column:like_count"`
-	ParentCommentID string     `gorm:"type:char(64);default:'';column:parent_comment_id"`
+	LikeCount       int64      `gorm:"default:0;type:bigint;column:like_count"`
+	ParentCommentID int64      `gorm:"default:0;type:bigint;column:parent_comment_id"`
+	IdempotencyKey  *string    `gorm:"type:varchar(64);column:idempotency_key"`
 }
 
 func (CommentBaseinfo) TableName() string {
@@ -23,8 +24,9 @@ func (CommentBaseinfo) TableName() string {
 
 // CommentLiker 评论点赞数据库模型
 type CommentLiker struct {
-	UserID    string `gorm:"primaryKey;type:varchar(64);column:user_id"`
-	CommentID string `gorm:"primaryKey;type:varchar(64);column:comment_id"`
+	UserID         int64   `gorm:"primaryKey;type:bigint;column:user_id"`
+	CommentID      int64   `gorm:"primaryKey;type:bigint;column:comment_id"`
+	IdempotencyKey *string `gorm:"type:varchar(64);column:idempotency_key"`
 }
 
 func (CommentLiker) TableName() string {

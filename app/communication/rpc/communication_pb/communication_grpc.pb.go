@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: communication.proto
+// source: app/communication/rpc/communication.proto
 
 package communication_pb
 
@@ -231,5 +231,5 @@ var CommunicationService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "communication.proto",
+	Metadata: "app/communication/rpc/communication.proto",
 }

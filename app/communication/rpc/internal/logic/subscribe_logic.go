@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 
-	"go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
+	"go_zero-tiktok/app/communication/rpc/communication_pb"
 	"go_zero-tiktok/app/communication/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -25,10 +25,10 @@ func NewSubscribeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Subscri
 }
 
 func (l *SubscribeLogic) Subscribe(in *communication_pb.SubscribeRequest) (*communication_pb.SubscribeResponse, error) {
-	if in.FollowerId == "" {
+	if in.FollowerId == 0 {
 		return nil, xerr.NewInvalidParam("关注者ID不能为空")
 	}
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("被关注用户ID不能为空")
 	}
 

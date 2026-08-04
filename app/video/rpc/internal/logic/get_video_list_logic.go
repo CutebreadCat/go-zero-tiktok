@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
+	"go_zero-tiktok/app/video/rpc/video_pb"
 	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/Prometheus/logger"
@@ -25,7 +25,7 @@ func NewGetVideoListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetV
 }
 
 func (l *GetVideoListLogic) GetVideoList(in *video_pb.GetVideoListRequest) (*video_pb.GetVideoListResponse, error) {
-	if in.AuthorId == "" {
+	if in.AuthorId == 0 {
 		return nil, xerr.NewInvalidParam("作者ID不能为空")
 	}
 	if in.PageSize <= 0 || in.PageSize > 100 {
