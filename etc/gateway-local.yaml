@@ -8,20 +8,20 @@ Auth:
 
 UserRpc:
   Etcd:
-    Hosts: [etcd:2379]
+    Hosts: [127.0.0.1:2379]
     Key: user.rpc
 
 VideoRpc:
   Etcd:
-    Hosts: [etcd:2379]
+    Hosts: [127.0.0.1:2379]
     Key: video.rpc
 
 InteractionRpc:
   Etcd:
-    Hosts: [etcd:2379]
+    Hosts: [127.0.0.1:2379]
     Key: interaction.rpc
 
 CommunicationRpc:
   Etcd:
-    Hosts: [etcd:2379]
+    Hosts: [127.0.0.1:2379]
     Key: communication.rpc

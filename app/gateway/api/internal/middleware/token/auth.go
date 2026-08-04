@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"go_zero-tiktok/pkg/ctxkey"
-	jwtpkg "go_zero-tiktok/pkg/jwt"
 	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -44,8 +43,8 @@ func AuthMiddleware(secret string) rest.Middleware {
 				return
 			}
 
-			claims, err := jwtpkg.ParseToken(secret, parts[1])
-			if err != nil || claims.TokenType != jwtpkg.AccessTokenType {
+			claims, err := ParseToken(secret, parts[1])
+			if err != nil || claims.TokenType != AccessTokenType {
 				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token invalid"))
 				return
 			}

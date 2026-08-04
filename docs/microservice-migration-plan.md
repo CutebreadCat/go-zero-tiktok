@@ -10,7 +10,7 @@
 
 当前项目已经具备以下基础：
 
-- `app/user/rpc`、`app/video/rpc`、`app/interaction/rpc`、`app/communication/rpc`、`app/chat/rpc` 已存在，并且已经采用 go-zero RPC 入口。
+- `app/user/rpc`、`app/video/rpc`、`app/interaction/rpc`、`app/communication/rpc` 已存在，并且已经采用 go-zero RPC 入口。
 - 根目录 `tiktok.go` 仍然启动唯一 HTTP 服务，路由定义位于根级 `api`，处理器、业务逻辑和依赖注入位于根级 `internal`。
 - 根级 `internal` 同时承担了 API 网关、领域业务、基础设施、公共类型和公共工具等多个职责。
 - RPC 服务仍然直接依赖 `go_zero-tiktok/internal/...`，因此当前服务之间存在源码级耦合，尚未达到独立服务边界。
@@ -35,7 +35,6 @@
        -> video-rpc
        -> interaction-rpc
        -> communication-rpc（后续可更名 relation-rpc）
-       -> chat-rpc / chat-ws
        -> 后续 ai-rpc
 
 各领域 RPC
@@ -89,8 +88,6 @@ go_zero-tiktok/
     video/rpc/
     interaction/rpc/
     communication/rpc/
-    chat/rpc/
-    chat/ws/                 # 第二阶段按需要拆出
   pkg/
     ctxkey/
     xerr/
@@ -118,7 +115,7 @@ go_zero-tiktok/
 
 工作项：
 
-1. 固化当前接口清单：用户、视频、互动、关系、聊天和 WebSocket 路径。
+1. 固化当前接口清单：用户、视频、互动、关系路径。
 2. 为现有 API、RPC 和关键业务补齐 smoke test、接口回归测试和构建检查。
 3. 记录当前数据库表、Redis key、Kafka topic、外部 OSS/AI 依赖及其所有者。
 4. 建立架构检查规则：新代码禁止新增 `go_zero-tiktok/internal` 的跨服务引用。
@@ -161,8 +158,6 @@ go_zero-tiktok/
 2. 视频：列表、搜索、热门、Feed、发布。
 3. 互动：点赞、评论、评论回复和删除。
 4. 关系：关注、粉丝、好友列表。
-5. 聊天：房间、消息、加入房间。
-6. WebSocket：先保持现有协议，后续再独立 `chat/ws`。
 
 每迁移一个领域，保留旧路径的兼容行为，并通过配置开关在旧单体和新网关之间切换。
 
@@ -250,7 +245,7 @@ server -> logic/application -> domain ports
 2. 将现有 `dal` 改为 repository 实现。
 3. 在 `svc` 中组装 repository、token、MFA、OSS 等适配器。
 4. 将 RPC logic 改为只调用 application/domain service。
-5. 用同样模式迁移 video、interaction、communication 和 chat。
+5. 用同样模式迁移 video、interaction 和 communication。
 
 ### 阶段 4：领域数据所有权和跨服务通信（3～6 周）
 
@@ -264,7 +259,6 @@ server -> logic/application -> domain ports
 | video | 视频基础信息、热门和统计汇总 |
 | interaction | 点赞、评论、评论点赞 |
 | communication/relation | 关注、粉丝、好友关系 |
-| chat | 房间、成员、消息、未读和在线状态 |
 
 实施要求：
 
@@ -317,11 +311,6 @@ CommunicationRpc:
   Etcd:
     Hosts: [etcd:2379]
     Key: communication.rpc
-
-ChatRpc:
-  Etcd:
-    Hosts: [etcd:2379]
-    Key: chat.rpc
 ```
 
 数据库 DSN、Kafka brokers、OSS 密钥和 AI key 应从网关配置中移除，分别下沉到实际使用它们的服务。
@@ -339,7 +328,7 @@ ChatRpc:
 - 网关：路由、参数校验、鉴权、错误映射、RPC mock 和响应兼容测试。
 - RPC：domain/application 单元测试、repository 集成测试、proto 契约测试。
 - MQ：事件 schema、重复消费、失败重试和死信测试。
-- 端到端：登录、发布视频、点赞、评论、关注、聊天和 WebSocket 主链路。
+- 端到端：登录、发布视频、点赞、评论、关注主链路。
 - 迁移期间对旧单体和新网关执行同一套 HTTP 回归用例，比较状态码、响应字段和业务结果。
 
 ### 8.3 发布切换
@@ -363,7 +352,6 @@ ChatRpc:
 | 跨服务共享表 | 数据一致性和发布互相阻塞 | 先定义表所有权，再用 RPC/MQ 替代直接访问 |
 | RPC 超时或服务不可用 | API 延迟和错误增加 | 设置 deadline、有限重试、熔断、降级响应和监控告警 |
 | API 响应不兼容 | 客户端故障 | 建立旧/新网关回归对比测试，保持路径和字段兼容 |
-| WebSocket 迁移复杂 | 长连接中断 | 最后迁移 WS，先保证 HTTP 网关和 chat-rpc 稳定 |
 | 配置和密钥散落 | 部署失败或泄露 | 网关、RPC、MQ consumer 分别维护配置，敏感值使用环境变量或密钥管理系统 |
 
 ## 10. 里程碑和验收标准
@@ -404,7 +392,7 @@ ChatRpc:
   -> 新建 app/gateway/api
   -> 网关接入 user-rpc
   -> 网关接入 video-rpc
-  -> 网关接入 interaction/communication/chat-rpc
+  -> 网关接入 interaction/communication-rpc
   -> gateway 灰度替换根级 tiktok.go
   -> internal 公共代码迁移到 pkg
   -> 以 user-rpc 为模板整改各服务 svc/logic/dal
@@ -426,7 +414,7 @@ ChatRpc:
 - RPC 领域类型位于 `pkg/contract`，HTTP DTO 仅保留在网关私有 `internal/types`。
 - JWT、错误、上下文键、消息契约和工具函数位于 `pkg`。
 - OSS 适配器位于 `pkg/storage/aliyun`；MFA 适配器位于 `app/user/rpc/internal/mfa`。
-- 聊天缓存和 Kafka 实现位于 `app/chat/rpc/internal/infra`，不再由根级公共目录承载。
+- Kafka 实现已抽取为共享包 `pkg/kafka`。
 - Compose 和 Makefile 已切换到独立 `gateway` 服务及各 RPC 服务。
 
 后续新增代码不得重新创建根级 `internal`；服务私有实现应放在对应 `app/<domain>/<service>/internal`，稳定的无业务归属能力才进入 `pkg`。

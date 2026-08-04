@@ -14,7 +14,6 @@ type Config struct {
 	VideoRpc         zrpc.RpcClientConf
 	InteractionRpc   zrpc.RpcClientConf
 	CommunicationRpc zrpc.RpcClientConf
-	ChatRpc          zrpc.RpcClientConf
 	Auth             AuthConfig
 }
 

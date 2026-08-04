@@ -5,7 +5,6 @@ go_zero-tiktok/
 ├── .github/ -- GitHub 配置
 │   └── workflows/ -- CI 工作流
 ├── api/ -- gozero的api定义
-│   ├── chat/
 │   ├── communication/
 │   ├── interaction/
 │   ├── user/
@@ -18,13 +17,11 @@ go_zero-tiktok/
 │   │   ├── repository/ -- 聚合仓储与封装
 │   │   └── tables/ -- 表结构与基础 CRUD
 │   ├── domain/ -- 领域模型
-│   │   ├── chat/ -- 聊天领域
 │   │   ├── comment/ -- 评论领域
 │   │   ├── user/ -- 用户与关注领域
 │   │   ├── video/ -- 视频领域
 │   │   └── websocket/ -- WebSocket 领域
 │   ├── handler/  参数校验层
-│   │   ├── chat/
 │   │   ├── communication/
 │   │   ├── interaction/
 │   │   ├── user/
@@ -36,7 +33,6 @@ go_zero-tiktok/
 │   │   ├── mq/ -- 消息队列
 │   │   └── storage/ -- 对象存储
 │   ├── logic/  逻辑层处理函数
-│   │   ├── chat/
 │   │   ├── communication/
 │   │   ├── interaction/
 │   │   ├── user/
@@ -60,7 +56,7 @@ go_zero-tiktok/
 ├── .gitattributes
 ├── .gitignore
 ├── .golangci.yaml
-├── compose.yml
+├── compose.infrastructure.yml
 ├── app/gateway/api/Dockerfile
 ├── go.mod
 ├── go.sum

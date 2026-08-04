@@ -29,11 +29,6 @@ type CommentBaseinfo struct {
 	ParentCommentID string `json:"parent_comment_id"`
 }
 
-type CommentLiker struct {
-	UserID    string `json:"user_id"`
-	CommentID string `json:"comment_id"`
-}
-
 type CommentPareantCommentRequest struct {
 	ParentCommentID string `form:"parent_comment_id"`
 	CommentText     string `form:"comment_text"`
@@ -54,17 +49,6 @@ type CommentVideoResponse struct {
 	CommentID string       `json:"comment_id"`
 }
 
-type CreateChatRoomRequest struct {
-	RoomName string   `form:"room_name"`
-	Types    int32    `form:"types"` // 0: 私聊, 1: 群聊
-	UserIDs  []string `form:"user_ids"`
-}
-
-type CreateChatRoomResponse struct {
-	Base   BaseResponse `json:"base_response"`
-	RoomID string       `json:"room_id"`
-}
-
 type DeleteCommentRequest struct {
 	CommentID string `form:"comment_id"`
 }
@@ -83,14 +67,6 @@ type FeedVideoResponse struct {
 	Base   BaseResponse `json:"base"`
 	Total  int64        `json:"total"`
 	Videos []Item       `json:"items"`
-}
-
-type GetChatRoomsRequest struct {
-}
-
-type GetChatRoomsResponse struct {
-	Base    BaseResponse `json:"base_response"`
-	RoomsId []string     `json:"chat_rooms"`
 }
 
 type GetCommentListRequest struct {
@@ -138,17 +114,6 @@ type GetLikeListResponse struct {
 	LikeCount int32           `json:"like_count"`
 }
 
-type GetMessagesRequest struct {
-	RoomID     string `form:"room_id"`
-	PageNumber int32  `form:"page_number"`
-	PageSize   int32  `form:"page_size"`
-}
-
-type GetMessagesResponse struct {
-	Base     BaseResponse  `json:"base_response"`
-	Messages []MessageChat `json:"messages"`
-}
-
 type GetSubscriberListRequest struct {
 	PageNumber int32 `form:"page_number"`
 	PageSize   int32 `form:"page_size"`
@@ -174,14 +139,6 @@ type GetVideoListResponse struct {
 type Item struct {
 	Videos        VideoBaseinfo `json:"videos"`
 	VideosPopular VideoPopular  `json:"videos_popular"`
-}
-
-type JoinChatRoomRequest struct {
-	RoomID string `form:"room_id"`
-}
-
-type JoinChatRoomResponse struct {
-	Base BaseResponse `json:"base_response"`
 }
 
 type JwchGetUserCookieRequest struct {
@@ -231,14 +188,6 @@ type LoginResponse struct {
 	UserID       string       `json:"user_id"`
 	AccessToken  string       `json:"access_token"`
 	RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
-}
-
-type MessageChat struct {
-	ID        string `json:"id"`
-	RoomID    string `json:"room_id"`
-	SenderID  string `json:"sender_id"`
-	Content   string `json:"content"`
-	CreatedAt string `json:"created_at"`
 }
 
 type MfaqrcodeRequest struct {
@@ -315,21 +264,6 @@ type UserInfoResponse struct {
 	User UserBaseinfo `json:"user"`
 }
 
-type User_chat struct {
-	UserID   string `json:"user_id"`
-	RoomID   string `json:"room_id"`
-	Leix     int32  `json:"leix"` // 0: 私聊, 1: 群聊
-	RoomName string `json:"room_name"`
-}
-
-type User_mfa struct {
-	UserID             string `json:"user_id"`
-	MFASecret          string `json:"mfa_secret"`
-	MFAEnabled         bool   `json:"mfa_enabled"`
-	PasswordHash       string `json:"password_hash"`
-	MFA_Pending_secret string `json:"mfa_pending_secret"`
-}
-
 type UserphotoRequest struct {
 	PhotoURL string `form:"photo_url"`
 }
@@ -349,11 +283,6 @@ type VideoBaseinfo struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 	DeletedAt   string `json:"deleted_at"`
-}
-
-type VideoLiker struct {
-	UserID  string `json:"user_id"`
-	VideoID string `json:"video_id"`
 }
 
 type VideoPopular struct {
@@ -382,7 +311,4 @@ type VideoSearchRequest struct {
 type VideoSearchResponse struct {
 	Base   BaseResponse    `json:"base"`
 	Videos []VideoBaseinfo `json:"videos"`
-}
-
-type WsChatRequest struct {
 }

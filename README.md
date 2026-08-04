@@ -5,7 +5,6 @@ go_zero-tiktok/
 ├── .github/ -- GitHub 配置
 │   └── workflows/ -- CI 工作流
 ├── api/ -- gozero的api定义
-│   ├── chat/
 │   ├── communication/
 │   ├── interaction/
 │   ├── user/
@@ -21,7 +20,6 @@ go_zero-tiktok/
 │   ├── domain/ -- 领域模型
 │   │   └── websocket/ -- WebSocket 领域
 │   ├── handler/  参数校验层
-│   │   ├── chat/
 │   │   ├── communication/
 │   │   ├── interaction/
 │   │   ├── user/
@@ -33,7 +31,6 @@ go_zero-tiktok/
 │   │   ├── mq/ -- 消息队列
 │   │   └── storage/ -- 对象存储
 │   ├── logic/  逻辑层处理函数
-│   │   ├── chat/
 │   │   ├── communication/
 │   │   ├── interaction/
 │   │   ├── user/
@@ -57,7 +54,7 @@ go_zero-tiktok/
 ├── .gitattributes
 ├── .gitignore
 ├── .golangci.yaml
-├── compose.yml
+├── compose.infrastructure.yml
 ├── app/gateway/api/Dockerfile
 ├── go.mod
 ├── go.sum
@@ -81,6 +78,6 @@ source /etc/profile
 配置阿里云oss服务:
 cp ./pkg/storage/aliyun/aliconfig_example.yaml ./pkg/storage/aliyun/aliconfig.yaml
 在生成的aliconfig.yaml文件下面填写对应的配置即可
-最后运行
-docker-compose up --build
+最后启动基础设施
+make infra-up
 ```

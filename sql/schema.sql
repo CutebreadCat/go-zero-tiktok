@@ -73,19 +73,4 @@ CREATE TABLE `user_mfa` (
   PRIMARY KEY (`user_id`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `user_chat` (
-  `room_id` varchar(64) NOT NULL,
-  `user_id` varchar(64) DEFAULT NULL,
-  `leix` int NOT NULL DEFAULT 0,
-  `room_name` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`room_id`, `user_id`)
-) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `message_chat` (
-  `id` varchar(64) NOT NULL,
-  `sender_id` varchar(64) NOT NULL,
-  `room_id` varchar(64) NOT NULL,
-  `content` varchar(1024) NOT NULL,
-  `created_at` longtext,
-  PRIMARY KEY (`id`)
-) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

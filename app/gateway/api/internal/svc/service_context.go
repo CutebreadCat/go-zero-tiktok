@@ -4,7 +4,6 @@
 package svc
 
 import (
-	"go_zero-tiktok/app/chat/rpc/chatservice"
 	communicationservice "go_zero-tiktok/app/communication/rpc/communicationservice"
 	"go_zero-tiktok/app/gateway/api/internal/config"
 	"go_zero-tiktok/app/gateway/api/internal/middleware"
@@ -22,7 +21,6 @@ type ServiceContext struct {
 	VideoRpc         videoservice.VideoService
 	InteractionRpc   interactionservice.InteractionService
 	CommunicationRpc communicationservice.CommunicationService
-	ChatRpc          chatservice.ChatService
 	RateLimit        rest.Middleware
 }
 
@@ -33,7 +31,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		VideoRpc:         videoservice.NewVideoService(zrpc.MustNewClient(c.VideoRpc)),
 		InteractionRpc:   interactionservice.NewInteractionService(zrpc.MustNewClient(c.InteractionRpc)),
 		CommunicationRpc: communicationservice.NewCommunicationService(zrpc.MustNewClient(c.CommunicationRpc)),
-		ChatRpc:          chatservice.NewChatService(zrpc.MustNewClient(c.ChatRpc)),
 		RateLimit:        middleware.NewRateLimitMiddleware().Handle,
 	}
 }

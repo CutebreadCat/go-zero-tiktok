@@ -42,11 +42,6 @@ type (
     CommentCount   int64  `json:"comment_count"`
   }
 
-  VideoLiker {
-    UserID  string `json:"user_id"`
-    VideoID string `json:"video_id"`
-  }
-
   CommentBaseinfo {
     CommentID     string `json:"comment_id"`
     UserID        string `json:"user_id"`
@@ -57,29 +52,5 @@ type (
     DeletedAt     string `json:"deleted_at"`
     LikeCount     int32  `json:"like_count"`
     ParentCommentID string `json:"parent_comment_id"`
-  }
-  CommentLiker {
-    UserID  string `json:"user_id"`
-    CommentID string `json:"comment_id"`
-  }
-  User_mfa{
-    UserID string `json:"user_id"`
-    MFASecret string `json:"mfa_secret"`
-    MFAEnabled bool `json:"mfa_enabled"`
-    PasswordHash string `json:"password_hash"`
-    MFA_Pending_secret string `json:"mfa_pending_secret"`
-  }
-  User_chat{
-    UserID string `json:"user_id"`
-    RoomID string `json:"room_id"`
-    leix int32 `json:"leix"` // 0: 私聊, 1: 群聊
-    RoomName string `json:"room_name"`
-  }
-  MessageChat{
-    ID string `json:"id"`
-    RoomID string `json:"room_id"`
-    SenderID string `json:"sender_id"`
-    Content string `json:"content"`
-    CreatedAt string `json:"created_at"`
   }
 )

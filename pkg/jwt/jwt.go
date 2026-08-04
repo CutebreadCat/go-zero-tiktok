@@ -8,6 +8,11 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+type Claims struct {
+	UserID    string `json:"user_id"`
+	TokenType string `json:"token_type"`
+}
+
 type JwtClaims struct {
 	Claims
 	jwt.RegisteredClaims

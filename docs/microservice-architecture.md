@@ -4,7 +4,7 @@
 
 ## 1. 当前项目架构现状
 
-当前项目更准确地说是一个“模块化单体”。代码中已经按照业务能力拆出了 `user`、`video`、`interaction`、`communication`、`chat`、`websocket` 等领域目录，但这些模块仍然运行在同一个进程中，共享同一个 `ServiceContext`、同一个主程序入口、同一套配置和同一套数据库连接。
+当前项目更准确地说是一个“模块化单体”。代码中已经按照业务能力拆出了 `user`、`video`、`interaction`、`communication` 等领域目录，但这些模块仍然运行在同一个进程中，共享同一个 `ServiceContext`、同一个主程序入口、同一套配置和同一套数据库连接。
 
 当前主链路大致如下：
 
@@ -28,7 +28,6 @@
 | 视频模块 | 投稿、视频列表、搜索、推荐 feed、热门视频、视频基础信息 | `api/video`、`internal/domain/video`、`internal/logic/video` |
 | 互动模块 | 视频点赞、评论发布、评论列表、评论点赞、删除评论 | `api/interaction`、`internal/domain/comment`、部分 `internal/domain/video` |
 | 关系模块 | 关注、粉丝、关注列表、好友列表 | `api/communication`、`internal/domain/user` |
-| 聊天模块 | 聊天房间、消息列表、加入房间、WebSocket 聊天 | `api/chat`、`internal/domain/chat`、`internal/domain/websocket` |
 | 基础设施 | MySQL、Redis、Kafka、阿里云 OSS、AI Agent、限流、熔断 | `internal/infra`、`internal/middleware`、`internal/dal` |
 
 ## 2. 单体架构与微服务架构的核心区别
@@ -44,15 +43,15 @@
 
 客户端
   -> 一个 tiktok-api
-    -> user/video/comment/chat/follow 等模块
+    -> user/video/comment/follow 等模块
       -> 共享数据库、Redis、Kafka
 
 微服务架构：
 
 客户端
   -> API 网关 / BFF
-    -> user-api / video-api / interaction-api / chat-api
-      -> user-rpc / video-rpc / comment-rpc / relation-rpc / chat-rpc
+    -> user-api / video-api / interaction-api
+      -> user-rpc / video-rpc / comment-rpc / relation-rpc
         -> 各服务自己的数据表、缓存、消息队列
 ```
 
@@ -252,73 +251,14 @@ app/relation/rpc
 跨服务关系：
 
 - 关系列表展示需要用户信息时，通过 `user-rpc.BatchGetUsers` 批量补全用户资料。
-- 聊天服务创建私聊房间时，可以调用 `relation-rpc` 判断是否为好友。
 
-### 3.5 聊天服务 chat
+### 3.5 AI 服务 ai
 
-职责：
-
-- 聊天房间创建。
-- 房间列表。
-- 加入房间。
-- 历史消息查询。
-- WebSocket 连接管理。
-- 消息投递、未读数、在线状态。
-
-建议拆分：
-
-```text
-app/chat/api
-app/chat/rpc
-app/chat/ws
-app/chat/mq
-```
-
-对外 HTTP：
-
-- `/chat/room/create`
-- `/chat/rooms`
-- `/chat/messages`
-- `/chat/room/join`
-
-WebSocket：
-
-- `/chat/ws`
-
-内部 RPC 能力：
-
-- `CreateRoom(ctx, req)`
-- `JoinRoom(ctx, req)`
-- `GetRooms(ctx, userId)`
-- `GetMessages(ctx, roomId, page)`
-- `SaveMessage(ctx, message)`
-
-数据归属：
-
-- chat room 表
-- message 表
-- room member 表
-
-缓存归属：
-
-- WebSocket 在线状态
-- 房间连接关系
-- 未读消息
-
-跨服务关系：
-
-- 创建私聊或群聊时，可以调用 `user-rpc` 校验用户存在。
-- 如果要求只有好友能聊天，则调用 `relation-rpc` 校验关系。
-- WebSocket 收到消息后，可以写入 Kafka，由 `chat-mq` 持久化和分发。
-
-### 3.6 AI 服务 ai
-
-当前 AI 能力在 `internal/infra/ai`，并被 websocket/chat 使用。建议作为后期拆分项，不必第一阶段就拆。
+当前 AI 能力在 `internal/infra/ai`。建议作为后期拆分项，不必第一阶段就拆。
 
 职责：
 
 - AI Agent 调用。
-- AI 聊天消息处理。
 - 限流、熔断、外部模型适配。
 
 建议拆分：
@@ -330,13 +270,11 @@ app/ai/mq
 
 内部 RPC 能力：
 
-- `Chat(ctx, messages)`
 - `GenerateReply(ctx, req)`
 
 跨服务关系：
 
-- `chat` 服务将 AI 消息请求发给 `ai-rpc`。
-- 如果 AI 响应慢，推荐通过 MQ 异步处理，避免阻塞 WebSocket 主链路。
+- 如果 AI 响应慢，推荐通过 MQ 异步处理。
 
 ## 4. 推荐的 go-zero 目录结构
 
@@ -362,12 +300,6 @@ go_zero-tiktok/
     relation/
       api/
       rpc/
-      model/
-    chat/
-      api/
-      rpc/
-      ws/
-      mq/
       model/
     ai/
       rpc/
@@ -441,7 +373,6 @@ go-zero 中常见链路如下：
 | video | `video_baseinfo`、`video_popular` |
 | interaction | `video_liker`、`comment_baseinfo`、`comment_liker` |
 | relation | `user_follow` |
-| chat | chat room、message、member、unread、presence |
 
 第一阶段可以物理上仍然共用一个 MySQL 实例，甚至共用一个 database，但代码层面要先做到“服务不跨库表访问”。等边界稳定后，再拆成多个 database 或多个 MySQL 实例。
 
@@ -452,7 +383,6 @@ go-zero 中常见链路如下：
 - 视频播放量增加。
 - 视频点赞数增加或减少。
 - 视频评论数增加或减少。
-- 聊天未读数更新。
 - 热门视频榜单更新。
 
 这些数据不需要在用户请求返回时绝对准确，允许几百毫秒到几秒延迟。因此推荐通过 Kafka 事件处理。
@@ -465,8 +395,6 @@ video_liked
 video_unliked
 comment_created
 comment_deleted
-message_sent
-room_joined
 ```
 
 事件消息中至少包含：
@@ -491,7 +419,7 @@ payload
 
 - 保持当前一个 `tiktok-api` 进程。
 - 为每个领域补充接口端口，避免跨领域直接依赖具体实现。
-- `comment`、`relation`、`chat` 等模块不要直接使用其他领域 repository。
+- `comment`、`relation` 等模块不要直接使用其他领域 repository。
 - 明确每张表归属哪个领域。
 - 把公共能力沉淀到 `common` 或 `shared`，例如错误码、上下文 key、JWT、ID 生成。
 
@@ -521,15 +449,7 @@ payload
 - 关注、粉丝、好友列表只由 relation 服务查表。
 - 返回用户详情时调用 `user-rpc.BatchGetUsers`。
 
-### 第五阶段：拆 chat/ws
-
-聊天和 WebSocket 的运行模型与普通 HTTP API 不同，适合后拆。
-
-- 先拆普通 chat-api/chat-rpc。
-- 再拆 WebSocket 网关。
-- 消息写入、离线推送、未读数通过 MQ 消费。
-
-### 第六阶段：服务治理
+### 第五阶段：服务治理
 
 当多个服务真正独立运行后，需要补齐治理能力：
 
@@ -562,8 +482,8 @@ payload
 
 优点：
 
-- 服务可以独立发布，用户、视频、互动、聊天可以分开迭代。
-- 可以按热点模块单独扩容，例如只扩容 chat/ws 或 video/feed。
+- 服务可以独立发布，用户、视频、互动可以分开迭代。
+- 可以按热点模块单独扩容，例如只扩容 video/feed。
 - 故障隔离更好，评论服务故障不应该影响登录服务。
 - 领域边界更清晰，每个服务拥有自己的数据和业务规则。
 - 更适合多人团队并行开发。
@@ -586,7 +506,7 @@ payload
 模块化单体
   -> 边界清晰的可拆分单体
     -> user/video 基础服务 RPC 化
-      -> interaction/relation/chat 逐步独立
+      -> interaction/relation 逐步独立
         -> MQ 事件化统计与消息链路
 ```
 

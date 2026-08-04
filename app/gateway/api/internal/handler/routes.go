@@ -6,7 +6,6 @@ package handler
 import (
 	"net/http"
 
-	chat "go_zero-tiktok/app/gateway/api/internal/handler/chat"
 	communication "go_zero-tiktok/app/gateway/api/internal/handler/communication"
 	interaction "go_zero-tiktok/app/gateway/api/internal/handler/interaction"
 	user "go_zero-tiktok/app/gateway/api/internal/handler/user"
@@ -17,40 +16,6 @@ import (
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
-	server.AddRoutes(
-		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.RateLimit},
-			[]rest.Route{
-				{
-					Method:  http.MethodGet,
-					Path:    "/chat/messages",
-					Handler: chat.GetMessagesHandler(serverCtx),
-				},
-				{
-					Method:  http.MethodPost,
-					Path:    "/chat/room/create",
-					Handler: chat.CreateChatRoomHandler(serverCtx),
-				},
-				{
-					Method:  http.MethodPost,
-					Path:    "/chat/room/join",
-					Handler: chat.JoinChatRoomHandler(serverCtx),
-				},
-				{
-					Method:  http.MethodGet,
-					Path:    "/chat/rooms",
-					Handler: chat.GetChatRoomsHandler(serverCtx),
-				},
-				{
-					Method:  http.MethodGet,
-					Path:    "/chat/ws",
-					Handler: chat.WsChatHandler(serverCtx),
-				},
-			}...,
-		),
-		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
-	)
-
 	server.AddRoutes(
 		rest.WithMiddlewares(
 			[]rest.Middleware{serverCtx.RateLimit},
