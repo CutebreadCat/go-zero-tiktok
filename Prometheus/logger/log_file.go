@@ -12,9 +12,9 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// openLogFiles creates the daily service log files.
+// openLogFiles creates the daily service log files under logs/{service}/{date}/.
 func openLogFiles(service string) (io.WriteCloser, io.WriteCloser, error) {
-	dir := filepath.Join(CurrentDir(), LogFilePath, time.Now().Format("2006-01-02"))
+	dir := filepath.Join(CurrentDir(), LogFilePath, service, time.Now().Format("2006-01-02"))
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, nil, err
 	}

@@ -2,10 +2,11 @@ package domain
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go_zero-tiktok/pkg/contract"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type CommentService struct {
@@ -27,10 +28,15 @@ func (s *CommentService) CreateComment(ctx context.Context, commentID, userID, v
 	}
 
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logx.Errorf("panic in CreateComment visit recorder videoID=%d: %v", videoID, r)
+			}
+		}()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 		if err := s.videoVisitRecorder.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
-			fmt.Printf("increment visit count failed for video %d: %v\n", videoID, err)
+			logx.Errorf("increment visit count failed for video %d: %v", videoID, err)
 		}
 	}()
 
@@ -39,7 +45,7 @@ func (s *CommentService) CreateComment(ctx context.Context, commentID, userID, v
 
 // ReplyParentComment 回复父评论
 func (s *CommentService) ReplyParentComment(ctx context.Context, userID int64, commentText string, parentCommentID int64) (int64, error) {
-	return s.commentRepo.CommentParentComent(ctx, userID, commentText, parentCommentID)
+	return s.commentRepo.CommentParentComment(ctx, userID, commentText, parentCommentID)
 }
 
 // DeleteComment 删除评论

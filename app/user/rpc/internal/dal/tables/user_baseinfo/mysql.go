@@ -107,6 +107,7 @@ func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID int64, 
 	return nil
 }
 
+// FindUserMFASecret 查询用户已启用的 MFA 正式 secret。
 func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID int64) (string, error) {
 	var user UserBaseinfo
 	err := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).First(&user).Error
@@ -116,9 +117,10 @@ func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID int64) (string, 
 		}
 		return "", xerr.Wrap(err, "find user mfa secret failed")
 	}
-	return user.MFAPendingSecret, nil
+	return user.MFASecret, nil
 }
 
+// FindUserPendMFASecret 查询用户待绑定（pending）的 MFA secret。
 func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID int64) (string, error) {
 	var user UserBaseinfo
 	err := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).First(&user).Error
@@ -128,5 +130,5 @@ func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID int64) (stri
 		}
 		return "", xerr.Wrap(err, "find user mfa secret failed")
 	}
-	return user.MFASecret, nil
+	return user.MFAPendingSecret, nil
 }

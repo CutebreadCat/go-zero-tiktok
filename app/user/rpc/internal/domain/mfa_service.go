@@ -36,7 +36,15 @@ func (s *MfaService) GenerateQRCode(ctx context.Context, userID int64) (secret, 
 }
 
 func (s *MfaService) BindMFA(ctx context.Context, userID int64, secret, code string) error {
-	if err := s.mfa.ValidateMfaCode(ctx, secret, code); err != nil {
+	// 校验以 DB 中保存的 pending secret 为准，防止客户端传入的 secret 与生成阶段不一致
+	pendingSecret, err := s.userRepo.FindUserPendMFASecret(ctx, userID)
+	if err != nil {
+		return xerr.HandleDaoError(err, "BindMfa.FindUserPendMFASecret")
+	}
+	if pendingSecret == "" {
+		return xerr.NewInvalidParam("MFA 尚未生成二维码，请先获取")
+	}
+	if err := s.mfa.ValidateMfaCode(ctx, pendingSecret, code); err != nil {
 		return xerr.NewInvalidParam("MFA验证失败")
 	}
 	if err := s.userRepo.EnableUserMFA(ctx, userID); err != nil {

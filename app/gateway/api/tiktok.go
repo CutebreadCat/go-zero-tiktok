@@ -31,9 +31,11 @@ func main() {
 		level = "debug"
 	}
 	appLogger.Init("gateway-api", level)
+	appLogger.RegisterOTelTraceExtractor()
 	defer appLogger.Close()
 
 	server := rest.MustNewServer(c.RestConf, token.WithAuth(c.Auth.AccessSecret))
+	appLogger.RegisterLogxBridge()
 	defer server.Stop()
 
 	ctx := svc.NewServiceContext(c)

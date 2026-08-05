@@ -1,8 +1,8 @@
 package logger
 
 const (
-	// LogFilePath 对应 ${pwd}/{LogFilePath}/log.log 相对于当前运行路径而言
-	LogFilePath = "log"
+	// LogFilePath 对应 ${pwd}/{LogFilePath}/{service}/{date}/xxx.log 相对于当前运行路径而言
+	LogFilePath = "logs"
 
 	LogFilePathTemplate      = "%s/%s/%s/%s.log"
 	ErrorLogFilePathTemplate = "%s/%s/%s/%s_stderr.log"

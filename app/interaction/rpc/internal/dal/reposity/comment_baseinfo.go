@@ -94,7 +94,7 @@ func (r *CommentRepo) LikeComment(ctx context.Context, commentID int64, userID i
 	}
 }
 
-func (r *CommentRepo) CommentParentComent(ctx context.Context, userID int64, commentText string, parentCommentID int64) (int64, error) {
+func (r *CommentRepo) CommentParentComment(ctx context.Context, userID int64, commentText string, parentCommentID int64) (int64, error) {
 	if parentCommentID == 0 {
 		return 0, xerr.NewInvalidParam("父评论ID不能为空")
 	}
@@ -107,9 +107,9 @@ func (r *CommentRepo) CommentParentComent(ctx context.Context, userID int64, com
 		return 0, xerr.Wrap(err, "query parent comment failed")
 	}
 
-	commentId, err := commenttable.CommentPareantComment(ctx, r.db, parentCommentID, commentText, userID, parentComment.VideoID)
+	commentId, err := commenttable.CommentParentComment(ctx, r.db, parentCommentID, commentText, userID, parentComment.VideoID)
 	if err != nil {
-		return 0, pkgerrors.WithMessage(err, "CommentRepo.CommentParentComent")
+		return 0, pkgerrors.WithMessage(err, "CommentRepo.CommentParentComment")
 	}
 	return commentId, nil
 }

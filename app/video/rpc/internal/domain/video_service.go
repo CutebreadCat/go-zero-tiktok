@@ -2,10 +2,11 @@ package domain
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go_zero-tiktok/pkg/contract"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type VideoService struct {
@@ -56,12 +57,24 @@ func (s *VideoService) IncreaseVideoVisitCount(ctx context.Context, videoID int6
 // RecordVisit 异步记录视频访问量
 func (s *VideoService) RecordVisit(videoID int64) {
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logx.Errorf("panic in RecordVisit videoID=%d: %v", videoID, r)
+			}
+		}()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 		if err := s.popularRepo.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
-			fmt.Printf("increment visit count failed for video %d: %v\n", videoID, err)
+			logx.Errorf("increment visit count failed for video %d: %v", videoID, err)
 		}
 	}()
+}
+
+// recordVisits 批量异步记录访问量
+func (s *VideoService) recordVisits(videos []types.VideoBaseinfo) {
+	for _, video := range videos {
+		s.RecordVisit(video.VideoID)
+	}
 }
 
 // GetLikedVideos 获取用户点赞的视频列表（ID 水合为完整视频信息）
@@ -105,9 +118,7 @@ func (s *VideoService) SearchVideos(ctx context.Context, keyword string, pageNum
 	if err != nil {
 		return nil, 0, err
 	}
-	for _, video := range videos {
-		s.RecordVisit(video.VideoID)
-	}
+	s.recordVisits(videos)
 	return videos, total, nil
 }
 
@@ -117,9 +128,7 @@ func (s *VideoService) GetVideosByAuthor(ctx context.Context, authorID int64, pa
 	if err != nil {
 		return nil, 0, err
 	}
-	for _, video := range videos {
-		s.RecordVisit(video.VideoID)
-	}
+	s.recordVisits(videos)
 	return videos, total, nil
 }
 
@@ -128,12 +137,6 @@ func (s *VideoService) GetFeedVideos(ctx context.Context, lastTime string, pageN
 	if err != nil {
 		return nil, 0, err
 	}
-	for _, video := range videos {
-		s.RecordVisit(video.VideoID)
-	}
+	s.recordVisits(videos)
 	return videos, total, nil
-}
-
-func (s *VideoService) GetVideosByLastTime(ctx context.Context, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
-	return s.GetFeedVideos(ctx, lastTime, pageNum, pageSize)
 }

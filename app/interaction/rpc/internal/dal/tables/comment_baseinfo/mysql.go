@@ -133,7 +133,7 @@ func UnlikeComment(ctx context.Context, db *gorm.DB, commentID int64, userID int
 	return nil
 }
 
-func CommentPareantComment(ctx context.Context, db *gorm.DB, parentCommentID int64, commentText string, userID int64, videoID int64) (int64, error) {
+func CommentParentComment(ctx context.Context, db *gorm.DB, parentCommentID int64, commentText string, userID int64, videoID int64) (int64, error) {
 	comment := &CommentBaseinfo{
 		CommentID:       myutils.GenerateCommentID(),
 		UserID:          userID,

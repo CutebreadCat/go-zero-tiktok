@@ -29,6 +29,7 @@ func main() {
 		level = "debug"
 	}
 	appLogger.Init("video-rpc", level)
+	appLogger.RegisterOTelTraceExtractor()
 	defer appLogger.Close()
 	ctx := svc.NewServiceContext(c)
 
@@ -39,6 +40,7 @@ func main() {
 			reflection.Register(grpcServer)
 		}
 	})
+	appLogger.RegisterLogxBridge()
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)

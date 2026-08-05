@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	contract "go_zero-tiktok/pkg/contract"
 	jwtpkg "go_zero-tiktok/pkg/jwt"
-	"go_zero-tiktok/pkg/ctxkey"
 	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -24,7 +24,8 @@ func WithAuth(secret string) rest.RunOption {
 
 func UnauthorizedCallback(w http.ResponseWriter, r *http.Request, err error) {
 	var codeErr *xerr.CodeError
-	if !errors.As(xerr.NewUnauthorized("token invalid"), &codeErr) {
+	// 判断的是实际传入的 err，而非新建的错误，避免恒为 true
+	if !errors.As(err, &codeErr) {
 		httpx.ErrorCtx(r.Context(), w, err)
 		return
 	}
@@ -52,7 +53,7 @@ func AuthMiddleware(secret string) rest.Middleware {
 			}
 
 			userID, _ := strconv.ParseInt(claims.UserID, 10, 64)
-			ctx := context.WithValue(r.Context(), ctxkey.UserID, userID)
+			ctx := context.WithValue(r.Context(), contract.ContextKeyUserID, userID)
 			next(w, r.WithContext(ctx))
 		}
 	}
@@ -87,6 +88,6 @@ func UserIDFromContext(ctx context.Context) int64 {
 	if ctx == nil {
 		return 0
 	}
-	userID, _ := ctx.Value(ctxkey.UserID).(int64)
+	userID, _ := ctx.Value(contract.ContextKeyUserID).(int64)
 	return userID
 }

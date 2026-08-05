@@ -2,20 +2,23 @@ package user_service
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
+
+	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
 // TokenProvider token 生成与管理接口
 type TokenProvider interface {
 	GenerateAccessToken(secret string, userID int64) (string, error)
 	GenerateRefreshToken(secret string, userID int64) (string, error)
-	SaveRefreshToken(ctx context.Context, rdb interface{}, refreshToken string, userID int64) error
+	SaveRefreshToken(ctx context.Context, rdb *redis.Redis, refreshToken string, userID int64) error
 	ParseToken(secret, tokenStr string) (interface{}, error)
-	GetRefreshTokenUserID(ctx context.Context, rdb interface{}, refreshToken string) (int64, error)
-	RotateRefreshToken(ctx context.Context, rdb interface{}, oldToken, newToken string, userID int64) error
+	GetRefreshTokenUserID(ctx context.Context, rdb *redis.Redis, refreshToken string) (int64, error)
+	RotateRefreshToken(ctx context.Context, rdb *redis.Redis, oldToken, newToken string, userID int64) error
 }
 
 // MfaProvider MFA 验证接口
@@ -34,10 +37,10 @@ type AuthService struct {
 	token    TokenProvider
 	mfa      MfaProvider
 	secret   string
-	rdb      interface{}
+	rdb      *redis.Redis
 }
 
-func NewAuthService(userRepo IUserRepo, token TokenProvider, mfa MfaProvider, secret string, rdb interface{}) *AuthService {
+func NewAuthService(userRepo IUserRepo, token TokenProvider, mfa MfaProvider, secret string, rdb *redis.Redis) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
 		token:    token,
@@ -49,8 +52,15 @@ func NewAuthService(userRepo IUserRepo, token TokenProvider, mfa MfaProvider, se
 
 // Register 用户注册
 func (s *AuthService) Register(ctx context.Context, username, password string) (int64, error) {
-	if _, err := s.userRepo.GetUserByUsername(ctx, username); err == nil {
+	// 查询已存在用户：查询成功说明用户名被占用；查询出错时需区分“用户不存在”与 DB 故障
+	_, err := s.userRepo.GetUserByUsername(ctx, username)
+	if err == nil {
 		return 0, xerr.NewInvalidParam("用户名已存在，请更换后重试")
+	}
+	var codeErr *xerr.CodeError
+	if !errors.As(err, &codeErr) {
+		// 非业务错误（DB 故障等），直接返回，避免被误判为“用户名不存在”
+		return 0, xerr.HandleDaoError(err, "Register.GetUserByUsername")
 	}
 
 	userID := myutils.GenerateUserID()
@@ -80,9 +90,9 @@ func (s *AuthService) Login(ctx context.Context, username, password, mfaCode str
 		if mfaCode == "" {
 			return nil, xerr.NewInvalidParam("MFA 代码不能为空")
 		}
-		secret, err := s.userRepo.FindUserPendMFASecret(ctx, user.UserID)
+		secret, err := s.userRepo.FindUserMFASecret(ctx, user.UserID)
 		if err != nil {
-			return nil, xerr.HandleDaoError(err, "Login.FindUserPendMFASecret")
+			return nil, xerr.HandleDaoError(err, "Login.FindUserMFASecret")
 		}
 		if err := s.mfa.ValidateMfaCode(ctx, secret, mfaCode); err != nil {
 			return nil, xerr.NewInvalidParam("MFA 验证失败")

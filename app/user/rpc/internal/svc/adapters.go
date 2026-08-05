@@ -22,16 +22,16 @@ func (a *TokenAdapter) GenerateRefreshToken(secret string, userID int64) (string
 	return token.GenerateRefreshToken(secret, strconv.FormatInt(userID, 10))
 }
 
-func (a *TokenAdapter) SaveRefreshToken(ctx context.Context, rdb interface{}, refreshToken string, userID int64) error {
-	return token.SaveRefreshToken(ctx, rdb.(*redis.Redis), refreshToken, strconv.FormatInt(userID, 10))
+func (a *TokenAdapter) SaveRefreshToken(ctx context.Context, rdb *redis.Redis, refreshToken string, userID int64) error {
+	return token.SaveRefreshToken(ctx, rdb, refreshToken, strconv.FormatInt(userID, 10))
 }
 
 func (a *TokenAdapter) ParseToken(secret, tokenStr string) (interface{}, error) {
 	return token.ParseToken(secret, tokenStr)
 }
 
-func (a *TokenAdapter) GetRefreshTokenUserID(ctx context.Context, rdb interface{}, refreshToken string) (int64, error) {
-	userID, err := token.GetRefreshTokenUserID(ctx, rdb.(*redis.Redis), refreshToken)
+func (a *TokenAdapter) GetRefreshTokenUserID(ctx context.Context, rdb *redis.Redis, refreshToken string) (int64, error) {
+	userID, err := token.GetRefreshTokenUserID(ctx, rdb, refreshToken)
 	if err != nil {
 		return 0, err
 	}
@@ -42,8 +42,8 @@ func (a *TokenAdapter) GetRefreshTokenUserID(ctx context.Context, rdb interface{
 	return id, nil
 }
 
-func (a *TokenAdapter) RotateRefreshToken(ctx context.Context, rdb interface{}, oldToken, newToken string, userID int64) error {
-	return token.RotateRefreshToken(ctx, rdb.(*redis.Redis), oldToken, newToken, strconv.FormatInt(userID, 10))
+func (a *TokenAdapter) RotateRefreshToken(ctx context.Context, rdb *redis.Redis, oldToken, newToken string, userID int64) error {
+	return token.RotateRefreshToken(ctx, rdb, oldToken, newToken, strconv.FormatInt(userID, 10))
 }
 
 type MfaAdapter struct{}

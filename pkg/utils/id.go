@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go_zero-tiktok/pkg/ctxkey"
+	"go_zero-tiktok/pkg/contract"
 	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/bwmarrin/snowflake"
@@ -49,7 +49,7 @@ func GetUserIDFromContext(ctx context.Context) (int64, error) {
 		return 0, xerr.New(500, "上下文为空")
 	}
 
-	if uid, ok := ctx.Value(ctxkey.UserID).(int64); ok && uid != 0 {
+	if uid, ok := ctx.Value(types.ContextKeyUserID).(int64); ok && uid != 0 {
 		return uid, nil
 	}
 

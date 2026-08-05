@@ -14,3 +14,10 @@ JwtAuth:
 AppRedis:
   Host: 127.0.0.1:6888
   Type: node
+
+# 链路追踪:go-zero 内置 Telemetry(OTLP gRPC 导出,可接 Tempo/Jaeger)
+Telemetry:
+  Name: user-rpc
+  Endpoint: localhost:4317
+  Sampler: 1.0
+  Batcher: otlpgrpc

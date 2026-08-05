@@ -10,7 +10,7 @@ type ICommentRepo interface {
 	DeleteCommentByID(ctx context.Context, commentID int64, userID int64) error
 	GetCommentsByVideoID(ctx context.Context, videoID int64, pageNumber, pageSize int32) ([]types.CommentBaseinfo, int64, error)
 	LikeComment(ctx context.Context, commentID int64, userID int64, likeType int32) error
-	CommentParentComent(ctx context.Context, userID int64, commentText string, parentCommentID int64) (int64, error)
+	CommentParentComment(ctx context.Context, userID int64, commentText string, parentCommentID int64) (int64, error)
 }
 
 type IVideoVisitRecorder interface {

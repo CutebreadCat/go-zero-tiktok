@@ -6,3 +6,10 @@ Etcd:
   Key: video.rpc
 
 DataSource: "root:yourpassword@tcp(127.0.0.1:3309)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
+
+# 链路追踪:go-zero 内置 Telemetry(OTLP gRPC 导出,可接 Tempo/Jaeger)
+Telemetry:
+  Name: video-rpc
+  Endpoint: localhost:4317
+  Sampler: 1.0
+  Batcher: otlpgrpc

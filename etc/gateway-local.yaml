@@ -25,3 +25,11 @@ CommunicationRpc:
   Etcd:
     Hosts: [127.0.0.1:2379]
     Key: communication.rpc
+
+# 链路追踪:go-zero 内置 Telemetry(OTLP gRPC 导出,可接 Tempo/Jaeger)
+# 无 trace 后端调试时,可改用 Batcher: file + Endpoint: /tmp/traces.json
+Telemetry:
+  Name: gateway-api
+  Endpoint: localhost:4317
+  Sampler: 1.0
+  Batcher: otlpgrpc

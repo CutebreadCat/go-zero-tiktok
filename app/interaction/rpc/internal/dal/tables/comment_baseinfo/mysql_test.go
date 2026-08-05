@@ -139,16 +139,16 @@ func TestLikeComment(t *testing.T) {
 	})
 }
 
-// TestCommentPareantComment_SuccessAndIdempotency 回复评论生成并返回 ID
-func TestCommentPareantComment_SuccessAndIdempotency(t *testing.T) {
+// TestCommentParentComment_SuccessAndIdempotency 回复评论生成并返回 ID
+func TestCommentParentComment_SuccessAndIdempotency(t *testing.T) {
 	db := testhelpers.NewTestDB(t)
 	ctx := context.Background()
 
-	id1, err := CommentPareantComment(ctx, db, 0, "回复内容", 100, 200)
+	id1, err := CommentParentComment(ctx, db, 0, "回复内容", 100, 200)
 	testhelpers.AssertNoErr(t, err)
 	testhelpers.AssertEqual(t, id1 != 0, true)
 
-	id2, err := CommentPareantComment(ctx, db, 0, "另一回复", 101, 200)
+	id2, err := CommentParentComment(ctx, db, 0, "另一回复", 101, 200)
 	testhelpers.AssertNoErr(t, err)
 	testhelpers.AssertEqual(t, id1 != id2, true)
 

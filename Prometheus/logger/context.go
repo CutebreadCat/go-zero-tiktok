@@ -6,18 +6,18 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"go_zero-tiktok/pkg/ctxkey"
+	"go_zero-tiktok/pkg/contract"
 )
 
 func defaultContextFields(ctx context.Context) []zap.Field {
 	fields := make([]zap.Field, 0, 3)
 	for _, item := range []struct {
-		key  ctxkey.Key
+		key  types.ContextKey
 		name string
 	}{
-		{ctxkey.UserID, "user_id"},
-		{ctxkey.TraceID, "trace_id"},
-		{ctxkey.SpanID, "span_id"},
+		{types.ContextKeyUserID, "user_id"},
+		{types.ContextKeyTraceID, "trace_id"},
+		{types.ContextKeySpanID, "span_id"},
 	} {
 		if value, ok := ctx.Value(item.key).(string); ok && value != "" {
 			fields = append(fields, zap.String(item.name, value))
