@@ -23,8 +23,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	logx.Must(err)
 
 	// 初始化阿里云配置
-	aliyun.GetAliConfig()
-	aliyun.AliInit()
+	aliyun.LoadConfig()
+	aliyun.InitClient()
 
 	dalRepo := NewRepositories(db)
 	storageAdapter := &StorageAdapter{}
@@ -33,7 +33,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:       c,
 		DB:           db,
 		Dal:          dalRepo,
-		VideoService: videodomain.NewVideoService(dalRepo.Video, dalRepo.Popular, dalRepo.VideoLiker, storageAdapter),
+		VideoService: videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, dalRepo.VideoLiker, storageAdapter),
 		Storage:      storageAdapter,
 	}
 }

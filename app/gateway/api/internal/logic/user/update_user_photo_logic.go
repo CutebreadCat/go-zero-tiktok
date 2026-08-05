@@ -14,21 +14,21 @@ import (
 	logger "go_zero-tiktok/Prometheus/logger"
 )
 
-type PostUserPhotoLogic struct {
+type UpdateUserPhotoLogic struct {
 	*logger.ContextLogger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewPostUserPhotoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PostUserPhotoLogic {
-	return &PostUserPhotoLogic{
+func NewUpdateUserPhotoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UpdateUserPhotoLogic {
+	return &UpdateUserPhotoLogic{
 		ContextLogger: logger.WithContext(ctx),
 		ctx:           ctx,
 		svcCtx:        svcCtx,
 	}
 }
 
-func (l *PostUserPhotoLogic) PostUserPhoto(req *types.UserphotoRequest, file multipart.File) (resp *types.UserphotoResponse, err error) {
+func (l *UpdateUserPhotoLogic) UpdateUserPhoto(file multipart.File) (resp *types.UpdateUserPhotoResponse, err error) {
 	userID := token.UserIDFromContext(l.ctx)
 	if userID == 0 {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
@@ -36,16 +36,16 @@ func (l *PostUserPhotoLogic) PostUserPhoto(req *types.UserphotoRequest, file mul
 
 	photo, err := io.ReadAll(file)
 	if err != nil {
-		return nil, xerr.Wrap(err, "PostUserPhoto.ReadAll")
+		return nil, xerr.Wrap(err, "UpdateUserPhoto.ReadAll")
 	}
 	if _, err := l.svcCtx.UserRpc.UpdateUserPhoto(l.ctx, &userservice.UpdateUserPhotoRequest{
 		UserId: userID,
 		Photo:  photo,
 	}); err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "UpdateUserPhoto.UpdateUserPhoto")
 	}
-	return &types.UserphotoResponse{
-		StatusCode: 200,
-		StatusMsg:  "照片上传成功",
+
+	return &types.UpdateUserPhotoResponse{
+		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "照片上传成功"},
 	}, nil
 }

@@ -2,17 +2,27 @@ syntax = "v1"
 
 import "./user.api"
 
+// 账户模块（需登录）：当前用户、资料、MFA
+// 类型定义复用 ./user.api，鉴权由全局 token.AuthMiddleware 管控
 @server(
   group: user
-  jwt: Auth
   middleware: RateLimit
   tags:"user"
 )
 service tiktok-api {
-  @handler PostUserPhotoHandler
-  put /user/avatar/upload (UserphotoRequest) returns (UserphotoResponse)
-   @handler GetMfaqrcodeHandler
-  get /user/mfa/qrcode (MfaqrcodeRequest) returns (MfaqrcodeResponse)
+  // 当前用户信息
+  @handler GetUserInfoHandler
+  get /users/me (GetUserInfoRequest) returns (GetUserInfoResponse)
+
+  // 更新头像
+  @handler UpdateUserPhotoHandler
+  put /users/me/photo (UpdateUserPhotoRequest) returns (UpdateUserPhotoResponse)
+
+  // 获取 MFA 绑定二维码
+  @handler GetMfaQRCodeHandler
+  get /users/me/mfa/qr (GetMfaQRCodeRequest) returns (GetMfaQRCodeResponse)
+
+  // 绑定 MFA
   @handler BindMfaHandler
-  post /user/mfa/bind (BindMfaqrcodeRequest) returns (BindMfaqrcodeResponse)
+  post /users/me/mfa/bind (BindMfaRequest) returns (BindMfaResponse)
 }

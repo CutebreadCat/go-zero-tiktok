@@ -122,8 +122,8 @@ func (r *UserBaseinfoRepo) UpdateUserMFAPendingSecret(ctx context.Context, userI
 
 func (r *UserBaseinfoRepo) EnableUserMFA(ctx context.Context, userID int64) error {
 	if err := r.db.Transaction(func(tx *gorm.DB) error {
-		var userMFA userbasetable.UserMFA
-		err := tx.WithContext(ctx).Model(&userbasetable.UserMFA{}).Where("user_id = ?", userID).First(&userMFA).Error
+		var user userbasetable.UserBaseinfo
+		err := tx.WithContext(ctx).Model(&userbasetable.UserBaseinfo{}).Where("user_id = ?", userID).First(&user).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return xerr.NewInvalidParam("用户MFA记录不存在")
@@ -131,12 +131,12 @@ func (r *UserBaseinfoRepo) EnableUserMFA(ctx context.Context, userID int64) erro
 			return xerr.Wrap(err, "query user mfa failed")
 		}
 
-		mfaSecret := userMFA.MFAPendingSecret
+		mfaSecret := user.MFAPendingSecret
 		if mfaSecret == "" {
 			return xerr.NewInvalidParam("启用用户MFA失败，待确认密钥为空")
 		}
 
-		result := tx.WithContext(ctx).Model(&userMFA).Updates(map[string]interface{}{
+		result := tx.WithContext(ctx).Model(&user).Updates(map[string]interface{}{
 			"mfa_enabled":        true,
 			"mfa_secret":         mfaSecret,
 			"mfa_pending_secret": "",

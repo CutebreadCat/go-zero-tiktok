@@ -34,11 +34,11 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 
 	rpcResp, err := l.svcCtx.VideoRpc.GetLikeList(l.ctx, &videopb.GetLikeListRequest{
 		UserId:   userID,
-		PageNum:  req.PageNumber,
+		PageNum:  req.PageNum,
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetLikeList.GetLikeList")
 	}
 
 	videos := make([]types.VideoBaseinfo, 0, len(rpcResp.Videos))
@@ -54,14 +54,9 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 		})
 	}
 
-	resp = &types.GetLikeListResponse{
-		Base: types.BaseResponse{
-			StatusCode: 0,
-			StatusMsg:  "ok",
-		},
+	return &types.GetLikeListResponse{
+		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
 		VideoList: videos,
-		LikeCount: int32(rpcResp.Total),
-	}
-
-	return
+		LikeCount: rpcResp.Total,
+	}, nil
 }

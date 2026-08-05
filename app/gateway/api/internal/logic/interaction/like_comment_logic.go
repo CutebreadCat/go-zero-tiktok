@@ -27,31 +27,24 @@ func NewLikeCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeC
 }
 
 func (l *LikeCommentLogic) LikeComment(req *types.LikeCommentRequest) (resp *types.LikeCommentResponse, err error) {
-	userId, err := myutils.GetUserIDFromContext(l.ctx)
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
-	if userId == 0 {
-		return nil, xerr.NewUnauthorized("用户未登录或登录已过期")
-	}
-	if req.Liketype != 1 && req.Liketype != 0 {
-		return nil, xerr.NewInvalidParam("无效的点赞类型")
+	if req.CommentId == 0 {
+		return nil, xerr.NewInvalidParam("评论ID不能为空")
 	}
 
 	_, err = l.svcCtx.InteractionRpc.LikeComment(l.ctx, &interactionpb.LikeCommentRequest{
-		CommentId: req.CommentID,
-		UserId:    userId,
-		LikeType:  req.Liketype,
+		CommentId: req.CommentId,
+		UserId:    userID,
+		LikeType:  1, // 点赞
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "LikeComment.LikeComment")
 	}
 
-	resp = &types.LikeCommentResponse{
-		Base: types.BaseResponse{
-			StatusCode: 0,
-			StatusMsg:  "操作成功",
-		},
-	}
-	return resp, nil
+	return &types.LikeCommentResponse{
+		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "点赞成功"},
+	}, nil
 }

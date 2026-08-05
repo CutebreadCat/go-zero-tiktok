@@ -25,6 +25,8 @@ const (
 	publishVideoBytesKey    publishVideoContextKey = "video_bytes"
 )
 
+// WithPublishVideoFile 将视频文件名与内容注入 context，供 PublishVideo 使用。
+// 由 handler 在解析 multipart 后调用。
 func WithPublishVideoFile(ctx context.Context, filename string, videoBytes []byte) context.Context {
 	ctx = context.WithValue(ctx, publishVideoFilenameKey, filename)
 	return context.WithValue(ctx, publishVideoBytesKey, videoBytes)
@@ -63,13 +65,8 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 		return nil, xerr.HandleDaoError(err, "PublishVideo.CreateVideo")
 	}
 
-	resp = &types.PublishVideoResponse{
-		Base: types.BaseResponse{
-			StatusCode: 0,
-			StatusMsg:  "ok",
-		},
+	return &types.PublishVideoResponse{
+		Base:    types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
 		VideoID: rpcResp.VideoId,
-	}
-
-	return
+	}, nil
 }

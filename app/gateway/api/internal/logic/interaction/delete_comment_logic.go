@@ -27,25 +27,23 @@ func NewDeleteCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Del
 }
 
 func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentRequest) (resp *types.DeleteCommentResponse, err error) {
-	if req.CommentID == 0 {
-		return nil, xerr.NewInvalidParam("评论ID不能为空")
-	}
-	userid, err := myutils.GetUserIDFromContext(l.ctx)
+	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
-		return nil, xerr.NewUnauthorized("获取用户ID失败")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
+	}
+	if req.CommentId == 0 {
+		return nil, xerr.NewInvalidParam("评论ID不能为空")
 	}
 
 	_, err = l.svcCtx.InteractionRpc.DeleteComment(l.ctx, &interactionpb.DeleteCommentRequest{
-		CommentId: req.CommentID,
-		UserId:    userid,
+		CommentId: req.CommentId,
+		UserId:    userID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "DeleteComment.DeleteComment")
 	}
 
-	resp = &types.DeleteCommentResponse{
-		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "删除评论成功"},
-	}
-
-	return resp, nil
+	return &types.DeleteCommentResponse{
+		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "删除成功"},
+	}, nil
 }

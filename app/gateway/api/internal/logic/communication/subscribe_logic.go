@@ -31,7 +31,6 @@ func (l *SubscribeLogic) Subscribe(req *types.SubscribeRequest) (resp *types.Sub
 	if err != nil {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
-
 	if req.ToUserID == 0 {
 		return nil, xerr.NewInvalidParam("被关注用户ID不能为空")
 	}
@@ -39,18 +38,13 @@ func (l *SubscribeLogic) Subscribe(req *types.SubscribeRequest) (resp *types.Sub
 	_, err = l.svcCtx.CommunicationRpc.Subscribe(l.ctx, &communicationpb.SubscribeRequest{
 		FollowerId: followerID,
 		UserId:     req.ToUserID,
-		ActionType: req.ActionType,
+		ActionType: 1, // 关注
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "Subscribe.Subscribe")
 	}
 
-	resp = &types.SubscribeResponse{
-		BaseResponse: types.BaseResponse{
-			StatusCode: 0,
-			StatusMsg:  "ok",
-		},
-	}
-
-	return
+	return &types.SubscribeResponse{
+		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "关注成功"},
+	}, nil
 }

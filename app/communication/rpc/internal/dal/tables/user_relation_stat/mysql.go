@@ -57,10 +57,22 @@ func IncreaseFriendCount(ctx context.Context, db *gorm.DB, userID int64, delta i
 	return increaseCount(ctx, db, userID, "friend_count", delta)
 }
 
-// increaseCount 使用 INSERT ... ON DUPLICATE KEY UPDATE 语义，单条语句原子更新，天然幂等
+// increaseCount 使用 INSERT ... ON DUPLICATE KEY UPDATE 语义，单条语句原子更新，天然幂等。
+// 注意：INSERT 时需将目标列的初始值设为 delta（行不存在时直接以 delta 初始化），
+// 冲突分支再以 已有值 + delta 累加，保证首次调用也正确应用增量（MySQL/SQLite 行为一致）。
 func increaseCount(ctx context.Context, db *gorm.DB, userID int64, column string, delta int64) error {
 	if userID == 0 {
 		return xerr.NewInvalidParam("用户ID为空")
+	}
+
+	stat := &UserRelationStat{UserID: userID}
+	switch column {
+	case "follower_count":
+		stat.FollowerCount = delta
+	case "following_count":
+		stat.FollowingCount = delta
+	case "friend_count":
+		stat.FriendCount = delta
 	}
 
 	if err := db.WithContext(ctx).
@@ -68,7 +80,7 @@ func increaseCount(ctx context.Context, db *gorm.DB, userID int64, column string
 			Columns:   []clause.Column{{Name: "user_id"}},
 			DoUpdates: clause.Assignments(map[string]any{column: gorm.Expr(column+" + ?", delta)}),
 		}).
-		Create(&UserRelationStat{UserID: userID}).Error; err != nil {
+		Create(stat).Error; err != nil {
 		return xerr.Wrap(err, "increase "+column+" failed")
 	}
 	return nil

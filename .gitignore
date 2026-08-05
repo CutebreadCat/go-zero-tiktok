@@ -40,3 +40,5 @@ go.work.sum
 
 .js
 logs/
+
+go_zero-tiktok.code-workspace

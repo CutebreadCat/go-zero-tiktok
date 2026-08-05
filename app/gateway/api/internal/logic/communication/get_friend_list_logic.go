@@ -34,11 +34,11 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListRequest) (res
 
 	rpcResp, err := l.svcCtx.CommunicationRpc.GetFriendList(l.ctx, &communicationpb.GetFriendListRequest{
 		UserId:   userID,
-		PageNum:  req.PageNumber,
+		PageNum:  req.PageNum,
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetFriendList.GetFriendList")
 	}
 
 	friendList := make([]types.UserBaseinfo, 0, len(rpcResp.Users))
@@ -50,11 +50,9 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListRequest) (res
 		})
 	}
 
-	resp = &types.GetFriendListResponse{
-		BaseResponse: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		FriendList:   friendList,
-		FriendCount:  int32(rpcResp.Total),
-	}
-
-	return resp, nil
+	return &types.GetFriendListResponse{
+		Base:        types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
+		FriendList:  friendList,
+		FriendCount: rpcResp.Total,
+	}, nil
 }

@@ -6,6 +6,7 @@ import (
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	videopb "go_zero-tiktok/app/video/rpc/video_pb"
+	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/Prometheus/logger"
 )
@@ -30,7 +31,7 @@ func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "VideoPopular.GetPopularVideo")
 	}
 
 	items := make([]types.Item, 0, len(rpcResp.Videos))
@@ -56,13 +57,8 @@ func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *
 		items = append(items, item)
 	}
 
-	resp = &types.VideoPopularResponse{
-		Base: types.BaseResponse{
-			StatusCode: 0,
-			StatusMsg:  "ok",
-		},
-		Videos: items,
-	}
-
-	return
+	return &types.VideoPopularResponse{
+		Base:  types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
+		Items: items,
+	}, nil
 }

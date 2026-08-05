@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"net/http"
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
@@ -13,21 +12,21 @@ import (
 	logger "go_zero-tiktok/Prometheus/logger"
 )
 
-type GetMfaqrcodeLogic struct {
+type GetMfaQRCodeLogic struct {
 	*logger.ContextLogger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewGetMfaqrcodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMfaqrcodeLogic {
-	return &GetMfaqrcodeLogic{
+func NewGetMfaQRCodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetMfaQRCodeLogic {
+	return &GetMfaQRCodeLogic{
 		ContextLogger: logger.WithContext(ctx),
 		ctx:           ctx,
 		svcCtx:        svcCtx,
 	}
 }
 
-func (l *GetMfaqrcodeLogic) GetMfaqrcode(req *types.MfaqrcodeRequest) (resp *types.MfaqrcodeResponse, err error) {
+func (l *GetMfaQRCodeLogic) GetMfaQRCode(req *types.GetMfaQRCodeRequest) (resp *types.GetMfaQRCodeResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
 		return nil, xerr.NewUnauthorized("获取用户 ID 失败")
@@ -37,11 +36,12 @@ func (l *GetMfaqrcodeLogic) GetMfaqrcode(req *types.MfaqrcodeRequest) (resp *typ
 		UserId: userID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetMfaQRCode.GetMfaQRCode")
 	}
-	return &types.MfaqrcodeResponse{
-		Mfa_secret: result.MfaSecret,
-		QRCodeURL:  result.QrCodeUrl,
-		Base:       types.BaseResponse{StatusCode: http.StatusOK, StatusMsg: "获取 secret 成功"},
+
+	return &types.GetMfaQRCodeResponse{
+		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "获取 secret 成功"},
+		QRCodeURL: result.QrCodeUrl,
+		MfaSecret: result.MfaSecret,
 	}, nil
 }

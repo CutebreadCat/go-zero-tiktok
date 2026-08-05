@@ -17,15 +17,6 @@ func CreateUser(ctx context.Context, db *gorm.DB, user *UserBaseinfo) error {
 	if err := db.WithContext(ctx).Create(user).Error; err != nil {
 		return xerr.Wrap(err, "create user failed")
 	}
-	Usermaf := &UserMFA{
-		UserID:           user.UserID,
-		PasswordHash:     user.Password,
-		MFASecret:        "",
-		MFAPendingSecret: "",
-	}
-	if err := db.WithContext(ctx).Create(Usermaf).Error; err != nil {
-		return xerr.Wrap(err, "create user mfa failed")
-	}
 
 	return nil
 }
@@ -94,19 +85,19 @@ func DeleteUserByID(ctx context.Context, db *gorm.DB, userID int64) error {
 }
 
 func CheckUserExistsMFA(ctx context.Context, db *gorm.DB, userID int64) (bool, error) {
-	var userMFA UserMFA
-	err := db.WithContext(ctx).Where("user_id = ?", userID).First(&userMFA).Error
+	var user UserBaseinfo
+	err := db.WithContext(ctx).Where("user_id = ?", userID).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
 		return false, xerr.Wrap(err, "check user mfa failed")
 	}
-	return userMFA.MFAEnabled, nil
+	return user.MFAEnabled, nil
 }
 
 func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID int64, secret string) error {
-	result := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).Update("mfa_pending_secret", secret)
+	result := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).Update("mfa_pending_secret", secret)
 	if result.Error != nil {
 		return xerr.Wrap(result.Error, "update user mfa secret failed")
 	}
@@ -117,25 +108,25 @@ func UpdateUserMFAPendingSecret(ctx context.Context, db *gorm.DB, userID int64, 
 }
 
 func FindUserMFASecret(ctx context.Context, db *gorm.DB, userID int64) (string, error) {
-	var userMFA UserMFA
-	err := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).First(&userMFA).Error
+	var user UserBaseinfo
+	err := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", xerr.NewInvalidParam("用户MFA信息不存在")
 		}
 		return "", xerr.Wrap(err, "find user mfa secret failed")
 	}
-	return userMFA.MFAPendingSecret, nil
+	return user.MFAPendingSecret, nil
 }
 
 func FindUserPendMFASecret(ctx context.Context, db *gorm.DB, userID int64) (string, error) {
-	var userMFA UserMFA
-	err := db.WithContext(ctx).Model(&UserMFA{}).Where("user_id = ?", userID).First(&userMFA).Error
+	var user UserBaseinfo
+	err := db.WithContext(ctx).Model(&UserBaseinfo{}).Where("user_id = ?", userID).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", xerr.NewInvalidParam("用户MFA信息不存在")
 		}
 		return "", xerr.Wrap(err, "find user mfa secret failed")
 	}
-	return userMFA.MFASecret, nil
+	return user.MFASecret, nil
 }

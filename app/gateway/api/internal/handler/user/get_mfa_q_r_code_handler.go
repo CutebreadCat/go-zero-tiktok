@@ -12,16 +12,16 @@ import (
 	"go_zero-tiktok/app/gateway/api/internal/types"
 )
 
-func GetMfaqrcodeHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+func GetMfaQRCodeHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.MfaqrcodeRequest
+		var req types.GetMfaQRCodeRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 
-		l := user.NewGetMfaqrcodeLogic(r.Context(), svcCtx)
-		resp, err := l.GetMfaqrcode(&req)
+		l := user.NewGetMfaQRCodeLogic(r.Context(), svcCtx)
+		resp, err := l.GetMfaQRCode(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

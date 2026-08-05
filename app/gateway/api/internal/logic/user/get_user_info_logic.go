@@ -26,23 +26,20 @@ func NewGetUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUs
 	}
 }
 
-func (l *GetUserInfoLogic) GetUserInfo(req *types.UserInfoRequest) (*types.UserInfoResponse, error) {
+func (l *GetUserInfoLogic) GetUserInfo(req *types.GetUserInfoRequest) (resp *types.GetUserInfoResponse, err error) {
 	userID := token.UserIDFromContext(l.ctx)
 	if userID == 0 {
-		userID = req.UserID
-	}
-	if userID == 0 {
-		return nil, xerr.NewInvalidParam("用户 ID 不能为空")
+		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
 	result, err := l.svcCtx.UserRpc.GetUserInfo(l.ctx, &userservice.GetUserInfoRequest{
 		UserId: userID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetUserInfo.GetUserInfo")
 	}
 
-	return &types.UserInfoResponse{
+	return &types.GetUserInfoResponse{
 		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
 		User: types.UserBaseinfo{
 			UserID:    result.User.UserId,

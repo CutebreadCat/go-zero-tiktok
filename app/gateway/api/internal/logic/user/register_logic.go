@@ -25,7 +25,7 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 	}
 }
 
-func (l *RegisterLogic) Register(req *types.RegisterRequest) (*types.RegisterResponse, error) {
+func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.RegisterResponse, err error) {
 	if req.Username == "" || req.Password == "" {
 		return nil, xerr.NewInvalidParam("用户名或密码不能为空")
 	}
@@ -35,7 +35,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (*types.RegisterRes
 		Password: req.Password,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "Register.Register")
 	}
 
 	return &types.RegisterResponse{

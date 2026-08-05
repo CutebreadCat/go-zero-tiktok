@@ -59,9 +59,9 @@ func (a *MfaAdapter) GenerateSecret(ctx context.Context, userID int64) (string, 
 type StorageAdapter struct{}
 
 func (a *StorageAdapter) DeleteFile(objectKey string) error {
-	return aliyun.DeleteFileFromOSS(objectKey)
+	return aliyun.DeleteFile(objectKey)
 }
 
 func (a *StorageAdapter) UploadFile(reader io.Reader, objectKey string) (string, error) {
-	return aliyun.UploadBytesToOSS(reader, objectKey)
+	return aliyun.UploadBytes(reader, objectKey)
 }

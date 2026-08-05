@@ -12,16 +12,16 @@ import (
 	"go_zero-tiktok/app/gateway/api/internal/types"
 )
 
-func CommentPareantCommentHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+func ReplyCommentHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.CommentPareantCommentRequest
+		var req types.ReplyCommentRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 
-		l := interaction.NewCommentPareantCommentLogic(r.Context(), svcCtx)
-		resp, err := l.CommentPareantComment(&req)
+		l := interaction.NewReplyCommentLogic(r.Context(), svcCtx)
+		resp, err := l.ReplyComment(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

@@ -9,5 +9,5 @@ import (
 type StorageAdapter struct{}
 
 func (a *StorageAdapter) UploadFile(reader io.Reader, objectKey string) (string, error) {
-	return aliyun.UploadBytesToOSS(reader, objectKey)
+	return aliyun.UploadBytes(reader, objectKey)
 }

@@ -34,11 +34,11 @@ func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *typ
 
 	rpcResp, err := l.svcCtx.CommunicationRpc.GetFansList(l.ctx, &communicationpb.GetFansListRequest{
 		UserId:   userID,
-		PageNum:  req.PageNumber,
+		PageNum:  req.PageNum,
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetFansList.GetFansList")
 	}
 
 	fansList := make([]types.UserBaseinfo, 0, len(rpcResp.Users))
@@ -50,11 +50,9 @@ func (l *GetFansListLogic) GetFansList(req *types.GetFansListRequest) (resp *typ
 		})
 	}
 
-	resp = &types.GetFansListResponse{
-		BaseResponse: types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
-		FansList:     fansList,
-		FansCount:    int32(rpcResp.Total),
-	}
-
-	return resp, nil
+	return &types.GetFansListResponse{
+		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
+		FansList:  fansList,
+		FansCount: rpcResp.Total,
+	}, nil
 }

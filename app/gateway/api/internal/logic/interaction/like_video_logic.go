@@ -31,25 +31,20 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 	if err != nil {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
-	if req.VideoID == 0 {
+	if req.VideoId == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 
 	_, err = l.svcCtx.VideoRpc.LikeVideo(l.ctx, &videopb.LikeVideoRequest{
 		UserId:     userID,
-		VideoId:    req.VideoID,
-		ActionType: req.ActionType,
+		VideoId:    req.VideoId,
+		ActionType: 1, // 点赞
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "LikeVideo.LikeVideo")
 	}
 
-	resp = &types.LikeVideoResponse{
-		Base: types.BaseResponse{
-			StatusCode: 0,
-			StatusMsg:  "ok",
-		},
-	}
-
-	return
+	return &types.LikeVideoResponse{
+		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "点赞成功"},
+	}, nil
 }

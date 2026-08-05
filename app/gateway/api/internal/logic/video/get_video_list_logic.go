@@ -31,12 +31,12 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 	}
 
 	rpcResp, err := l.svcCtx.VideoRpc.GetVideoList(l.ctx, &videopb.GetVideoListRequest{
-		AuthorId: req.UserID,
+		AuthorId: req.UserId,
 		PageNum:  req.PageNum,
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetVideoList.GetVideoList")
 	}
 
 	videos := make([]types.VideoBaseinfo, 0, len(rpcResp.Videos))
@@ -52,13 +52,9 @@ func (l *GetVideoListLogic) GetVideoList(req *types.GetVideoListRequest) (resp *
 		})
 	}
 
-	resp = &types.GetVideoListResponse{
+	return &types.GetVideoListResponse{
 		Base:   types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
 		Videos: videos,
-	}
-	if resp.Videos == nil {
-		resp.Videos = []types.VideoBaseinfo{}
-	}
-
-	return resp, nil
+		Total:  rpcResp.Total,
+	}, nil
 }

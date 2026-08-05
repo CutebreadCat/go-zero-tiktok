@@ -25,7 +25,7 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 	}
 }
 
-func (l *LoginLogic) Login(req *types.LoginRequest) (*types.LoginResponse, error) {
+func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
 	if req.Username == "" || req.Password == "" {
 		return nil, xerr.NewInvalidParam("用户名或密码不能为空")
 	}
@@ -36,7 +36,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (*types.LoginResponse, error
 		MfaCode:  req.MfaCode,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "Login.Login")
 	}
 
 	return &types.LoginResponse{

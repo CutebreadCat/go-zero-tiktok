@@ -3,8 +3,7 @@ package video_baseinfo
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strconv"
+	"sort"
 	"strings"
 
 	"go_zero-tiktok/app/video/rpc/internal/dal/query"
@@ -68,19 +67,22 @@ func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []int64) ([]Video
 	if len(videoIDs) == 0 {
 		return []VideoBaseinfo{}, nil
 	}
-	quotedIDs := make([]string, len(videoIDs))
-	for i, id := range videoIDs {
-		quotedIDs[i] = strconv.FormatInt(id, 10)
-	}
-	idsForOrder := strings.Join(quotedIDs, ",")
 
 	var videos []VideoBaseinfo
 	if err := db.WithContext(ctx).
 		Where("video_id IN ?", videoIDs).
-		Order(fmt.Sprintf("FIELD(video_id, %s)", idsForOrder)).
 		Find(&videos).Error; err != nil {
 		return nil, xerr.Wrap(err, "get videos by ids failed")
 	}
+
+	// 按传入 ID 顺序排序（避免依赖 MySQL 专有 FIELD() 函数，保证跨数据库一致）
+	order := make(map[int64]int, len(videoIDs))
+	for i, id := range videoIDs {
+		order[id] = i
+	}
+	sort.SliceStable(videos, func(i, j int) bool {
+		return order[videos[i].VideoID] < order[videos[j].VideoID]
+	})
 
 	return videos, nil
 }

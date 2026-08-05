@@ -34,11 +34,11 @@ func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListR
 
 	rpcResp, err := l.svcCtx.CommunicationRpc.GetSubscriberList(l.ctx, &communicationpb.GetSubscriberListRequest{
 		UserId:   userID,
-		PageNum:  req.PageNumber,
+		PageNum:  req.PageNum,
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetSubscriberList.GetSubscriberList")
 	}
 
 	subscriberList := make([]types.UserBaseinfo, 0, len(rpcResp.Users))
@@ -50,11 +50,9 @@ func (l *GetSubscriberListLogic) GetSubscriberList(req *types.GetSubscriberListR
 		})
 	}
 
-	resp = &types.GetSubscriberListResponse{
-		BaseResponse:    types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
+	return &types.GetSubscriberListResponse{
+		Base:            types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
 		SubscriberList:  subscriberList,
-		SubscriberCount: int32(rpcResp.Total),
-	}
-
-	return resp, nil
+		SubscriberCount: rpcResp.Total,
+	}, nil
 }

@@ -8,12 +8,28 @@ type BaseResponse struct {
 	StatusMsg  string `json:"status_msg"`
 }
 
-type BindMfaqrcodeRequest struct {
-	Mfa_secret string `form:"mfa_secret"`
-	Mfa_code   string `form:"mfa_code"`
+type BindMfaRequest struct {
+	MfaSecret string `form:"mfa_secret"`
+	MfaCode   string `form:"mfa_code"`
 }
 
-type BindMfaqrcodeResponse struct {
+type BindMfaResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
+type CancelLikeCommentRequest struct {
+	CommentId int64 `path:"id"`
+}
+
+type CancelLikeCommentResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
+type CancelLikeVideoRequest struct {
+	VideoId int64 `path:"id"`
+}
+
+type CancelLikeVideoResponse struct {
 	Base BaseResponse `json:"base"`
 }
 
@@ -29,111 +45,119 @@ type CommentBaseinfo struct {
 	ParentCommentID int64  `json:"parent_comment_id,string"`
 }
 
-type CommentPareantCommentRequest struct {
-	ParentCommentID int64  `form:"parent_comment_id"`
-	CommentText     string `form:"comment_text"`
-}
-
-type CommentPareantCommentResponse struct {
-	Base      BaseResponse `json:"base_response"`
-	CommentID int64        `json:"comment_id,string"`
-}
-
 type CommentVideoRequest struct {
-	VideoID     int64  `form:"video_id"`
+	VideoId     int64  `path:"id"`
 	CommentText string `form:"comment_text"`
 }
 
 type CommentVideoResponse struct {
-	Base      BaseResponse `json:"base_response"`
+	Base      BaseResponse `json:"base"`
 	CommentID int64        `json:"comment_id,string"`
 }
 
 type DeleteCommentRequest struct {
-	CommentID int64 `form:"comment_id"`
+	CommentId int64 `path:"id"`
 }
 
 type DeleteCommentResponse struct {
-	Base BaseResponse `json:"base_response"`
+	Base BaseResponse `json:"base"`
 }
 
 type FeedVideoRequest struct {
 	LastTime string `form:"last_time"`
-	PageSize int32  `form:"page_size"`
 	PageNum  int32  `form:"page_num"`
+	PageSize int32  `form:"page_size"`
 }
 
 type FeedVideoResponse struct {
-	Base   BaseResponse `json:"base"`
-	Total  int64        `json:"total"`
-	Videos []Item       `json:"items"`
+	Base  BaseResponse `json:"base"`
+	Total int64        `json:"total"`
+	Items []Item       `json:"items"`
 }
 
 type GetCommentListRequest struct {
-	VideoID    int64 `form:"video_id"`
-	PageNumber int32 `form:"page_number"`
-	PageSize   int32 `form:"page_size"`
+	VideoId  int64 `path:"id"`
+	PageNum  int32 `form:"page_num"`
+	PageSize int32 `form:"page_size"`
 }
 
 type GetCommentListResponse struct {
-	Base         BaseResponse      `json:"base_response"`
+	Base         BaseResponse      `json:"base"`
 	CommentList  []CommentBaseinfo `json:"comment_list"`
-	CommentCount int32             `json:"comment_count"`
+	CommentCount int64             `json:"comment_count"`
 }
 
 type GetFansListRequest struct {
-	PageNumber int32 `form:"page_number"`
-	PageSize   int32 `form:"page_size"`
+	PageNum  int32 `form:"page_num"`
+	PageSize int32 `form:"page_size"`
 }
 
 type GetFansListResponse struct {
-	BaseResponse BaseResponse   `json:"base_response"`
-	FansList     []UserBaseinfo `json:"fans_list"`
-	FansCount    int32          `json:"fans_count"`
+	Base      BaseResponse   `json:"base"`
+	FansList  []UserBaseinfo `json:"fans_list"`
+	FansCount int64          `json:"fans_count"`
 }
 
 type GetFriendListRequest struct {
-	PageNumber int32 `form:"page_number"`
-	PageSize   int32 `form:"page_size"`
+	PageNum  int32 `form:"page_num"`
+	PageSize int32 `form:"page_size"`
 }
 
 type GetFriendListResponse struct {
-	BaseResponse BaseResponse   `json:"base_response"`
-	FriendList   []UserBaseinfo `json:"friend_list"`
-	FriendCount  int32          `json:"friend_count"`
+	Base        BaseResponse   `json:"base"`
+	FriendList  []UserBaseinfo `json:"friend_list"`
+	FriendCount int64          `json:"friend_count"`
 }
 
 type GetLikeListRequest struct {
-	PageNumber int32 `form:"page_number"`
-	PageSize   int32 `form:"page_size"`
+	PageNum  int32 `form:"page_num"`
+	PageSize int32 `form:"page_size"`
 }
 
 type GetLikeListResponse struct {
-	Base      BaseResponse    `json:"base_response"`
+	Base      BaseResponse    `json:"base"`
 	VideoList []VideoBaseinfo `json:"video_list"`
-	LikeCount int32           `json:"like_count"`
+	LikeCount int64           `json:"like_count"`
+}
+
+type GetMfaQRCodeRequest struct {
+}
+
+type GetMfaQRCodeResponse struct {
+	Base      BaseResponse `json:"base"`
+	QRCodeURL string       `json:"qr_code_url"`
+	MfaSecret string       `json:"mfa_secret"`
 }
 
 type GetSubscriberListRequest struct {
-	PageNumber int32 `form:"page_number"`
-	PageSize   int32 `form:"page_size"`
+	PageNum  int32 `form:"page_num"`
+	PageSize int32 `form:"page_size"`
 }
 
 type GetSubscriberListResponse struct {
-	BaseResponse    BaseResponse   `json:"base_response"`
+	Base            BaseResponse   `json:"base"`
 	SubscriberList  []UserBaseinfo `json:"subscriber_list"`
-	SubscriberCount int32          `json:"subscriber_count"`
+	SubscriberCount int64          `json:"subscriber_count"`
+}
+
+type GetUserInfoRequest struct {
+}
+
+type GetUserInfoResponse struct {
+	Base BaseResponse `json:"base"`
+	User UserBaseinfo `json:"user"`
 }
 
 type GetVideoListRequest struct {
-	UserID   int64 `form:"user_id"`
-	PageSize int32 `form:"page_size"`
+	UserId   int64 `path:"id"`
 	PageNum  int32 `form:"page_num"`
+	PageSize int32 `form:"page_size"`
 }
 
 type GetVideoListResponse struct {
 	Base   BaseResponse    `json:"base"`
 	Videos []VideoBaseinfo `json:"videos"`
+	Total  int64           `json:"total"`
 }
 
 type Item struct {
@@ -142,21 +166,19 @@ type Item struct {
 }
 
 type LikeCommentRequest struct {
-	CommentID int64 `form:"comment_id"`
-	Liketype  int32 `form:"like_type"`
+	CommentId int64 `path:"id"`
 }
 
 type LikeCommentResponse struct {
-	Base BaseResponse `json:"base_response"`
+	Base BaseResponse `json:"base"`
 }
 
 type LikeVideoRequest struct {
-	VideoID    int64 `form:"video_id"`
-	ActionType int32 `form:"action_type"`
+	VideoId int64 `path:"id"`
 }
 
 type LikeVideoResponse struct {
-	Base BaseResponse `json:"base_response"`
+	Base BaseResponse `json:"base"`
 }
 
 type LoginRequest struct {
@@ -170,16 +192,6 @@ type LoginResponse struct {
 	UserID       int64        `json:"user_id,string"`
 	AccessToken  string       `json:"access_token"`
 	RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
-}
-
-type MfaqrcodeRequest struct {
-	Mfa_ticket string `form:"mfa_ticket"`
-}
-
-type MfaqrcodeResponse struct {
-	Base       BaseResponse `json:"base"`
-	QRCodeURL  string       `json:"qr_code"`
-	Mfa_secret string       `json:"mfa_secret"`
 }
 
 type PublishVideoRequest struct {
@@ -212,13 +224,38 @@ type RegisterResponse struct {
 	UserID int64        `json:"user_id,string"`
 }
 
+type ReplyCommentRequest struct {
+	CommentId   int64  `path:"id"`
+	CommentText string `form:"comment_text"`
+}
+
+type ReplyCommentResponse struct {
+	Base      BaseResponse `json:"base"`
+	CommentID int64        `json:"comment_id,string"`
+}
+
 type SubscribeRequest struct {
-	ToUserID   int64 `form:"to_user_id"`
-	ActionType int32 `form:"action_type"`
+	ToUserID int64 `path:"id"`
 }
 
 type SubscribeResponse struct {
-	BaseResponse BaseResponse `json:"base_response"`
+	Base BaseResponse `json:"base"`
+}
+
+type UnsubscribeRequest struct {
+	ToUserID int64 `path:"id"`
+}
+
+type UnsubscribeResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
+type UpdateUserPhotoRequest struct {
+	PhotoURL string `form:"photo_url"`
+}
+
+type UpdateUserPhotoResponse struct {
+	Base BaseResponse `json:"base"`
 }
 
 type UserBaseinfo struct {
@@ -235,24 +272,6 @@ type UserFollow struct {
 	FollowerID int64 `json:"follower_id,string"`
 	UserID     int64 `json:"user_id,string"`
 	Status     int32 `json:"status"`
-}
-
-type UserInfoRequest struct {
-	UserID int64 `form:"user_id"`
-}
-
-type UserInfoResponse struct {
-	Base BaseResponse `json:"base"`
-	User UserBaseinfo `json:"user"`
-}
-
-type UserphotoRequest struct {
-	PhotoURL string `form:"photo_url"`
-}
-
-type UserphotoResponse struct {
-	StatusCode int32  `json:"status_code"`
-	StatusMsg  string `json:"status_msg"`
 }
 
 type VideoBaseinfo struct {
@@ -275,19 +294,19 @@ type VideoPopular struct {
 }
 
 type VideoPopularRequest struct {
-	PageSize int32 `form:"page_size"`
 	PageNum  int32 `form:"page_num"`
+	PageSize int32 `form:"page_size"`
 }
 
 type VideoPopularResponse struct {
-	Base   BaseResponse `json:"base"`
-	Videos []Item       `json:"items"`
+	Base  BaseResponse `json:"base"`
+	Items []Item       `json:"items"`
 }
 
 type VideoSearchRequest struct {
 	Keyword  string `form:"keyword"`
-	PageSize int32  `form:"page_size"`
 	PageNum  int32  `form:"page_num"`
+	PageSize int32  `form:"page_size"`
 }
 
 type VideoSearchResponse struct {

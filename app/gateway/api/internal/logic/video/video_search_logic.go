@@ -25,7 +25,7 @@ func NewVideoSearchLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Video
 	}
 }
 
-func (l *VideoSearchLogic) VideoSearch(ctx context.Context, req *types.VideoSearchRequest) (resp *types.VideoSearchResponse, err error) {
+func (l *VideoSearchLogic) VideoSearch(req *types.VideoSearchRequest) (resp *types.VideoSearchResponse, err error) {
 	if req.PageSize > 100 {
 		return nil, xerr.NewInvalidParam("每页数量不能超过100")
 	}
@@ -36,7 +36,7 @@ func (l *VideoSearchLogic) VideoSearch(ctx context.Context, req *types.VideoSear
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "VideoSearch.SearchVideo")
 	}
 
 	videos := make([]types.VideoBaseinfo, 0, len(rpcResp.Videos))
@@ -52,21 +52,8 @@ func (l *VideoSearchLogic) VideoSearch(ctx context.Context, req *types.VideoSear
 		})
 	}
 
-	resp = &types.VideoSearchResponse{
-		Base: types.BaseResponse{
-			StatusCode: 0,
-			StatusMsg:  "查询成功",
-		},
+	return &types.VideoSearchResponse{
+		Base:   types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
 		Videos: videos,
-	}
-
-	if resp.Videos == nil {
-		resp.Videos = []types.VideoBaseinfo{}
-	}
-
-	if req.Keyword == "" && len(resp.Videos) == 0 {
-		resp.Base.StatusMsg = "暂无视频数据"
-	}
-
-	return resp, nil
+	}, nil
 }

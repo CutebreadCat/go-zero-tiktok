@@ -32,7 +32,7 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 	if err != nil {
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
-	if req.VideoID == 0 {
+	if req.VideoId == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 	commentText := strings.TrimSpace(req.CommentText)
@@ -42,17 +42,15 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 
 	rpcResp, err := l.svcCtx.InteractionRpc.CommentVideo(l.ctx, &interactionpb.CommentVideoRequest{
 		UserId:      userID,
-		VideoId:     req.VideoID,
+		VideoId:     req.VideoId,
 		CommentText: commentText,
 	})
 	if err != nil {
 		return nil, xerr.HandleDaoError(err, "CommentVideo.CreateComment")
 	}
 
-	resp = &types.CommentVideoResponse{
+	return &types.CommentVideoResponse{
 		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "评论发布成功"},
 		CommentID: rpcResp.CommentId,
-	}
-
-	return resp, nil
+	}, nil
 }

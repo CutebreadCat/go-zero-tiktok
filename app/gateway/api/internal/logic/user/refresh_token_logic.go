@@ -25,7 +25,7 @@ func NewRefreshTokenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Refr
 	}
 }
 
-func (l *RefreshTokenLogic) RefreshToken(req *types.RefreshTokenRequest) (*types.RefreshTokenResponse, error) {
+func (l *RefreshTokenLogic) RefreshToken(req *types.RefreshTokenRequest) (resp *types.RefreshTokenResponse, err error) {
 	if req.RefreshToken == "" {
 		return nil, xerr.NewUnauthorized("刷新令牌不能为空")
 	}
@@ -34,7 +34,7 @@ func (l *RefreshTokenLogic) RefreshToken(req *types.RefreshTokenRequest) (*types
 		RefreshToken: req.RefreshToken,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "RefreshToken.RefreshToken")
 	}
 
 	return &types.RefreshTokenResponse{

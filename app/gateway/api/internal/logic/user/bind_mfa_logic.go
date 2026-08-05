@@ -26,7 +26,7 @@ func NewBindMfaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *BindMfaLo
 	}
 }
 
-func (l *BindMfaLogic) BindMfa(req *types.BindMfaqrcodeRequest) (resp *types.BindMfaqrcodeResponse, err error) {
+func (l *BindMfaLogic) BindMfa(req *types.BindMfaRequest) (resp *types.BindMfaResponse, err error) {
 	userID, err := myutils.GetUserIDFromContext(l.ctx)
 	if err != nil {
 		return nil, xerr.NewUnauthorized("获取用户 ID 失败")
@@ -34,12 +34,13 @@ func (l *BindMfaLogic) BindMfa(req *types.BindMfaqrcodeRequest) (resp *types.Bin
 
 	if _, err := l.svcCtx.UserRpc.BindMfa(l.ctx, &userservice.BindMfaRequest{
 		UserId:    userID,
-		MfaSecret: req.Mfa_secret,
-		MfaCode:   req.Mfa_code,
+		MfaSecret: req.MfaSecret,
+		MfaCode:   req.MfaCode,
 	}); err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "BindMfa.BindMfa")
 	}
-	return &types.BindMfaqrcodeResponse{
+
+	return &types.BindMfaResponse{
 		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "绑定 MFA 成功"},
 	}, nil
 }

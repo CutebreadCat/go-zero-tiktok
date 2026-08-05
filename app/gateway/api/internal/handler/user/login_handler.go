@@ -5,21 +5,17 @@ package user
 
 import (
 	"net/http"
-	"time"
 
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"go_zero-tiktok/app/gateway/api/internal/logic/user"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-
-	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.LoginRequest
 		if err := httpx.Parse(r, &req); err != nil {
-			logx.Errorf("parse login request failed: %v", err)
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
@@ -29,16 +25,6 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			if resp.RefreshToken != "" {
-				http.SetCookie(w, &http.Cookie{
-					Name:     "refresh_token",
-					Value:    resp.RefreshToken,
-					Path:     "/",
-					HttpOnly: true,
-					MaxAge:   int((24 * time.Hour).Seconds()),
-				})
-				resp.RefreshToken = ""
-			}
 			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}

@@ -21,7 +21,7 @@ func VideoSearchHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := video.NewVideoSearchLogic(r.Context(), svcCtx)
-		resp, err := l.VideoSearch(r.Context(), &req)
+		resp, err := l.VideoSearch(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

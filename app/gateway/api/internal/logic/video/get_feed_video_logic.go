@@ -1,6 +1,3 @@
-// Code scaffolded by goctl. Safe to edit.
-// goctl 1.10.1
-
 package video
 
 import (
@@ -9,6 +6,7 @@ import (
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	videopb "go_zero-tiktok/app/video/rpc/video_pb"
+	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/Prometheus/logger"
 )
@@ -34,7 +32,7 @@ func (l *GetFeedVideoLogic) GetFeedVideo(req *types.FeedVideoRequest) (resp *typ
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetFeedVideo.GetFeedVideo")
 	}
 
 	items := make([]types.Item, 0, len(rpcResp.Videos))
@@ -56,8 +54,8 @@ func (l *GetFeedVideoLogic) GetFeedVideo(req *types.FeedVideoRequest) (resp *typ
 	}
 
 	return &types.FeedVideoResponse{
-		Base:   types.BaseResponse{StatusCode: 0},
-		Videos: items,
-		Total:  rpcResp.Total,
+		Base:  types.BaseResponse{StatusCode: 0, StatusMsg: "ok"},
+		Total: rpcResp.Total,
+		Items: items,
 	}, nil
 }

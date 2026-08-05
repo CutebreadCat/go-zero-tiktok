@@ -29,8 +29,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	rdb := redis.MustNewRedis(c.AppRedis)
 	dalRepo := NewRepositories(db)
 
-	aliyun.GetAliConfig()
-	aliyun.AliInit()
+	aliyun.LoadConfig()
+	aliyun.InitClient()
 
 	tokenAdapter := &TokenAdapter{}
 	mfaAdapter := &MfaAdapter{}

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	jwtpkg "go_zero-tiktok/pkg/jwt"
 	"go_zero-tiktok/pkg/ctxkey"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -33,7 +34,7 @@ func UnauthorizedCallback(w http.ResponseWriter, r *http.Request, err error) {
 func AuthMiddleware(secret string) rest.Middleware {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			if _, ok := publicPaths[r.URL.Path]; ok {
+			if isPublicPath(r.URL.Path) {
 				next(w, r)
 				return
 			}
@@ -44,8 +45,8 @@ func AuthMiddleware(secret string) rest.Middleware {
 				return
 			}
 
-			claims, err := ParseToken(secret, parts[1])
-			if err != nil || claims.TokenType != AccessTokenType {
+			claims, err := jwtpkg.ParseToken(secret, parts[1])
+			if err != nil || claims.TokenType != jwtpkg.AccessTokenType {
 				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token invalid"))
 				return
 			}
@@ -58,12 +59,28 @@ func AuthMiddleware(secret string) rest.Middleware {
 }
 
 var publicPaths = map[string]struct{}{
-	"/user/login":         {},
-	"/user/register":      {},
-	"/user/token/refresh": {},
-	"/video/list":         {},
-	"/video/popular":      {},
-	"/video/search":       {},
+	// 账户公开口
+	"/users":            {}, // POST 注册
+	"/sessions":         {}, // POST 登录
+	"/sessions/refresh": {}, // POST 刷新令牌
+	// 视频公开口（以 * 结尾表示前缀匹配，如动态路径 /users/:id/videos）
+	"/users/*/videos": {}, // GET 作者视频列表
+	"/videos/popular": {}, // GET 热门视频
+	"/videos/search":  {}, // GET 搜索视频
+}
+
+// isPublicPath 判断请求路径是否命中公开白名单。
+// 支持以 * 结尾的前缀匹配，用于带动态路径参数的公开接口。
+func isPublicPath(path string) bool {
+	if _, ok := publicPaths[path]; ok {
+		return true
+	}
+	for p := range publicPaths {
+		if strings.HasSuffix(p, "*") && strings.HasPrefix(path, strings.TrimSuffix(p, "*")) {
+			return true
+		}
+	}
+	return false
 }
 
 func UserIDFromContext(ctx context.Context) int64 {

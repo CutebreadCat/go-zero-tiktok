@@ -4,52 +4,48 @@
 package video
 
 import (
-	appLogger "go_zero-tiktok/Prometheus/logger"
 	"io"
 	"net/http"
 
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"go_zero-tiktok/app/gateway/api/internal/logic/video"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	myutils "go_zero-tiktok/pkg/utils"
-
-	"github.com/zeromicro/go-zero/rest/httpx"
+	"go_zero-tiktok/pkg/xerr"
 )
 
 func PublishVideoHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseMultipartForm(256 << 20); err != nil {
+			httpx.ErrorCtx(r.Context(), w, xerr.NewInvalidParam("视频上传失败"))
+			return
+		}
+		file, header, err := r.FormFile("file")
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, xerr.NewInvalidParam("未找到视频文件"))
+			return
+		}
+		defer file.Close()
+
+		videoBytes, err := io.ReadAll(file)
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, xerr.NewInvalidParam("读取视频文件失败"))
+			return
+		}
+		ctx := video.WithPublishVideoFile(r.Context(), header.Filename, videoBytes)
+
 		var req types.PublishVideoRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
-		reader, fileheader, err := r.FormFile("video_file")
-		if err != nil {
-			appLogger.Infof("failed to get video file from form: %v", err)
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		if err := myutils.CheckVideo(reader); err != nil {
-			appLogger.Infof("failed to check video file: %v", err)
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-
-		videoBytes, err := io.ReadAll(reader)
-		if err != nil {
-			appLogger.Infof("failed to read video file bytes: %v", err)
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-
-		ctx := video.WithPublishVideoFile(r.Context(), fileheader.Filename, videoBytes)
 
 		l := video.NewPublishVideoLogic(ctx, svcCtx)
 		resp, err := l.PublishVideo(&req)
 		if err != nil {
-			httpx.ErrorCtx(ctx, w, err)
+			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
-			httpx.OkJsonCtx(ctx, w, resp)
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

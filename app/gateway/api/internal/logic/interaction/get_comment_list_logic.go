@@ -26,7 +26,7 @@ func NewGetCommentListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 }
 
 func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (resp *types.GetCommentListResponse, err error) {
-	if req.VideoID == 0 {
+	if req.VideoId == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 	if req.PageSize > 100 {
@@ -34,12 +34,12 @@ func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (
 	}
 
 	rpcResp, err := l.svcCtx.InteractionRpc.GetCommentList(l.ctx, &interactionpb.GetCommentListRequest{
-		VideoId:  req.VideoID,
-		PageNum:  req.PageNumber,
+		VideoId:  req.VideoId,
+		PageNum:  req.PageNum,
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		return nil, err
+		return nil, xerr.HandleDaoError(err, "GetCommentList.GetCommentList")
 	}
 
 	comments := make([]types.CommentBaseinfo, 0, len(rpcResp.Comments))
@@ -54,14 +54,9 @@ func (l *GetCommentListLogic) GetCommentList(req *types.GetCommentListRequest) (
 		})
 	}
 
-	resp = &types.GetCommentListResponse{
+	return &types.GetCommentListResponse{
 		Base:         types.BaseResponse{StatusCode: 0, StatusMsg: "查询成功"},
 		CommentList:  comments,
-		CommentCount: int32(rpcResp.Total),
-	}
-	if resp.CommentList == nil {
-		resp.CommentList = []types.CommentBaseinfo{}
-	}
-
-	return resp, nil
+		CommentCount: rpcResp.Total,
+	}, nil
 }

@@ -2,102 +2,123 @@ syntax = "v1"
 
 import "../model.api"
 
+// 互动模块：点赞、评论、回复
+// 鉴权由网关全局 token.AuthMiddleware + publicPaths 白名单统一管控，此处不再按文件标记 jwt
 @server(
-    group: interaction
-    jwt: Auth
-    middleware: RateLimit
-    tags:"interaction"
+  group: interaction
+  middleware: RateLimit
+  tags:"interaction"
 )
-
 service tiktok-api {
+  // 点赞视频
   @handler LikeVideoHandler
-  post /like/action (LikeVideoRequest) returns (LikeVideoResponse)
+  put /videos/:id/like (LikeVideoRequest) returns (LikeVideoResponse)
 
+  // 取消点赞视频
+  @handler CancelLikeVideoHandler
+  delete /videos/:id/like (CancelLikeVideoRequest) returns (CancelLikeVideoResponse)
+
+  // 我点赞过的视频列表
   @handler GetLikeListHandler
-  get /like/list (GetLikeListRequest) returns (GetLikeListResponse)
+  get /users/me/likes (GetLikeListRequest) returns (GetLikeListResponse)
 
+  // 发表评论
   @handler CommentVideoHandler
-  post /comment/publish (CommentVideoRequest) returns (CommentVideoResponse)
+  post /videos/:id/comments (CommentVideoRequest) returns (CommentVideoResponse)
 
+  // 评论列表
   @handler GetCommentListHandler
-  get /comment/list (GetCommentListRequest) returns (GetCommentListResponse)
+  get /videos/:id/comments (GetCommentListRequest) returns (GetCommentListResponse)
 
+  // 删除评论
   @handler DeleteCommentHandler
-  post /comment/delete (DeleteCommentRequest) returns (DeleteCommentResponse)
+  delete /comments/:id (DeleteCommentRequest) returns (DeleteCommentResponse)
 
+  // 点赞评论
   @handler LikeCommentHandler
-  post /comment/like (LikeCommentRequest) returns (LikeCommentResponse)
+  put /comments/:id/like (LikeCommentRequest) returns (LikeCommentResponse)
 
-  @handler CommentPareantCommentHandler
-  post /comment/parent (CommentPareantCommentRequest) returns (CommentPareantCommentResponse)
+  // 取消点赞评论
+  @handler CancelLikeCommentHandler
+  delete /comments/:id/like (CancelLikeCommentRequest) returns (CancelLikeCommentResponse)
+
+  // 回复评论
+  @handler ReplyCommentHandler
+  post /comments/:id/replies (ReplyCommentRequest) returns (ReplyCommentResponse)
 }
 
 type (
-  LikeVideoRequest  {
-    VideoID    int64 `form:"video_id"`
-    ActionType int32  `form:"action_type"`
+  LikeVideoRequest {
+    VideoId int64 `path:"id"`
+  }
+  LikeVideoResponse {
+    Base BaseResponse `json:"base"`
   }
 
-  LikeVideoResponse  {
-    Base BaseResponse `json:"base_response"`
+  CancelLikeVideoRequest {
+    VideoId int64 `path:"id"`
+  }
+  CancelLikeVideoResponse {
+    Base BaseResponse `json:"base"`
   }
 
-  GetLikeListRequest  {
-    PageNumber int32  `form:"page_number"`
-    PageSize   int32  `form:"page_size"`
+  GetLikeListRequest {
+    PageNum  int32 `form:"page_num"`
+    PageSize int32 `form:"page_size"`
+  }
+  GetLikeListResponse {
+    Base      BaseResponse   `json:"base"`
+    VideoList []VideoBaseinfo `json:"video_list"`
+    LikeCount int64          `json:"like_count"`
   }
 
-  GetLikeListResponse  {
-    Base      BaseResponse `json:"base_response"`
-    VideoList []VideoBaseinfo      `json:"video_list"`
-    LikeCount int32               `json:"like_count"`
-  }
-
-  CommentVideoRequest  {
-    VideoID     int64 `form:"video_id"`
+  CommentVideoRequest {
+    VideoId     int64  `path:"id"`
     CommentText string `form:"comment_text"`
   }
-
-  CommentVideoResponse  {
-    Base      BaseResponse `json:"base_response"`
-    CommentID int64              `json:"comment_id,string"`
+  CommentVideoResponse {
+    Base      BaseResponse `json:"base"`
+    CommentID int64        `json:"comment_id,string"`
   }
 
-  GetCommentListRequest  {
-    VideoID    int64 `form:"video_id"`
-    PageNumber int32  `form:"page_number"`
-    PageSize   int32  `form:"page_size"`
+  GetCommentListRequest {
+    VideoId  int64 `path:"id"`
+    PageNum  int32 `form:"page_num"`
+    PageSize int32 `form:"page_size"`
+  }
+  GetCommentListResponse {
+    Base         BaseResponse     `json:"base"`
+    CommentList  []CommentBaseinfo `json:"comment_list"`
+    CommentCount int64            `json:"comment_count"`
   }
 
-  GetCommentListResponse  {
-    Base         BaseResponse `json:"base_response"`
-    CommentList  []CommentBaseinfo    `json:"comment_list"`
-    CommentCount int32               `json:"comment_count"`
+  DeleteCommentRequest {
+    CommentId int64 `path:"id"`
+  }
+  DeleteCommentResponse {
+    Base BaseResponse `json:"base"`
   }
 
-  DeleteCommentRequest  {
-    CommentID int64 `form:"comment_id"`
+  LikeCommentRequest {
+    CommentId int64 `path:"id"`
+  }
+  LikeCommentResponse {
+    Base BaseResponse `json:"base"`
   }
 
-  DeleteCommentResponse  {
-    Base BaseResponse `json:"base_response"`
+  CancelLikeCommentRequest {
+    CommentId int64 `path:"id"`
+  }
+  CancelLikeCommentResponse {
+    Base BaseResponse `json:"base"`
   }
 
-  LikeCommentRequest  {
-    CommentID int64 `form:"comment_id"`
-    Liketype  int32  `form:"like_type"`
-  }
-
-  LikeCommentResponse  {
-    Base BaseResponse `json:"base_response"`
-  }
-
-  CommentPareantCommentRequest  {
-    ParentCommentID int64 `form:"parent_comment_id"`
+  ReplyCommentRequest {
+    CommentId   int64  `path:"id"`
     CommentText string `form:"comment_text"`
   }
-  CommentPareantCommentResponse  {
-    Base BaseResponse `json:"base_response"`
-    CommentID int64              `json:"comment_id,string"`
+  ReplyCommentResponse {
+    Base      BaseResponse `json:"base"`
+    CommentID int64        `json:"comment_id,string"`
   }
 )

@@ -2,68 +2,77 @@ syntax = "v1"
 
 import "../model.api"
 
-@server (
+// 关系模块：关注、粉丝、好友
+// 鉴权由网关全局 token.AuthMiddleware + publicPaths 白名单统一管控
+@server(
   group: communication
-  jwt: Auth
   middleware: RateLimit
   tags:"communication"
 )
 service tiktok-api {
+  // 关注用户
   @handler SubscribeHandler
-  post /relation/action (SubscribeRequest) returns (SubscribeResponse)
+  put /users/me/following/:id (SubscribeRequest) returns (SubscribeResponse)
 
+  // 取关用户
+  @handler UnsubscribeHandler
+  delete /users/me/following/:id (UnsubscribeRequest) returns (UnsubscribeResponse)
+
+  // 我的关注列表
   @handler GetSubscriberListHandler
-  get /following/list (GetSubscriberListRequest) returns (GetSubscriberListResponse)
+  get /users/me/following (GetSubscriberListRequest) returns (GetSubscriberListResponse)
 
+  // 我的粉丝列表
   @handler GetFansListHandler
-  get /follower/list (GetFansListRequest) returns (GetFansListResponse)
+  get /users/me/followers (GetFansListRequest) returns (GetFansListResponse)
 
+  // 我的好友列表（互关）
   @handler GetFriendListHandler
-  get /friend/list (GetFriendListRequest) returns (GetFriendListResponse)
+  get /users/me/friends (GetFriendListRequest) returns (GetFriendListResponse)
 }
 
 type (
   SubscribeRequest {
-    
-    ToUserID int64 `form:"to_user_id"`
-    ActionType   int32  `form:"action_type"`
+    ToUserID int64 `path:"id"`
+  }
+  SubscribeResponse {
+    Base BaseResponse `json:"base"`
   }
 
-  SubscribeResponse {
-    BaseResponse BaseResponse `json:"base_response"`
+  UnsubscribeRequest {
+    ToUserID int64 `path:"id"`
+  }
+  UnsubscribeResponse {
+    Base BaseResponse `json:"base"`
   }
 
   GetSubscriberListRequest {
-
-    PageNumber int32  `form:"page_number"`
-    PageSize   int32  `form:"page_size"`
+    PageNum  int32 `form:"page_num"`
+    PageSize int32 `form:"page_size"`
   }
-
   GetSubscriberListResponse {
-    BaseResponse    BaseResponse `json:"base_response"`
-    SubscriberList  []UserBaseinfo   `json:"subscriber_list"`
-    SubscriberCount int32               `json:"subscriber_count"`
+    Base            BaseResponse   `json:"base"`
+    SubscriberList  []UserBaseinfo `json:"subscriber_list"`
+    SubscriberCount int64          `json:"subscriber_count"`
   }
 
   GetFansListRequest {
-    PageNumber int32  `form:"page_number"`
-    PageSize   int32  `form:"page_size"`
+    PageNum  int32 `form:"page_num"`
+    PageSize int32 `form:"page_size"`
   }
-
   GetFansListResponse {
-    BaseResponse BaseResponse `json:"base_response"`
-    FansList     []UserBaseinfo   `json:"fans_list"`
-    FansCount    int32               `json:"fans_count"`
+    Base      BaseResponse   `json:"base"`
+    FansList  []UserBaseinfo `json:"fans_list"`
+    FansCount int64          `json:"fans_count"`
   }
 
   GetFriendListRequest {
-    PageNumber int32 `form:"page_number"`
-    PageSize   int32 `form:"page_size"`
+    PageNum  int32 `form:"page_num"`
+    PageSize int32 `form:"page_size"`
   }
-
   GetFriendListResponse {
-    BaseResponse BaseResponse `json:"base_response"`
-    FriendList   []UserBaseinfo   `json:"friend_list"`
-    FriendCount  int32               `json:"friend_count"`
+    Base        BaseResponse   `json:"base"`
+    FriendList  []UserBaseinfo `json:"friend_list"`
+    FriendCount int64          `json:"friend_count"`
   }
 )

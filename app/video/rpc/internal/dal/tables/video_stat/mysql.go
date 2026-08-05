@@ -1,4 +1,4 @@
-package video_popular
+package video_stat
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 func CreatePopularVideo(ctx context.Context, db *gorm.DB, videoID int64) error {
-	record := &VideoPopular{
+	record := &VideoStat{
 		VideoID:      videoID,
 		VisitCount:   0,
 		LikeCount:    0,
@@ -31,7 +31,7 @@ func IncreaseVideoVisitCount(ctx context.Context, db *gorm.DB, videoID int64, de
 	}
 
 	result := db.WithContext(ctx).
-		Model(&VideoPopular{}).
+		Model(&VideoStat{}).
 		Where("video_id = ?", videoID).
 		Update("visit_count", gorm.Expr("visit_count + ?", delta))
 	if result.Error != nil {
@@ -43,7 +43,7 @@ func IncreaseVideoVisitCount(ctx context.Context, db *gorm.DB, videoID int64, de
 
 func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID int64, delta int64) error {
 	result := db.WithContext(ctx).
-		Model(&VideoPopular{}).
+		Model(&VideoStat{}).
 		Where("video_id = ?", videoID).
 		Update("like_count", gorm.Expr("CASE WHEN like_count + ? < 0 THEN 0 ELSE like_count + ? END", delta, delta))
 	if result.Error != nil {
@@ -57,15 +57,15 @@ func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID int64, delta
 	return nil
 }
 
-func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]VideoPopular, int64, error) {
-	dbQuery := db.WithContext(ctx).Model(&VideoPopular{})
+func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]VideoStat, int64, error) {
+	dbQuery := db.WithContext(ctx).Model(&VideoStat{})
 
 	var total int64
 	if err := dbQuery.Count(&total).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get popular video count failed")
 	}
 
-	var rows []VideoPopular
+	var rows []VideoStat
 	if err := dbQuery.Order("visit_count DESC").Scopes(query.Paginate(int(pageNum), int(pageSize))).
 		Find(&rows).Error; err != nil {
 		return nil, 0, xerr.Wrap(err, "get popular videos failed")

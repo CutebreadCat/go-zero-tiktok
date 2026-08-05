@@ -2,15 +2,18 @@ package aliyun
 
 import (
 	"fmt"
-	appLogger "go_zero-tiktok/Prometheus/logger"
 	"io"
+	"path/filepath"
 	"strings"
+
+	appLogger "go_zero-tiktok/Prometheus/logger"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/spf13/viper"
 )
 
-type AliConfig struct {
+// Config 阿里云 OSS 配置
+type Config struct {
 	OSSAccess struct {
 		ID         string `yaml:"id"`
 		Secret     string `yaml:"secret"`
@@ -19,10 +22,13 @@ type AliConfig struct {
 	} `yaml:"oss_access"`
 }
 
-var AliConf AliConfig
-var AliClient *oss.Client
+var (
+	conf   Config
+	client *oss.Client
+)
 
-func GetAliConfig() {
+// LoadConfig 从本地 yaml 加载 OSS 配置
+func LoadConfig() {
 	viper.SetConfigName(aliConfigName)
 	viper.SetConfigType(aliConfigType)
 	viper.AddConfigPath(aliConfigRootPath)
@@ -33,35 +39,37 @@ func GetAliConfig() {
 		return
 	}
 
-	AliConf.OSSAccess.ID = viper.GetString(ossAccessIDKey)
-	AliConf.OSSAccess.Secret = viper.GetString(ossAccessSecretKey)
-	AliConf.OSSAccess.Endpoint = viper.GetString(ossAccessEndpointKey)
-	AliConf.OSSAccess.BucketName = viper.GetString(ossAccessBucketNameKey)
+	conf.OSSAccess.ID = viper.GetString(ossAccessIDKey)
+	conf.OSSAccess.Secret = viper.GetString(ossAccessSecretKey)
+	conf.OSSAccess.Endpoint = viper.GetString(ossAccessEndpointKey)
+	conf.OSSAccess.BucketName = viper.GetString(ossAccessBucketNameKey)
 	appLogger.Info("阿里云配置已加载")
 }
 
-func AliInit() {
-	endpoint := AliConf.OSSAccess.Endpoint
-	accessKeyID := AliConf.OSSAccess.ID
-	accessKeySecret := AliConf.OSSAccess.Secret
+// InitClient 初始化 OSS 客户端
+func InitClient() {
+	endpoint := conf.OSSAccess.Endpoint
+	accessKeyID := conf.OSSAccess.ID
+	accessKeySecret := conf.OSSAccess.Secret
 
 	if endpoint == "" || accessKeyID == "" || accessKeySecret == "" {
 		appLogger.Warn("阿里云配置不完整，OSS 上传已禁用")
 		return
 	}
 
-	client, err := oss.New(endpoint, accessKeyID, accessKeySecret)
+	c, err := oss.New(endpoint, accessKeyID, accessKeySecret)
 	if err != nil {
 		appLogger.Errorf("初始化阿里云 OSS 客户端失败: %v", err)
 		return
 	}
 
-	AliClient = client
+	client = c
 	appLogger.Info("阿里云 OSS 客户端已初始化")
 }
 
-func UploadFileToOSS(localFilePath, objectKey string) (string, error) {
-	bucket, err := bucket()
+// UploadFile 上传本地文件到 OSS
+func UploadFile(localFilePath, objectKey string) (string, error) {
+	bucket, err := getBucket()
 	if err != nil {
 		return "", err
 	}
@@ -70,11 +78,12 @@ func UploadFileToOSS(localFilePath, objectKey string) (string, error) {
 		return "", fmt.Errorf("upload file to oss failed: %w", err)
 	}
 
-	return objectURL(objectKey), nil
+	return buildObjectURL(objectKey), nil
 }
 
-func DeleteFileFromOSS(objectKey string) error {
-	bucket, err := bucket()
+// DeleteFile 删除 OSS 对象
+func DeleteFile(objectKey string) error {
+	bucket, err := getBucket()
 	if err != nil {
 		return err
 	}
@@ -86,8 +95,9 @@ func DeleteFileFromOSS(objectKey string) error {
 	return nil
 }
 
-func UploadBytesToOSS(reader io.Reader, objectKey string) (string, error) {
-	bucket, err := bucket()
+// UploadBytes 上传字节流到 OSS
+func UploadBytes(reader io.Reader, objectKey string) (string, error) {
+	bucket, err := getBucket()
 	if err != nil {
 		return "", err
 	}
@@ -96,15 +106,21 @@ func UploadBytesToOSS(reader io.Reader, objectKey string) (string, error) {
 		return "", fmt.Errorf("upload bytes to oss failed: %w", err)
 	}
 
-	return objectURL(objectKey), nil
+	return buildObjectURL(objectKey), nil
 }
 
-func bucket() (*oss.Bucket, error) {
-	if AliClient == nil {
+// BuildObjectKey 构造 OSS 对象存储路径：{type}/{userId}/{entityId}/{filename}
+// objectType 用 ObjectType 系列常量；filename 经 filepath.Base 过滤，防止路径注入。
+func BuildObjectKey(objectType string, userID, entityID int64, filename string) string {
+	return fmt.Sprintf("%s/%d/%d/%s", objectType, userID, entityID, filepath.Base(filename))
+}
+
+func getBucket() (*oss.Bucket, error) {
+	if client == nil {
 		return nil, fmt.Errorf("aliyun oss client is not initialized")
 	}
 
-	bucket, err := AliClient.Bucket(AliConf.OSSAccess.BucketName)
+	bucket, err := client.Bucket(conf.OSSAccess.BucketName)
 	if err != nil {
 		return nil, fmt.Errorf("get oss bucket failed: %w", err)
 	}
@@ -112,8 +128,8 @@ func bucket() (*oss.Bucket, error) {
 	return bucket, nil
 }
 
-func objectURL(objectKey string) string {
-	endpoint := strings.TrimPrefix(AliConf.OSSAccess.Endpoint, "https://")
+func buildObjectURL(objectKey string) string {
+	endpoint := strings.TrimPrefix(conf.OSSAccess.Endpoint, "https://")
 	endpoint = strings.TrimPrefix(endpoint, "http://")
-	return fmt.Sprintf("https://%s.%s/%s", AliConf.OSSAccess.BucketName, endpoint, objectKey)
+	return fmt.Sprintf("https://%s.%s/%s", conf.OSSAccess.BucketName, endpoint, objectKey)
 }

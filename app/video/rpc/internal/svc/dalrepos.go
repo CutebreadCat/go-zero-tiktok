@@ -8,14 +8,14 @@ import (
 
 type Repositories struct {
 	Video      *videorepo.VideoBaseinfoRepo
-	Popular    *videorepo.VideoPopularRepo
+	VideoStat  *videorepo.VideoStatRepo
 	VideoLiker *videorepo.VideoLikerRepo
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
 		Video:      videorepo.NewVideoBaseinfoRepo(db),
-		Popular:    videorepo.NewVideoPopularRepo(db),
+		VideoStat:  videorepo.NewVideoStatRepo(db),
 		VideoLiker: videorepo.NewVideoLikerRepo(db),
 	}
 }

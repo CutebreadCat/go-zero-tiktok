@@ -14,7 +14,7 @@ import (
 
 func BindMfaHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.BindMfaqrcodeRequest
+		var req types.BindMfaRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return

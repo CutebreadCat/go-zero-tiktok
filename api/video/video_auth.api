@@ -2,13 +2,26 @@ syntax = "v1"
 
 import "./video.api"
 
+// 视频模块（需登录）：发布
+// 类型定义复用 ./video.api
 @server(
   group: video
-  jwt: Auth
   middleware: RateLimit
   tags:"video"
 )
 service tiktok-api {
+  // 发布视频
   @handler PublishVideoHandler
-  post /video/publish (PublishVideoRequest) returns (PublishVideoResponse)
+  post /videos (PublishVideoRequest) returns (PublishVideoResponse)
 }
+
+type (
+  PublishVideoRequest {
+    Title       string `form:"title"`
+    Description string `form:"description"`
+  }
+  PublishVideoResponse {
+    Base    BaseResponse `json:"base"`
+    VideoID int64        `json:"video_id,string"`
+  }
+)
