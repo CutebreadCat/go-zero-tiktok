@@ -8,7 +8,7 @@ import (
 	"go_zero-tiktok/app/user/rpc/userservice"
 	"go_zero-tiktok/pkg/xerr"
 
-	logger "go_zero-tiktok/Prometheus/logger"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type LoginLogic struct {

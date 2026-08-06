@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	appLogger "go_zero-tiktok/Prometheus/logger"
+	appLogger "go_zero-tiktok/pkg/logger"
 
 	kafkaGo "github.com/segmentio/kafka-go"
 )

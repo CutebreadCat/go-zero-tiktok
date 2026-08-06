@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	appLogger "go_zero-tiktok/Prometheus/logger"
+	appLogger "go_zero-tiktok/pkg/logger"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/spf13/viper"

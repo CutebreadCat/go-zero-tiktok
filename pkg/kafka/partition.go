@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	appLogger "go_zero-tiktok/Prometheus/logger"
+	appLogger "go_zero-tiktok/pkg/logger"
 )
 
 // MessageReader 消息读取器接口，由 KafkaReader 实现

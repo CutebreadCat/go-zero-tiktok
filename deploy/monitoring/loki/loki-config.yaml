@@ -1,0 +1,34 @@
+# Loki 配置(日志存储)
+# 保留期由 RETENTION_PERIOD 环境变量控制(compose 注入,默认 72h = 3 天)
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  log_level: warn
+
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+limits_config:
+  retention_period: ${RETENTION_PERIOD}
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+table_manager:
+  retention_deletes_enabled: false

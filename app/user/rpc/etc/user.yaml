@@ -2,15 +2,28 @@ Name: user.rpc
 ListenOn: 0.0.0.0:8890
 Etcd:
   Hosts:
-  - etcd:2379
+  - "${ETCD_HOSTS}"
   Key: user.rpc
 
-DataSource: "root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
+DataSource: "root:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
 
 JwtAuth:
-  AccessSecret: "your_access_secret"
+  AccessSecret: "${ACCESS_SECRET}"
   AccessExpire: 3600
 
 AppRedis:
-  Host: redis:6379
+  Host: "${REDIS_HOST}"
   Type: node
+
+# 链路追踪:go-zero 内置 Telemetry(OTLP gRPC 导出,可接 Tempo/Jaeger)
+Telemetry:
+  Name: user-rpc
+  Endpoint: "${OTLP_ENDPOINT}"
+  Sampler: 1.0
+  Batcher: otlpgrpc
+
+# 监控指标:go-zero 内置 Prometheus,暴露 /metrics 供 Prometheus 抓取
+Prometheus:
+  Host: 0.0.0.0
+  Port: 9101
+  Path: /metrics

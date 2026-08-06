@@ -7,7 +7,7 @@ import (
 	"go_zero-tiktok/app/video/rpc/video_pb"
 	"go_zero-tiktok/pkg/xerr"
 
-	logger "go_zero-tiktok/Prometheus/logger"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type GetPopularVideoLogic struct {

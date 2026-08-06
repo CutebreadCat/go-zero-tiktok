@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	appLogger "go_zero-tiktok/Prometheus/logger"
+	appLogger "go_zero-tiktok/pkg/logger"
 )
 
 type Message struct {

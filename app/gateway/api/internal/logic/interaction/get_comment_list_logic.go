@@ -8,7 +8,7 @@ import (
 	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	"go_zero-tiktok/pkg/xerr"
 
-	logger "go_zero-tiktok/Prometheus/logger"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type GetCommentListLogic struct {

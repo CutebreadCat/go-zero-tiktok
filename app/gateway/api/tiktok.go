@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 
-	appLogger "go_zero-tiktok/Prometheus/logger"
+	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/app/gateway/api/internal/config"
 	"go_zero-tiktok/app/gateway/api/internal/handler"
 	token "go_zero-tiktok/app/gateway/api/internal/middleware/token"
@@ -25,7 +25,7 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
 	level := "info"
 	if c.Mode == "dev" || c.Mode == "test" {
 		level = "debug"

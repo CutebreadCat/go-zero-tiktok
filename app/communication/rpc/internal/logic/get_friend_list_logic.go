@@ -7,7 +7,7 @@ import (
 	"go_zero-tiktok/app/communication/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
-	logger "go_zero-tiktok/Prometheus/logger"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type GetFriendListLogic struct {

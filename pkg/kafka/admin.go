@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	appLogger "go_zero-tiktok/Prometheus/logger"
+	appLogger "go_zero-tiktok/pkg/logger"
 
 	"github.com/segmentio/kafka-go"
 )

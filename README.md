@@ -16,7 +16,8 @@
 - [系统架构](#系统架构)
 - [技术栈](#技术栈)
 - [目录结构](#目录结构)
-- [快速开始](#快速开始)
+- [快速开始（本地开发）](#快速开始本地开发)
+- [服务器部署](#服务器部署)
 - [API 一览](#api-一览)
 - [错误码约定](#错误码约定)
 - [测试](#测试)
@@ -34,7 +35,7 @@
 - **关系服务**：关注/取关、粉丝/关注/好友（互关）列表，`user_relation_stat` 原子计数，软删除可恢复
 - **统一网关**：集中鉴权（`token.AuthMiddleware` + 公开路径白名单）、限流（`RateLimit`），RPC 间通过 etcd 服务发现
 - **可观测性**：Prometheus 指标 + zap 结构化日志（自动注入 trace_id / span_id / user_id）
-- **基础设施即代码**：Docker Compose 一键拉起 etcd / MySQL / Redis / Kafka / 迁移容器
+- **基础设施即代码**：Docker Compose 一键拉起 etcd / MySQL / Redis / Kafka；业务服务直接以二进制运行
 - **质量保障**：表驱动单元测试（纯 Go SQLite，无 cgo）、golangci-lint CI
 
 ## 系统架构
@@ -59,13 +60,13 @@
                                 └─────────────────────────┘
 ```
 
-| 服务 | 说明 | 端口 | 目录 |
-|---|---|---|---|
-| gateway | HTTP 网关（鉴权、限流、聚合） | 8888 | `app/gateway/api` |
-| user.rpc | 账户：注册、登录、MFA | 8890 | `app/user/rpc` |
-| video.rpc | 视频：发布、搜索、热门、Feed | 8891 | `app/video/rpc` |
-| interaction.rpc | 互动：点赞、评论、回复 | 8892 | `app/interaction/rpc` |
-| communication.rpc | 关系：关注、粉丝、好友 | 8893 | `app/communication/rpc` |
+| 服务 | 说明 | 端口 | 指标端口 | 目录 |
+|---|---|---|---|---|
+| gateway | HTTP 网关（鉴权、限流、聚合） | 8888 | 9100 | `app/gateway/api` |
+| user.rpc | 账户：注册、登录、MFA | 8890 | 9101 | `app/user/rpc` |
+| video.rpc | 视频：发布、搜索、热门、Feed | 8891 | 9102 | `app/video/rpc` |
+| interaction.rpc | 互动：点赞、评论、回复 | 8892 | 9103 | `app/interaction/rpc` |
+| communication.rpc | 关系：关注、粉丝、好友 | 8893 | 9104 | `app/communication/rpc` |
 
 各 RPC 服务内部采用 **domain / dal 分层**：`domain` 承载业务逻辑与仓储接口，`dal/reposity` 实现数据访问，`dal/tables` 定义 GORM 模型。
 
@@ -94,6 +95,7 @@ go-zero-tiktok/
 │   └── └─ *.api + *_auth.api   #   公开接口与需登录接口分离定义
 ├── app/
 │   ├── gateway/api/            # HTTP 网关（goctl 生成 + 手写中间件）
+│   │   ├── etc/                #   服务配置（tiktok-api.yaml，环境变量注入）
 │   │   └── internal/
 │   │       ├── handler/ logic/ #   路由处理与业务逻辑
 │   │       ├── middleware/     #   token 鉴权、RateLimit 限流
@@ -105,17 +107,19 @@ go-zero-tiktok/
 ├── pkg/                        # 共享库
 │   ├── contract/               #   RPC 共享契约（DTO + context 键）
 │   ├── jwt/  xerr/  utils/     #   JWT、错误码、工具（ID/密码）
-│   ├── kafka/  migrate/  storage/
-├── Prometheus/logger/          # 结构化日志（链路字段注入）
+│   ├── kafka/  storage/
+│   └── logger/                 #   结构化日志（链路字段注入）
 ├── migrations/                 # golang-migrate SQL 脚本
-├── etc/                        # 本地运行配置（*-local.yaml）
 ├── testhelpers/                # 测试辅助（SQLite 建库、断言）
-├── compose.infrastructure.yml  # 基础设施编排
+├── deploy/
+│   ├── docker-compose.yml      # 基础设施（etcd/redis/mysql/kafka）+ 迁移 + 监控编排
+│   ├── monitoring/             #   可选：Loki / Alloy / Grafana 监控配置
+│   └── log-cleaner/            #   日志定期清理脚本
 ├── Makefile                    # 一键命令入口
 └── .github/workflows/lint.yml  # CI 静态检查
 ```
 
-## 快速开始
+## 快速开始（本地开发）
 
 ### 前置条件
 
@@ -128,7 +132,7 @@ go-zero-tiktok/
 make infra-up
 ```
 
-拉起 etcd、MySQL、Redis、Kafka 容器（MySQL 初始化库 `gozero-tiktok`，root 密码 `yourpassword`）。
+拉起 etcd、MySQL、Redis、Kafka 容器（MySQL 初始化库 `gozero-tiktok`，root 密码 `yourpassword`，详见下文「修改默认密码」）。
 
 ### 2. 执行数据库迁移
 
@@ -136,13 +140,15 @@ make infra-up
 make migrate-up
 ```
 
-基于 `migrations/` 建表（迁移仅针对 Docker MySQL 容器运行）。
+基于 `migrations/` 增量建表（迁移仅针对 Docker MySQL 容器运行）。
 
 ### 3. 构建
 
 ```bash
 make build-local
 ```
+
+产物输出到 `bin/`（gateway / user-rpc / video-rpc / interaction-rpc / communication-rpc）。
 
 ### 4. 启动服务
 
@@ -164,7 +170,200 @@ curl -X POST http://localhost:8888/users \
   -d "username=alice&password=123456"
 ```
 
-> 本地模式下各服务读取 `etc/*-local.yaml`，将中间件指向宿主机（`127.0.0.1`）；如需容器化部署，修改对应服务配置中的连接地址为 Docker 服务名即可。
+> 配置全部通过**环境变量**注入（见下文「环境变量说明」），`Makefile` 的 `LOCAL_ENV` 已默认指向本机 `127.0.0.1`；部署到服务器时只需改用服务器地址即可，服务配置（`app/*/etc/*.yaml`）无需修改。
+
+## 服务器部署
+
+> 部署形态：**基础设施（etcd/MySQL/Redis/Kafka）跑 Docker 容器，5 个业务服务直接编译为二进制运行**，由 systemd 托管。所有连接地址、密钥通过环境变量注入。
+
+### 环境变量说明
+
+服务配置文件（`app/*/etc/*.yaml`）中的连接信息均为 `${ENV}` 占位符，运行时由环境变量注入，**部署时无需改任何 yaml**：
+
+| 变量 | 用途 | 本地默认值 |
+|---|---|---|
+| `ETCD_HOSTS` | etcd 地址（服务发现） | `127.0.0.1:2379` |
+| `MYSQL_HOST` | MySQL 地址 | `127.0.0.1` |
+| `MYSQL_PORT` | MySQL 端口（宿主机映射） | `3309` |
+| `MYSQL_PASSWORD` | MySQL 密码 | `yourpassword` |
+| `REDIS_HOST` | Redis 地址 | `127.0.0.1:6888` |
+| `ACCESS_SECRET` | JWT 签名密钥（**5 个服务必须一致**） | `your_access_secret` |
+| `OTLP_ENDPOINT` | 链路追踪导出地址（可选，不开监控可留空） | `localhost:4317` |
+
+### 部署步骤（以 Ubuntu 22.04 为例）
+
+#### 1. 安装依赖
+
+```bash
+# Docker + Compose 插件（基础设施用）
+sudo apt update && sudo apt install -y docker.io docker-compose-plugin
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER && newgrp docker   # 免 sudo 使用 docker
+
+# Go 1.21+（业务服务编译用）
+wget https://go.dev/dl/go1.22.12.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.22.12.linux-amd64.tar.gz
+echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> ~/.bashrc && source ~/.bashrc
+```
+
+#### 2. 拉取代码并构建
+
+```bash
+git clone <你的仓库地址> go-zero-tiktok && cd go-zero-tiktok
+make build-local            # 编译 5 个二进制到 bin/
+```
+
+#### 3. 修改默认密码与密钥（生产环境必须）
+
+MySQL 密码与 JWT 密钥默认是硬编码的，上线前必须修改。集中写入环境文件，避免散落各处：
+
+```bash
+# 生成随机密钥
+openssl rand -hex 32    # 复制输出作为 ACCESS_SECRET
+sudo mkdir -p /etc/go-zero-tiktok
+cat <<'EOF' | sudo tee /etc/go-zero-tiktok/env
+ETCD_HOSTS=127.0.0.1:2379
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3309
+MYSQL_PASSWORD=你的新密码
+REDIS_HOST=127.0.0.1:6888
+ACCESS_SECRET=你的随机密钥
+OTLP_ENDPOINT=localhost:4317
+EOF
+sudo chmod 600 /etc/go-zero-tiktok/env
+```
+
+> ⚠️ **修改 MySQL 密码的联动点**（三处必须一致，否则服务连不上库 / 迁移失败）：
+> 1. 上面的环境文件 `MYSQL_PASSWORD`
+> 2. `deploy/docker-compose.yml` 中 MySQL 的 `MYSQL_PASSWORD`（或在该文件同级建 `.env` 覆盖，见步骤 4）
+> 3. `Makefile` 中 `MIGRATE_DSN` 里的密码（迁移工具使用）
+>
+> 注意：MySQL 容器**首次启动时**才会用你设置的密码初始化数据卷；若已用旧密码启动过，需 `docker compose -f deploy/docker-compose.yml down`（保留数据卷）后删除 `mysql-data` 卷再重建，或手动 `ALTER USER` 改密。
+
+#### 4. 启动基础设施并迁移
+
+```bash
+# 在 deploy/ 下建 .env 覆盖默认密码（不建则用默认 yourpassword）
+cat > deploy/.env <<'EOF'
+MYSQL_PASSWORD=你的新密码
+EOF
+
+make infra-up      # 启动 etcd / MySQL / Redis / Kafka
+make migrate-up    # 建表（增量，可重复执行）
+```
+
+#### 5. 用 systemd 托管 5 个服务（推荐）
+
+创建 5 个 unit 文件（以 gateway 为例）：
+
+```ini
+# /etc/systemd/system/gozero-gateway.service
+[Unit]
+Description=go-zero-tiktok gateway
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/go-zero-tiktok
+EnvironmentFile=/etc/go-zero-tiktok/env
+ExecStart=/opt/go-zero-tiktok/bin/gateway -f /opt/go-zero-tiktok/app/gateway/api/etc/tiktok-api.yaml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+其余 4 个仅 `ExecStart` 不同：
+
+| 服务 | ExecStart |
+|---|---|
+| user-rpc | `bin/user-rpc -f app/user/rpc/etc/user.yaml` |
+| video-rpc | `bin/video-rpc -f app/video/rpc/etc/video.yaml` |
+| interaction-rpc | `bin/interaction-rpc -f app/interaction/rpc/etc/interaction.yaml` |
+| communication-rpc | `bin/communication-rpc -f app/communication/rpc/etc/communication.yaml` |
+
+> 若代码不在 `/opt/go-zero-tiktok`，把 `WorkingDirectory` 和 `ExecStart` 路径改为实际路径即可。
+
+```bash
+sudo systemctl daemon-reload
+# 启动顺序：先 RPC，后 gateway
+sudo systemctl enable --now gozero-user-rpc gozero-video-rpc gozero-interaction-rpc gozero-communication-rpc gozero-gateway
+sudo systemctl status gozero-gateway
+```
+
+#### 6. 验证
+
+```bash
+curl -X POST http://localhost:8888/users -d "username=alice&password=123456"
+# 期望：{"status_code":0,"status_msg":"ok",...}
+```
+
+### 防火墙与安全
+
+| 端口 | 服务 | 建议 |
+|---|---|---|
+| 8888 | gateway HTTP（对外） | 必须放行 |
+| 2379 / 3309 / 6888 / 9092 | etcd / MySQL / Redis / Kafka | **禁止对外**，仅内网/本机 |
+| 9100-9104 | Prometheus 指标 | 按需内网放行 |
+| 3000 | Grafana（若启用监控） | 内网或 VPN 访问 |
+| 4317 | OTLP 链路（若启用） | 仅本机 |
+
+```bash
+sudo ufw allow 8888/tcp        # 只对公网开网关
+```
+
+### 日志与清理
+
+- 业务日志：`logs/{service}/{date}/{service}.log`（按天分目录，自动注入 trace_id）
+- 查看 systemd 服务日志：`journalctl -u gozero-gateway -f`
+- 定期清理日志（默认保留 3 天，每小时巡检）：
+
+```bash
+sudo tee /etc/systemd/system/gozero-log-cleaner.service >/dev/null <<'EOF'
+[Unit]
+Description=go-zero-tiktok log cleaner
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/go-zero-tiktok
+ExecStart=/bin/bash /opt/go-zero-tiktok/deploy/log-cleaner/log-cleaner.sh
+Restart=always
+EOF
+sudo systemctl enable --now gozero-log-cleaner
+```
+
+### 可选：启用监控（Loki / Alloy / Grafana）
+
+```bash
+make monitoring-up
+# 浏览器访问 http://<服务器IP>:3000  (admin / admin)
+# Grafana → Explore → 数据源 Loki，用 LogQL 查日志，如 {service="user-rpc"}
+```
+
+### 更新与回滚
+
+```bash
+# 拉新代码 → 若 migrations/ 有新增版本则先迁移 → 重编译 → 重启
+git pull
+make migrate-up          # 增量应用新迁移
+make build-local
+sudo systemctl restart gozero-user-rpc gozero-video-rpc gozero-interaction-rpc gozero-communication-rpc gozero-gateway
+```
+
+回滚迁移：`make migrate-down`（回滚最近 1 个版本），然后重启受影响服务。
+
+### 常见问题
+
+| 现象 | 排查 |
+|---|---|
+| 服务起不来，报连不上数据库 | 检查 `MYSQL_HOST/PORT/PASSWORD` 三处是否一致；`docker compose -f deploy/docker-compose.yml ps` 看 mysql 是否 running |
+| gateway 报 RPC 服务不可用 | etcd 没起来或 `ETCD_HOSTS` 不对；`make infra-up` 后确认 etcd 容器 running |
+| 迁移报 `no change` | 正常，说明已是最新版本（幂等） |
+| 改了密码后迁移失败 | `MIGRATE_DSN` 里的密码没同步改（见步骤 3 联动点） |
+| 迁移报 dirty | 上次迁移中断，需 `make migrate-down` 回滚后重试 |
+| 忘记 ACCESS_SECRET 不一致 | 5 个服务必须用同一个值，否则 token 校验失败（401） |
 
 ## API 一览
 
@@ -253,11 +452,13 @@ go test ./...
 | `make infra-up` / `make infra-stop` | 启动 / 停止基础设施容器 |
 | `make migrate-up` / `make migrate-down` | 执行 / 回滚数据库迁移 |
 | `make build-local` | 构建全部服务到 `bin/` |
-| `make run-*-local` | 本地启动单个服务（gateway / user / video / interaction / communication） |
+| `make run-*-local` | 前台启动单个服务（gateway / user / video / interaction / communication） |
+| `make monitoring-up` / `make monitoring-stop` | 启停监控（Loki/Alloy/Grafana，可选） |
 | `make test` / `make vet` / `make fmt` | 测试 / 静态检查 / 格式化 |
 | `make db-shell` | 进入 MySQL 容器 |
 | `make api-get` | 生成 Swagger 文档到 `docs/` |
 | `make api-build` | goctl 重新生成网关代码 |
+| `make log-clean` | 前台运行日志清理守护（默认保留 3 天） |
 
 ## 代码生成
 

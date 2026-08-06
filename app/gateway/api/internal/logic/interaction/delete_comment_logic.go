@@ -9,7 +9,7 @@ import (
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
-	logger "go_zero-tiktok/Prometheus/logger"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type DeleteCommentLogic struct {

@@ -1,9 +1,10 @@
 .PHONY: api-build gateway-build user-rpc video-rpc interaction-rpc communication-rpc \
-        infra-up infra-stop \
+        infra-up infra-stop monitoring-up monitoring-stop \
         build-local run-gateway-local run-user-local run-video-local \
         run-interaction-local run-communication-local run-all-local \
         test vet fmt api-get db-shell mysql \
-        migrate-up migrate-down
+        migrate-up migrate-down \
+        log-clean log-clean-dry log-clean-stop
 
 # go-zero code generation
 api-build:
@@ -21,17 +22,25 @@ interaction-rpc:
 communication-rpc:
 	goctl rpc protoc app/communication/rpc/communication.proto --go_out=app/communication/rpc --go-grpc_out=app/communication/rpc --zrpc_out=app/communication/rpc --style go_zero
 
-# Infrastructure lifecycle
+# Infrastructure lifecycle (仅基础设施;监控见 monitoring-up)
 infra-up:
-	docker compose -f compose.infrastructure.yml up -d
+	docker compose -f deploy/docker-compose.yml up -d
 
 infra-stop:
-	docker compose -f compose.infrastructure.yml stop
+	docker compose -f deploy/docker-compose.yml stop
 
-# Local (non-docker) mode: binaries read etc/*-local.yaml so that middleware
-# endpoints point at the host (127.0.0.1) instead of docker service names.
+# Monitoring (Loki/Alloy/Grafana,可选)
+monitoring-up:
+	docker compose -f deploy/docker-compose.yml --profile monitoring up -d
+
+monitoring-stop:
+	docker compose -f deploy/docker-compose.yml --profile monitoring stop
+
 # Prerequisite: start infrastructure on the host first, e.g. `make infra-up`.
-LOCAL_ETC := $(CURDIR)/etc
+# Local (non-docker) mode: binaries read app/*/etc/*.yaml, with host env vars
+# pointing at 127.0.0.1 instead of docker service names. Override any var to
+# target another environment (e.g. docker/k8s service names).
+LOCAL_ENV := ETCD_HOSTS=127.0.0.1:2379 MYSQL_HOST=127.0.0.1 MYSQL_PORT=3309 MYSQL_PASSWORD=yourpassword REDIS_HOST=127.0.0.1:6888 ACCESS_SECRET=your_access_secret OTLP_ENDPOINT=localhost:4317
 
 build-local:
 	go build -o bin/gateway ./app/gateway/api
@@ -41,19 +50,19 @@ build-local:
 	go build -o bin/communication-rpc ./app/communication/rpc
 
 run-gateway-local:
-	./bin/gateway -f $(LOCAL_ETC)/gateway-local.yaml
+	$(LOCAL_ENV) ./bin/gateway -f app/gateway/api/etc/tiktok-api.yaml
 
 run-user-local:
-	./bin/user-rpc -f $(LOCAL_ETC)/user-local.yaml
+	$(LOCAL_ENV) ./bin/user-rpc -f app/user/rpc/etc/user.yaml
 
 run-video-local:
-	./bin/video-rpc -f $(LOCAL_ETC)/video-local.yaml
+	$(LOCAL_ENV) ./bin/video-rpc -f app/video/rpc/etc/video.yaml
 
 run-interaction-local:
-	./bin/interaction-rpc -f $(LOCAL_ETC)/interaction-local.yaml
+	$(LOCAL_ENV) ./bin/interaction-rpc -f app/interaction/rpc/etc/interaction.yaml
 
 run-communication-local:
-	./bin/communication-rpc -f $(LOCAL_ETC)/communication-local.yaml
+	$(LOCAL_ENV) ./bin/communication-rpc -f app/communication/rpc/etc/communication.yaml
 
 run-all-local: build-local
 	@echo "Tip: run each service in its own terminal, e.g. 'make run-gateway-local'."
@@ -76,7 +85,7 @@ api-get:
 	goctl api swagger --api api/main.api --dir docs
 
 db-shell:
-	docker compose -f compose.infrastructure.yml exec mysql mysql -uroot -pyourpassword
+	docker compose -f deploy/docker-compose.yml exec mysql mysql -uroot -pyourpassword
 
 mysql: db-shell
 
@@ -84,13 +93,26 @@ mysql: db-shell
 MIGRATE_DSN := mysql://root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local
 
 migrate-up:
-	docker compose -f compose.infrastructure.yml --profile migrate run --rm --no-deps \
+	docker compose -f deploy/docker-compose.yml --profile migrate run --rm --no-deps \
 		-e MIGRATE_DSN="$(MIGRATE_DSN)" \
 		--entrypoint migrate migrate \
 		-path /migrations -database "$$MIGRATE_DSN" up
 
 migrate-down:
-	docker compose -f compose.infrastructure.yml --profile migrate run --rm --no-deps \
+	docker compose -f deploy/docker-compose.yml --profile migrate run --rm --no-deps \
 		-e MIGRATE_DSN="$(MIGRATE_DSN)" \
 		--entrypoint migrate migrate \
 		-path /migrations -database "$$MIGRATE_DSN" down 1
+
+# 日志清理(log-cleaner):过滤保留近 3 天日志,删除更早日志
+# 默认守护轮询(1h);可用 LOG_ROOT/RETENTION/INTERVAL 环境变量覆盖
+LOG_CLEANER := deploy/log-cleaner/log-cleaner.sh
+
+log-clean:            # 前台守护运行(按 Ctrl-C 停止)或配合 systemd
+	bash $(LOG_CLEANER)
+
+log-clean-dry:        # 试运行:只看会删/过滤什么,不真正删除
+	DRY_RUN=1 LOG_ROOT=logs RETENTION=3 bash $(LOG_CLEANER)
+
+log-clean-stop:       # 停止前台的守护进程(配合 log-clean 使用)
+	@-pkill -f "$(LOG_CLEANER)" 2>/dev/null && echo "已停止 log-cleaner" || echo "log-cleaner 未在运行"

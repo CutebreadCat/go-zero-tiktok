@@ -1,0 +1,79 @@
+// Alloy 配置:采集业务日志推送到 Loki,并接收 OTLP trace(可选)。
+//
+// 日志结构: /var/log/apps/{service}/{date}/{service}.log(由 compose 挂载 logs 卷)
+// 日志为 JSON 格式,含 service / level / trace_id / span_id 字段。
+
+// ---- 日志管道:文件采集 -> 过滤 -> 打标签 -> 推送 Loki ----
+local.file_match "local_files" {
+    path_targets = [{"__path__" = "/var/log/apps/*/*/*.log"}]
+    sync_period = "5s"
+}
+
+loki.source.file "log_scrape" {
+    targets    = local.file_match.local_files.targets
+    forward_to = [loki.process.filter_logs.receiver]
+    tail_from_end = true
+}
+
+loki.process "filter_logs" {
+    // 可选:过滤噪声日志(按需放开)
+    // stage.drop {
+    //     source = ""
+    //     expression = ".*noisy pattern.*"
+    //     drop_counter_reason = "noisy"
+    // }
+    forward_to = [loki.process.add_labels.receiver]
+}
+
+loki.process "add_labels" {
+    stage.json {
+        expressions = {
+            service = "",
+            level   = "",
+            trace_id = "",
+            span_id  = "",
+        }
+    }
+
+    stage.labels {
+        values = {
+            level   = "level",
+            service = "service",
+        }
+    }
+
+    stage.structured_metadata {
+        values = {
+            trace_id = "trace_id",
+            span_id  = "span_id",
+        }
+    }
+
+    forward_to = [loki.write.grafana_loki.receiver]
+}
+
+loki.write "grafana_loki" {
+    endpoint {
+        url = "http://loki:3100/loki/api/v1/push"
+    }
+}
+
+// ---- OTLP trace 管道(可选,接收业务服务 trace 转发 Tempo)----
+// otelcol.receiver.otlp "ingest" {
+//     grpc { endpoint = "0.0.0.0:4317" }
+//     http { endpoint = "0.0.0.0:4318" }
+//     output {
+//         traces = [otelcol.processor.batch.traces.input]
+//     }
+// }
+// otelcol.processor.batch "traces" {
+//     output {
+//         traces = [otelcol.exporter.otlp.tempo.input]
+//     }
+// }
+// otelcol.exporter.otlp "tempo" {
+//     client {
+//         endpoint = "tempo:4317"
+//         tls { insecure = true }
+//     }
+// }

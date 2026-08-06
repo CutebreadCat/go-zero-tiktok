@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	appLogger "go_zero-tiktok/Prometheus/logger"
+	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/pkg/xerr"
 
 	kafkaGo "github.com/segmentio/kafka-go"
