@@ -3,32 +3,32 @@ package logic
 import (
 	"context"
 
-	"go_zero-tiktok/app/communication/rpc/communication_pb/communication_pb"
+	"go_zero-tiktok/app/communication/rpc/communication_pb"
 	"go_zero-tiktok/app/communication/rpc/internal/svc"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type SubscribeLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewSubscribeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *SubscribeLogic {
 	return &SubscribeLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 
 func (l *SubscribeLogic) Subscribe(in *communication_pb.SubscribeRequest) (*communication_pb.SubscribeResponse, error) {
-	if in.FollowerId == "" {
+	if in.FollowerId == 0 {
 		return nil, xerr.NewInvalidParam("关注者ID不能为空")
 	}
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("被关注用户ID不能为空")
 	}
 

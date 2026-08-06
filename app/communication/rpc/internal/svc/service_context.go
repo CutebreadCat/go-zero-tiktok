@@ -21,7 +21,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	logx.Must(err)
 
 	dalRepo := NewRepositories(db)
-	userRepoAdapter := NewUserRepoAdapter(db)
+	userRepoAdapter := NewUserRepoAdapter(c)
 
 	return &ServiceContext{
 		Config:            c,

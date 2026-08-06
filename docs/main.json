@@ -14,286 +14,8 @@
   },
   "basePath": "/",
   "paths": {
-    "/chat/messages": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "chat"
-        ],
-        "summary": "GetMessagesHandler",
-        "operationId": "chatGetMessagesHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "room_id",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_number",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_size",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "messages": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "id",
-                      "room_id",
-                      "sender_id",
-                      "content",
-                      "created_at"
-                    ],
-                    "properties": {
-                      "content": {
-                        "type": "string"
-                      },
-                      "created_at": {
-                        "type": "string"
-                      },
-                      "id": {
-                        "type": "string"
-                      },
-                      "room_id": {
-                        "type": "string"
-                      },
-                      "sender_id": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/chat/room/create": {
-      "post": {
-        "consumes": [
-          "application/x-www-form-urlencoded"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "chat"
-        ],
-        "summary": "CreateChatRoomHandler",
-        "operationId": "chatCreateChatRoomHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "room_name",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "description": "0: 私聊, 1: 群聊",
-            "name": "types",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "name": "user_ids",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "room_id": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/chat/room/join": {
-      "post": {
-        "consumes": [
-          "application/x-www-form-urlencoded"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "chat"
-        ],
-        "summary": "JoinChatRoomHandler",
-        "operationId": "chatJoinChatRoomHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "room_id",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/chat/rooms": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "chat"
-        ],
-        "summary": "GetChatRoomsHandler",
-        "operationId": "chatGetChatRoomsHandler",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "chat_rooms": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/chat/ws": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "chat"
-        ],
-        "summary": "WsChatHandler",
-        "operationId": "chatWsChatHandler",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {}
-          }
-        }
-      }
-    },
-    "/comment/delete": {
-      "post": {
+    "/comments/{id}": {
+      "delete": {
         "consumes": [
           "application/x-www-form-urlencoded"
         ],
@@ -310,9 +32,9 @@
         "operationId": "interactionDeleteCommentHandler",
         "parameters": [
           {
-            "type": "string",
-            "name": "comment_id",
-            "in": "formData",
+            "type": "integer",
+            "name": "id",
+            "in": "path",
             "required": true
           }
         ],
@@ -322,7 +44,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "base_response": {
+                "base": {
                   "type": "object",
                   "required": [
                     "status_code",
@@ -343,8 +65,8 @@
         }
       }
     },
-    "/comment/like": {
-      "post": {
+    "/comments/{id}/like": {
+      "put": {
         "consumes": [
           "application/x-www-form-urlencoded"
         ],
@@ -361,15 +83,9 @@
         "operationId": "interactionLikeCommentHandler",
         "parameters": [
           {
-            "type": "string",
-            "name": "comment_id",
-            "in": "formData",
-            "required": true
-          },
-          {
             "type": "integer",
-            "name": "like_type",
-            "in": "formData",
+            "name": "id",
+            "in": "path",
             "required": true
           }
         ],
@@ -379,7 +95,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "base_response": {
+                "base": {
                   "type": "object",
                   "required": [
                     "status_code",
@@ -398,10 +114,11 @@
             }
           }
         }
-      }
-    },
-    "/comment/list": {
-      "get": {
+      },
+      "delete": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
         "produces": [
           "application/json"
         ],
@@ -411,25 +128,13 @@
         "tags": [
           "interaction"
         ],
-        "summary": "GetCommentListHandler",
-        "operationId": "interactionGetCommentListHandler",
+        "summary": "CancelLikeCommentHandler",
+        "operationId": "interactionCancelLikeCommentHandler",
         "parameters": [
           {
-            "type": "string",
-            "name": "video_id",
-            "in": "query",
-            "required": true
-          },
-          {
             "type": "integer",
-            "name": "page_number",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_size",
-            "in": "query",
+            "name": "id",
+            "in": "path",
             "required": true
           }
         ],
@@ -439,7 +144,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "base_response": {
+                "base": {
                   "type": "object",
                   "required": [
                     "status_code",
@@ -453,55 +158,6 @@
                       "type": "string"
                     }
                   }
-                },
-                "comment_count": {
-                  "type": "integer"
-                },
-                "comment_list": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "comment_id",
-                      "user_id",
-                      "video_id",
-                      "content",
-                      "created_at",
-                      "updated_at",
-                      "deleted_at",
-                      "like_count",
-                      "parent_comment_id"
-                    ],
-                    "properties": {
-                      "comment_id": {
-                        "type": "string"
-                      },
-                      "content": {
-                        "type": "string"
-                      },
-                      "created_at": {
-                        "type": "string"
-                      },
-                      "deleted_at": {
-                        "type": "string"
-                      },
-                      "like_count": {
-                        "type": "integer"
-                      },
-                      "parent_comment_id": {
-                        "type": "string"
-                      },
-                      "updated_at": {
-                        "type": "string"
-                      },
-                      "user_id": {
-                        "type": "string"
-                      },
-                      "video_id": {
-                        "type": "string"
-                      }
-                    }
-                  }
                 }
               }
             }
@@ -509,7 +165,7 @@
         }
       }
     },
-    "/comment/parent": {
+    "/comments/{id}/replies": {
       "post": {
         "consumes": [
           "application/x-www-form-urlencoded"
@@ -523,13 +179,13 @@
         "tags": [
           "interaction"
         ],
-        "summary": "CommentPareantCommentHandler",
-        "operationId": "interactionCommentPareantCommentHandler",
+        "summary": "ReplyCommentHandler",
+        "operationId": "interactionReplyCommentHandler",
         "parameters": [
           {
-            "type": "string",
-            "name": "parent_comment_id",
-            "in": "formData",
+            "type": "integer",
+            "name": "id",
+            "in": "path",
             "required": true
           },
           {
@@ -545,7 +201,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "base_response": {
+                "base": {
                   "type": "object",
                   "required": [
                     "status_code",
@@ -561,7 +217,7 @@
                   }
                 },
                 "comment_id": {
-                  "type": "string"
+                  "type": "integer"
                 }
               }
             }
@@ -569,67 +225,7 @@
         }
       }
     },
-    "/comment/publish": {
-      "post": {
-        "consumes": [
-          "application/x-www-form-urlencoded"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "interaction"
-        ],
-        "summary": "CommentVideoHandler",
-        "operationId": "interactionCommentVideoHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "video_id",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "comment_text",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "comment_id": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/follower/list": {
+    "/feed-items": {
       "get": {
         "produces": [
           "application/json"
@@ -638,558 +234,26 @@
           "https"
         ],
         "tags": [
-          "communication"
+          "video"
         ],
-        "summary": "GetFansListHandler",
-        "operationId": "communicationGetFansListHandler",
+        "summary": "GetFeedVideoHandler",
+        "operationId": "videoGetFeedVideoHandler",
         "parameters": [
           {
+            "type": "string",
+            "name": "last_time",
+            "in": "query",
+            "required": true
+          },
+          {
             "type": "integer",
-            "name": "page_number",
+            "name": "page_num",
             "in": "query",
             "required": true
           },
           {
             "type": "integer",
             "name": "page_size",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "fans_count": {
-                  "type": "integer"
-                },
-                "fans_list": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "user_id",
-                      "username",
-                      "password",
-                      "photo_url",
-                      "created_at",
-                      "updated_at",
-                      "deleted_at"
-                    ],
-                    "properties": {
-                      "created_at": {
-                        "type": "string"
-                      },
-                      "deleted_at": {
-                        "type": "string"
-                      },
-                      "password": {
-                        "type": "string"
-                      },
-                      "photo_url": {
-                        "type": "string"
-                      },
-                      "updated_at": {
-                        "type": "string"
-                      },
-                      "user_id": {
-                        "type": "string"
-                      },
-                      "username": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/following/list": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "communication"
-        ],
-        "summary": "GetSubscriberListHandler",
-        "operationId": "communicationGetSubscriberListHandler",
-        "parameters": [
-          {
-            "type": "integer",
-            "name": "page_number",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_size",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "subscriber_count": {
-                  "type": "integer"
-                },
-                "subscriber_list": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "user_id",
-                      "username",
-                      "password",
-                      "photo_url",
-                      "created_at",
-                      "updated_at",
-                      "deleted_at"
-                    ],
-                    "properties": {
-                      "created_at": {
-                        "type": "string"
-                      },
-                      "deleted_at": {
-                        "type": "string"
-                      },
-                      "password": {
-                        "type": "string"
-                      },
-                      "photo_url": {
-                        "type": "string"
-                      },
-                      "updated_at": {
-                        "type": "string"
-                      },
-                      "user_id": {
-                        "type": "string"
-                      },
-                      "username": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/friend/list": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "communication"
-        ],
-        "summary": "GetFriendListHandler",
-        "operationId": "communicationGetFriendListHandler",
-        "parameters": [
-          {
-            "type": "integer",
-            "name": "page_number",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_size",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "friend_count": {
-                  "type": "integer"
-                },
-                "friend_list": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "user_id",
-                      "username",
-                      "password",
-                      "photo_url",
-                      "created_at",
-                      "updated_at",
-                      "deleted_at"
-                    ],
-                    "properties": {
-                      "created_at": {
-                        "type": "string"
-                      },
-                      "deleted_at": {
-                        "type": "string"
-                      },
-                      "password": {
-                        "type": "string"
-                      },
-                      "photo_url": {
-                        "type": "string"
-                      },
-                      "updated_at": {
-                        "type": "string"
-                      },
-                      "user_id": {
-                        "type": "string"
-                      },
-                      "username": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/like/action": {
-      "post": {
-        "consumes": [
-          "application/x-www-form-urlencoded"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "interaction"
-        ],
-        "summary": "LikeVideoHandler",
-        "operationId": "interactionLikeVideoHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "video_id",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "action_type",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/like/list": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "interaction"
-        ],
-        "summary": "GetLikeListHandler",
-        "operationId": "interactionGetLikeListHandler",
-        "parameters": [
-          {
-            "type": "integer",
-            "name": "page_number",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_size",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "like_count": {
-                  "type": "integer"
-                },
-                "video_list": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "video_id",
-                      "author_id",
-                      "video_url",
-                      "cover_url",
-                      "title",
-                      "description",
-                      "created_at",
-                      "updated_at",
-                      "deleted_at"
-                    ],
-                    "properties": {
-                      "author_id": {
-                        "type": "string"
-                      },
-                      "cover_url": {
-                        "type": "string"
-                      },
-                      "created_at": {
-                        "type": "string"
-                      },
-                      "deleted_at": {
-                        "type": "string"
-                      },
-                      "description": {
-                        "type": "string"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "updated_at": {
-                        "type": "string"
-                      },
-                      "video_id": {
-                        "type": "string"
-                      },
-                      "video_url": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/relation/action": {
-      "post": {
-        "consumes": [
-          "application/x-www-form-urlencoded"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "communication"
-        ],
-        "summary": "SubscribeHandler",
-        "operationId": "communicationSubscribeHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "to_user_id",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "action_type",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base_response": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user/avatar/upload": {
-      "put": {
-        "consumes": [
-          "application/x-www-form-urlencoded"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "user"
-        ],
-        "summary": "PostUserPhotoHandler",
-        "operationId": "userPostUserPhotoHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "photo_url",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "status_code": {
-                  "type": "integer"
-                },
-                "status_msg": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user/info": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "user"
-        ],
-        "summary": "GetUserInfoHandler",
-        "operationId": "userGetUserInfoHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "user_id",
             "in": "query",
             "required": true
           }
@@ -1215,86 +279,86 @@
                     }
                   }
                 },
-                "user": {
-                  "type": "object",
-                  "required": [
-                    "user_id",
-                    "username",
-                    "password",
-                    "photo_url",
-                    "created_at",
-                    "updated_at",
-                    "deleted_at"
-                  ],
-                  "properties": {
-                    "created_at": {
-                      "type": "string"
-                    },
-                    "deleted_at": {
-                      "type": "string"
-                    },
-                    "password": {
-                      "type": "string"
-                    },
-                    "photo_url": {
-                      "type": "string"
-                    },
-                    "updated_at": {
-                      "type": "string"
-                    },
-                    "user_id": {
-                      "type": "string"
-                    },
-                    "username": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user/jwch/cookie": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "user"
-        ],
-        "summary": "JwchGetUserCookieHandler",
-        "operationId": "userJwchGetUserCookieHandler",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "videos",
+                      "videos_popular"
+                    ],
+                    "properties": {
+                      "videos": {
+                        "type": "object",
+                        "required": [
+                          "video_id",
+                          "author_id",
+                          "video_url",
+                          "cover_url",
+                          "title",
+                          "description",
+                          "created_at",
+                          "updated_at",
+                          "deleted_at"
+                        ],
+                        "properties": {
+                          "author_id": {
+                            "type": "integer"
+                          },
+                          "cover_url": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "deleted_at": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          },
+                          "video_id": {
+                            "type": "integer"
+                          },
+                          "video_url": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "videos_popular": {
+                        "type": "object",
+                        "required": [
+                          "video_id",
+                          "visit_count",
+                          "like_count",
+                          "comment_count"
+                        ],
+                        "properties": {
+                          "comment_count": {
+                            "type": "integer"
+                          },
+                          "like_count": {
+                            "type": "integer"
+                          },
+                          "video_id": {
+                            "type": "integer"
+                          },
+                          "visit_count": {
+                            "type": "integer"
+                          }
+                        }
+                      }
                     }
                   }
                 },
-                "cookie": {
-                  "type": "string"
-                },
-                "jwch_id": {
-                  "type": "string"
+                "total": {
+                  "type": "integer"
                 }
               }
             }
@@ -1302,64 +366,7 @@
         }
       }
     },
-    "/user/jwch/login": {
-      "post": {
-        "consumes": [
-          "application/x-www-form-urlencoded"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "user"
-        ],
-        "summary": "JwchLoginHandler",
-        "operationId": "userJwchLoginHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "username",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "password",
-            "in": "formData",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user/login": {
+    "/sessions": {
       "post": {
         "consumes": [
           "application/x-www-form-urlencoded"
@@ -1423,6 +430,55 @@
                   "type": "string"
                 },
                 "user_id": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sessions/refresh": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "RefreshTokenHandler",
+        "operationId": "userRefreshTokenHandler",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string"
+                },
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "refresh_token": {
                   "type": "string"
                 }
               }
@@ -1431,7 +487,630 @@
         }
       }
     },
-    "/user/mfa/bind": {
+    "/users": {
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "RegisterHandler",
+        "operationId": "userRegisterHandler",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "username",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "password",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "user_id": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "user"
+        ],
+        "summary": "GetUserInfoHandler",
+        "operationId": "userGetUserInfoHandler",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "user": {
+                  "type": "object",
+                  "required": [
+                    "user_id",
+                    "username",
+                    "password",
+                    "photo_url",
+                    "created_at",
+                    "updated_at",
+                    "deleted_at"
+                  ],
+                  "properties": {
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "deleted_at": {
+                      "type": "string"
+                    },
+                    "password": {
+                      "type": "string"
+                    },
+                    "photo_url": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "string"
+                    },
+                    "user_id": {
+                      "type": "integer"
+                    },
+                    "username": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/followers": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "communication"
+        ],
+        "summary": "GetFansListHandler",
+        "operationId": "communicationGetFansListHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "page_num",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "fans_count": {
+                  "type": "integer"
+                },
+                "fans_list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "user_id",
+                      "username",
+                      "password",
+                      "photo_url",
+                      "created_at",
+                      "updated_at",
+                      "deleted_at"
+                    ],
+                    "properties": {
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "deleted_at": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      },
+                      "photo_url": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      },
+                      "user_id": {
+                        "type": "integer"
+                      },
+                      "username": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/following": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "communication"
+        ],
+        "summary": "GetSubscriberListHandler",
+        "operationId": "communicationGetSubscriberListHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "page_num",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "subscriber_count": {
+                  "type": "integer"
+                },
+                "subscriber_list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "user_id",
+                      "username",
+                      "password",
+                      "photo_url",
+                      "created_at",
+                      "updated_at",
+                      "deleted_at"
+                    ],
+                    "properties": {
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "deleted_at": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      },
+                      "photo_url": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      },
+                      "user_id": {
+                        "type": "integer"
+                      },
+                      "username": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/following/{id}": {
+      "put": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "communication"
+        ],
+        "summary": "SubscribeHandler",
+        "operationId": "communicationSubscribeHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "communication"
+        ],
+        "summary": "UnsubscribeHandler",
+        "operationId": "communicationUnsubscribeHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/friends": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "communication"
+        ],
+        "summary": "GetFriendListHandler",
+        "operationId": "communicationGetFriendListHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "page_num",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "friend_count": {
+                  "type": "integer"
+                },
+                "friend_list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "user_id",
+                      "username",
+                      "password",
+                      "photo_url",
+                      "created_at",
+                      "updated_at",
+                      "deleted_at"
+                    ],
+                    "properties": {
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "deleted_at": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      },
+                      "photo_url": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      },
+                      "user_id": {
+                        "type": "integer"
+                      },
+                      "username": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/likes": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "interaction"
+        ],
+        "summary": "GetLikeListHandler",
+        "operationId": "interactionGetLikeListHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "page_num",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "like_count": {
+                  "type": "integer"
+                },
+                "video_list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "video_id",
+                      "author_id",
+                      "video_url",
+                      "cover_url",
+                      "title",
+                      "description",
+                      "created_at",
+                      "updated_at",
+                      "deleted_at"
+                    ],
+                    "properties": {
+                      "author_id": {
+                        "type": "integer"
+                      },
+                      "cover_url": {
+                        "type": "string"
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "deleted_at": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      },
+                      "video_id": {
+                        "type": "integer"
+                      },
+                      "video_url": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/mfa/bind": {
       "post": {
         "consumes": [
           "application/x-www-form-urlencoded"
@@ -1488,7 +1167,7 @@
         }
       }
     },
-    "/user/mfa/qrcode": {
+    "/users/me/mfa/qr": {
       "get": {
         "produces": [
           "application/json"
@@ -1499,16 +1178,8 @@
         "tags": [
           "user"
         ],
-        "summary": "GetMfaqrcodeHandler",
-        "operationId": "userGetMfaqrcodeHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "mfa_ticket",
-            "in": "query",
-            "required": true
-          }
-        ],
+        "summary": "GetMfaQRCodeHandler",
+        "operationId": "userGetMfaQRCodeHandler",
         "responses": {
           "200": {
             "description": "",
@@ -1533,7 +1204,7 @@
                 "mfa_secret": {
                   "type": "string"
                 },
-                "qr_code": {
+                "qr_code_url": {
                   "type": "string"
                 }
               }
@@ -1542,8 +1213,8 @@
         }
       }
     },
-    "/user/register": {
-      "post": {
+    "/users/me/photo": {
+      "put": {
         "consumes": [
           "application/x-www-form-urlencoded"
         ],
@@ -1556,18 +1227,12 @@
         "tags": [
           "user"
         ],
-        "summary": "RegisterHandler",
-        "operationId": "userRegisterHandler",
+        "summary": "UpdateUserPhotoHandler",
+        "operationId": "userUpdateUserPhotoHandler",
         "parameters": [
           {
             "type": "string",
-            "name": "username",
-            "in": "formData",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "password",
+            "name": "photo_url",
             "in": "formData",
             "required": true
           }
@@ -1592,9 +1257,6 @@
                       "type": "string"
                     }
                   }
-                },
-                "user_id": {
-                  "type": "string"
                 }
               }
             }
@@ -1602,197 +1264,7 @@
         }
       }
     },
-    "/user/token/refresh": {
-      "post": {
-        "consumes": [
-          "application/x-www-form-urlencoded"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "user"
-        ],
-        "summary": "RefreshTokenHandler",
-        "operationId": "userRefreshTokenHandler",
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "access_token": {
-                  "type": "string"
-                },
-                "base": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "refresh_token": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/video/feed": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "video"
-        ],
-        "summary": "GetFeedVideoHandler",
-        "operationId": "videoGetFeedVideoHandler",
-        "parameters": [
-          {
-            "type": "string",
-            "name": "last_time",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_size",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_num",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "videos",
-                      "videos_popular"
-                    ],
-                    "properties": {
-                      "videos": {
-                        "type": "object",
-                        "required": [
-                          "video_id",
-                          "author_id",
-                          "video_url",
-                          "cover_url",
-                          "title",
-                          "description",
-                          "created_at",
-                          "updated_at",
-                          "deleted_at"
-                        ],
-                        "properties": {
-                          "author_id": {
-                            "type": "string"
-                          },
-                          "cover_url": {
-                            "type": "string"
-                          },
-                          "created_at": {
-                            "type": "string"
-                          },
-                          "deleted_at": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "updated_at": {
-                            "type": "string"
-                          },
-                          "video_id": {
-                            "type": "string"
-                          },
-                          "video_url": {
-                            "type": "string"
-                          }
-                        }
-                      },
-                      "videos_popular": {
-                        "type": "object",
-                        "required": [
-                          "video_id",
-                          "visit_count",
-                          "like_count",
-                          "comment_count"
-                        ],
-                        "properties": {
-                          "comment_count": {
-                            "type": "integer"
-                          },
-                          "like_count": {
-                            "type": "integer"
-                          },
-                          "video_id": {
-                            "type": "string"
-                          },
-                          "visit_count": {
-                            "type": "integer"
-                          }
-                        }
-                      }
-                    }
-                  }
-                },
-                "total": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/video/list": {
+    "/users/{id}/videos": {
       "get": {
         "produces": [
           "application/json"
@@ -1807,20 +1279,20 @@
         "operationId": "videoGetVideoListHandler",
         "parameters": [
           {
-            "type": "string",
-            "name": "user_id",
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_num",
             "in": "query",
             "required": true
           },
           {
             "type": "integer",
             "name": "page_size",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_num",
             "in": "query",
             "required": true
           }
@@ -1845,6 +1317,9 @@
                       "type": "string"
                     }
                   }
+                },
+                "total": {
+                  "type": "integer"
                 },
                 "videos": {
                   "type": "array",
@@ -1863,7 +1338,7 @@
                     ],
                     "properties": {
                       "author_id": {
-                        "type": "string"
+                        "type": "integer"
                       },
                       "cover_url": {
                         "type": "string"
@@ -1884,7 +1359,7 @@
                         "type": "string"
                       },
                       "video_id": {
-                        "type": "string"
+                        "type": "integer"
                       },
                       "video_url": {
                         "type": "string"
@@ -1898,139 +1373,7 @@
         }
       }
     },
-    "/video/popular": {
-      "get": {
-        "produces": [
-          "application/json"
-        ],
-        "schemes": [
-          "https"
-        ],
-        "tags": [
-          "video"
-        ],
-        "summary": "VideoPopularHandler",
-        "operationId": "videoVideoPopularHandler",
-        "parameters": [
-          {
-            "type": "integer",
-            "name": "page_size",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "integer",
-            "name": "page_num",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base": {
-                  "type": "object",
-                  "required": [
-                    "status_code",
-                    "status_msg"
-                  ],
-                  "properties": {
-                    "status_code": {
-                      "type": "integer"
-                    },
-                    "status_msg": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "videos",
-                      "videos_popular"
-                    ],
-                    "properties": {
-                      "videos": {
-                        "type": "object",
-                        "required": [
-                          "video_id",
-                          "author_id",
-                          "video_url",
-                          "cover_url",
-                          "title",
-                          "description",
-                          "created_at",
-                          "updated_at",
-                          "deleted_at"
-                        ],
-                        "properties": {
-                          "author_id": {
-                            "type": "string"
-                          },
-                          "cover_url": {
-                            "type": "string"
-                          },
-                          "created_at": {
-                            "type": "string"
-                          },
-                          "deleted_at": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "updated_at": {
-                            "type": "string"
-                          },
-                          "video_id": {
-                            "type": "string"
-                          },
-                          "video_url": {
-                            "type": "string"
-                          }
-                        }
-                      },
-                      "videos_popular": {
-                        "type": "object",
-                        "required": [
-                          "video_id",
-                          "visit_count",
-                          "like_count",
-                          "comment_count"
-                        ],
-                        "properties": {
-                          "comment_count": {
-                            "type": "integer"
-                          },
-                          "like_count": {
-                            "type": "integer"
-                          },
-                          "video_id": {
-                            "type": "string"
-                          },
-                          "visit_count": {
-                            "type": "integer"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/video/publish": {
+    "/videos": {
       "post": {
         "consumes": [
           "application/x-www-form-urlencoded"
@@ -2082,7 +1425,7 @@
                   }
                 },
                 "video_id": {
-                  "type": "string"
+                  "type": "integer"
                 }
               }
             }
@@ -2090,7 +1433,139 @@
         }
       }
     },
-    "/video/search": {
+    "/videos/popular": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "video"
+        ],
+        "summary": "VideoPopularHandler",
+        "operationId": "videoVideoPopularHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "page_num",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "videos",
+                      "videos_popular"
+                    ],
+                    "properties": {
+                      "videos": {
+                        "type": "object",
+                        "required": [
+                          "video_id",
+                          "author_id",
+                          "video_url",
+                          "cover_url",
+                          "title",
+                          "description",
+                          "created_at",
+                          "updated_at",
+                          "deleted_at"
+                        ],
+                        "properties": {
+                          "author_id": {
+                            "type": "integer"
+                          },
+                          "cover_url": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "deleted_at": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          },
+                          "video_id": {
+                            "type": "integer"
+                          },
+                          "video_url": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "videos_popular": {
+                        "type": "object",
+                        "required": [
+                          "video_id",
+                          "visit_count",
+                          "like_count",
+                          "comment_count"
+                        ],
+                        "properties": {
+                          "comment_count": {
+                            "type": "integer"
+                          },
+                          "like_count": {
+                            "type": "integer"
+                          },
+                          "video_id": {
+                            "type": "integer"
+                          },
+                          "visit_count": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/search": {
       "get": {
         "produces": [
           "application/json"
@@ -2112,13 +1587,13 @@
           },
           {
             "type": "integer",
-            "name": "page_size",
+            "name": "page_num",
             "in": "query",
             "required": true
           },
           {
             "type": "integer",
-            "name": "page_num",
+            "name": "page_size",
             "in": "query",
             "required": true
           }
@@ -2161,7 +1636,7 @@
                     ],
                     "properties": {
                       "author_id": {
-                        "type": "string"
+                        "type": "integer"
                       },
                       "cover_url": {
                         "type": "string"
@@ -2182,7 +1657,7 @@
                         "type": "string"
                       },
                       "video_id": {
-                        "type": "string"
+                        "type": "integer"
                       },
                       "video_url": {
                         "type": "string"
@@ -2195,9 +1670,276 @@
           }
         }
       }
+    },
+    "/videos/{id}/comments": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "interaction"
+        ],
+        "summary": "GetCommentListHandler",
+        "operationId": "interactionGetCommentListHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_num",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "name": "page_size",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "comment_count": {
+                  "type": "integer"
+                },
+                "comment_list": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "comment_id",
+                      "user_id",
+                      "video_id",
+                      "content",
+                      "created_at",
+                      "updated_at",
+                      "deleted_at",
+                      "like_count",
+                      "parent_comment_id"
+                    ],
+                    "properties": {
+                      "comment_id": {
+                        "type": "integer"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "created_at": {
+                        "type": "string"
+                      },
+                      "deleted_at": {
+                        "type": "string"
+                      },
+                      "like_count": {
+                        "type": "integer"
+                      },
+                      "parent_comment_id": {
+                        "type": "integer"
+                      },
+                      "updated_at": {
+                        "type": "string"
+                      },
+                      "user_id": {
+                        "type": "integer"
+                      },
+                      "video_id": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "interaction"
+        ],
+        "summary": "CommentVideoHandler",
+        "operationId": "interactionCommentVideoHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "comment_text",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "comment_id": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/videos/{id}/like": {
+      "put": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "interaction"
+        ],
+        "summary": "LikeVideoHandler",
+        "operationId": "interactionLikeVideoHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "schemes": [
+          "https"
+        ],
+        "tags": [
+          "interaction"
+        ],
+        "summary": "CancelLikeVideoHandler",
+        "operationId": "interactionCancelLikeVideoHandler",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "object",
+                  "required": [
+                    "status_code",
+                    "status_msg"
+                  ],
+                  "properties": {
+                    "status_code": {
+                      "type": "integer"
+                    },
+                    "status_msg": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
-  "x-date": "2026-05-25 22:22:10",
+  "x-date": "2026-08-05 21:40:22",
   "x-description": "This is a goctl generated swagger file.",
   "x-github": "https://github.com/zeromicro/go-zero",
   "x-go-zero-doc": "https://go-zero.dev/",

@@ -2,21 +2,44 @@ package video_baseinfo
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"sort"
 	"strings"
 
 	"go_zero-tiktok/app/video/rpc/internal/dal/query"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 
-	myutils "go_zero-tiktok/internal/utils"
+	myutils "go_zero-tiktok/pkg/utils"
 
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
 
 func CreateVideo(ctx context.Context, db *gorm.DB, video *VideoBaseinfo) error {
+	// 三段式幂等：先查
+	var existed VideoBaseinfo
+	err := db.WithContext(ctx).Where("video_id = ?", video.VideoID).First(&existed).Error
+	if err == nil {
+		// 幂等：同一视频已发布，直接返回成功
+		return nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return xerr.Wrap(err, "check video exist failed")
+	}
+
+	// 再插
 	if err := db.WithContext(ctx).Create(video).Error; err != nil {
+		// 撞 1062 唯一键后重查，命中则视为幂等成功
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			var exist VideoBaseinfo
+			if err2 := db.WithContext(ctx).Where("video_id = ?", video.VideoID).First(&exist).Error; err2 == nil {
+				return nil
+			}
+		}
 		return xerr.Wrap(err, "create video failed")
 	}
+
 	return nil
 }
 
@@ -40,28 +63,31 @@ func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pag
 	return videos, total, nil
 }
 
-func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []string) ([]VideoBaseinfo, error) {
+func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []int64) ([]VideoBaseinfo, error) {
 	if len(videoIDs) == 0 {
 		return []VideoBaseinfo{}, nil
 	}
-	quotedIDs := make([]string, len(videoIDs))
-	for i, id := range videoIDs {
-		quotedIDs[i] = fmt.Sprintf("'%s'", id)
-	}
-	idsForOrder := strings.Join(quotedIDs, ",")
 
 	var videos []VideoBaseinfo
 	if err := db.WithContext(ctx).
 		Where("video_id IN ?", videoIDs).
-		Order(fmt.Sprintf("FIELD(video_id, %s)", idsForOrder)).
 		Find(&videos).Error; err != nil {
 		return nil, xerr.Wrap(err, "get videos by ids failed")
 	}
 
+	// 按传入 ID 顺序排序（避免依赖 MySQL 专有 FIELD() 函数，保证跨数据库一致）
+	order := make(map[int64]int, len(videoIDs))
+	for i, id := range videoIDs {
+		order[id] = i
+	}
+	sort.SliceStable(videos, func(i, j int) bool {
+		return order[videos[i].VideoID] < order[videos[j].VideoID]
+	})
+
 	return videos, nil
 }
 
-func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
+func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID int64, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
 	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{}).Where("author_id = ?", authorID)
 
 	var total int64

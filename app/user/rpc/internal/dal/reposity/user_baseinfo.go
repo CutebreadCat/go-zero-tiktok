@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	userbasetable "go_zero-tiktok/app/user/rpc/internal/dal/tables/user_baseinfo"
-	"go_zero-tiktok/internal/shared/xerr"
-	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/pkg/contract"
+	myutils "go_zero-tiktok/pkg/utils"
+	"go_zero-tiktok/pkg/xerr"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -46,12 +46,13 @@ func (r *UserBaseinfoRepo) CreateUser(ctx context.Context, user *userbasetable.U
 	return nil
 }
 
-func (r *UserBaseinfoRepo) CreateUserFromParams(ctx context.Context, userID, username, password, photoURL string) error {
+func (r *UserBaseinfoRepo) CreateUserFromParams(ctx context.Context, userID int64, username, password, photoURL string) error {
 	user := &userbasetable.UserBaseinfo{
 		UserID:   userID,
 		Username: username,
 		Password: password,
 		PhotoURL: photoURL,
+		Status:   1,
 	}
 	if err := userbasetable.CreateUser(ctx, r.db, user); err != nil {
 		return pkgerrors.WithMessage(err, "UserBaseinfoRepo.CreateUserFromParams")
@@ -59,7 +60,14 @@ func (r *UserBaseinfoRepo) CreateUserFromParams(ctx context.Context, userID, use
 	return nil
 }
 
-func (r *UserBaseinfoRepo) GetUserByID(ctx context.Context, userID string) (*types.UserBaseinfo, error) {
+func (r *UserBaseinfoRepo) DeleteUserByID(ctx context.Context, userID int64) error {
+	if err := userbasetable.DeleteUserByID(ctx, r.db, userID); err != nil {
+		return pkgerrors.WithMessage(err, "UserBaseinfoRepo.DeleteUserByID")
+	}
+	return nil
+}
+
+func (r *UserBaseinfoRepo) GetUserByID(ctx context.Context, userID int64) (*types.UserBaseinfo, error) {
 	user, err := userbasetable.GetUserByID(ctx, r.db, userID)
 	if err != nil {
 		return nil, pkgerrors.WithMessage(err, "UserBaseinfoRepo.GetUserByID")
@@ -82,14 +90,14 @@ func (r *UserBaseinfoRepo) GetUserByUsername(ctx context.Context, username strin
 	return &resp, nil
 }
 
-func (r *UserBaseinfoRepo) UpdateUserPhotoByID(ctx context.Context, userID string, photoURL string) error {
+func (r *UserBaseinfoRepo) UpdateUserPhotoByID(ctx context.Context, userID int64, photoURL string) error {
 	if err := userbasetable.UpdateUserPhotoByID(ctx, r.db, userID, photoURL); err != nil {
 		return pkgerrors.WithMessage(err, "UserBaseinfoRepo.UpdateUserPhotoByID")
 	}
 	return nil
 }
 
-func (r *UserBaseinfoRepo) GetUsersByIDs(ctx context.Context, userIDs []string) ([]types.UserBaseinfo, error) {
+func (r *UserBaseinfoRepo) GetUsersByIDs(ctx context.Context, userIDs []int64) ([]types.UserBaseinfo, error) {
 	users, err := userbasetable.GetUsersByIDs(ctx, r.db, userIDs)
 	if err != nil {
 		return nil, pkgerrors.WithMessage(err, "UserBaseinfoRepo.GetUsersByIDs")
@@ -97,7 +105,7 @@ func (r *UserBaseinfoRepo) GetUsersByIDs(ctx context.Context, userIDs []string) 
 	return r.UsersToResponse(users), nil
 }
 
-func (r *UserBaseinfoRepo) CheckExistsMFA(ctx context.Context, userID string) (bool, error) {
+func (r *UserBaseinfoRepo) CheckExistsMFA(ctx context.Context, userID int64) (bool, error) {
 	enabled, err := userbasetable.CheckUserExistsMFA(ctx, r.db, userID)
 	if err != nil {
 		return false, pkgerrors.WithMessage(err, "UserBaseinfoRepo.CheckExistsMFA")
@@ -105,17 +113,17 @@ func (r *UserBaseinfoRepo) CheckExistsMFA(ctx context.Context, userID string) (b
 	return enabled, nil
 }
 
-func (r *UserBaseinfoRepo) UpdateUserMFAPendingSecret(ctx context.Context, userID string, pendingSecret string) error {
+func (r *UserBaseinfoRepo) UpdateUserMFAPendingSecret(ctx context.Context, userID int64, pendingSecret string) error {
 	if err := userbasetable.UpdateUserMFAPendingSecret(ctx, r.db, userID, pendingSecret); err != nil {
 		return pkgerrors.WithMessage(err, "UserBaseinfoRepo.UpdateUserMFAPendingSecret")
 	}
 	return nil
 }
 
-func (r *UserBaseinfoRepo) EnableUserMFA(ctx context.Context, userID string) error {
+func (r *UserBaseinfoRepo) EnableUserMFA(ctx context.Context, userID int64) error {
 	if err := r.db.Transaction(func(tx *gorm.DB) error {
-		var userMFA userbasetable.UserMFA
-		err := tx.WithContext(ctx).Model(&userbasetable.UserMFA{}).Where("user_id = ?", userID).First(&userMFA).Error
+		var user userbasetable.UserBaseinfo
+		err := tx.WithContext(ctx).Model(&userbasetable.UserBaseinfo{}).Where("user_id = ?", userID).First(&user).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return xerr.NewInvalidParam("用户MFA记录不存在")
@@ -123,12 +131,12 @@ func (r *UserBaseinfoRepo) EnableUserMFA(ctx context.Context, userID string) err
 			return xerr.Wrap(err, "query user mfa failed")
 		}
 
-		mfaSecret := userMFA.MFAPendingSecret
+		mfaSecret := user.MFAPendingSecret
 		if mfaSecret == "" {
 			return xerr.NewInvalidParam("启用用户MFA失败，待确认密钥为空")
 		}
 
-		result := tx.WithContext(ctx).Model(&userMFA).Updates(map[string]interface{}{
+		result := tx.WithContext(ctx).Model(&user).Updates(map[string]interface{}{
 			"mfa_enabled":        true,
 			"mfa_secret":         mfaSecret,
 			"mfa_pending_secret": "",
@@ -146,7 +154,7 @@ func (r *UserBaseinfoRepo) EnableUserMFA(ctx context.Context, userID string) err
 	return nil
 }
 
-func (r *UserBaseinfoRepo) FindUserMFASecret(ctx context.Context, userID string) (string, error) {
+func (r *UserBaseinfoRepo) FindUserMFASecret(ctx context.Context, userID int64) (string, error) {
 	secret, err := userbasetable.FindUserMFASecret(ctx, r.db, userID)
 	if err != nil {
 		return "", pkgerrors.WithMessage(err, "UserBaseinfoRepo.FindUserMFASecret")
@@ -154,25 +162,10 @@ func (r *UserBaseinfoRepo) FindUserMFASecret(ctx context.Context, userID string)
 	return secret, nil
 }
 
-func (r *UserBaseinfoRepo) FindUserPendMFASecret(ctx context.Context, userID string) (string, error) {
+func (r *UserBaseinfoRepo) FindUserPendMFASecret(ctx context.Context, userID int64) (string, error) {
 	secret, err := userbasetable.FindUserPendMFASecret(ctx, r.db, userID)
 	if err != nil {
 		return "", pkgerrors.WithMessage(err, "UserBaseinfoRepo.FindUserPendMFASecret")
 	}
 	return secret, nil
-}
-
-func (r *UserBaseinfoRepo) UpdateUserJwchInfo(ctx context.Context, userID string, jwchID string, jwchPassword string) error {
-	if err := userbasetable.UpdateUserJwchInfo(ctx, r.db, userID, jwchID, jwchPassword); err != nil {
-		return pkgerrors.WithMessage(err, "UserBaseinfoRepo.UpdateUserJwchInfo")
-	}
-	return nil
-}
-
-func (r *UserBaseinfoRepo) GetUserJwchInfo(ctx context.Context, userID string) (string, string, error) {
-	jwchID, jwchPassword, err := userbasetable.GetUserJwchInfo(ctx, r.db, userID)
-	if err != nil {
-		return "", "", pkgerrors.WithMessage(err, "UserBaseinfoRepo.GetUserJwchInfo")
-	}
-	return jwchID, jwchPassword, nil
 }

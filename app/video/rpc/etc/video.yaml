@@ -2,7 +2,20 @@ Name: video.rpc
 ListenOn: 0.0.0.0:8891
 Etcd:
   Hosts:
-  - etcd:2379
+  - "${ETCD_HOSTS}"
   Key: video.rpc
 
-DataSource: "root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
+DataSource: "root:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
+
+# 链路追踪:go-zero 内置 Telemetry(OTLP gRPC 导出,可接 Tempo/Jaeger)
+Telemetry:
+  Name: video-rpc
+  Endpoint: "${OTLP_ENDPOINT}"
+  Sampler: 1.0
+  Batcher: otlpgrpc
+
+# 监控指标:go-zero 内置 Prometheus,暴露 /metrics 供 Prometheus 抓取
+Prometheus:
+  Host: 0.0.0.0
+  Port: 9102
+  Path: /metrics

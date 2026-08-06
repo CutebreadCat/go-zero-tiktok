@@ -3,32 +3,32 @@ package logic
 import (
 	"context"
 
-	"go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	"go_zero-tiktok/app/interaction/rpc/internal/svc"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type LikeCommentLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewLikeCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeCommentLogic {
 	return &LikeCommentLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 
 func (l *LikeCommentLogic) LikeComment(in *interaction_pb.LikeCommentRequest) (*interaction_pb.LikeCommentResponse, error) {
-	if in.CommentId == "" {
+	if in.CommentId == 0 {
 		return nil, xerr.NewInvalidParam("评论ID不能为空")
 	}
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
 	if in.LikeType != 0 && in.LikeType != 1 {

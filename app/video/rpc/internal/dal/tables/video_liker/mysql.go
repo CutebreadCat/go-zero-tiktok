@@ -5,13 +5,14 @@ import (
 	"errors"
 
 	"go_zero-tiktok/app/video/rpc/internal/dal/query"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
 
-func LikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) error {
-	if userID == "" || videoID == "" {
+func LikeVideo(ctx context.Context, db *gorm.DB, userID, videoID int64) error {
+	if userID == 0 || videoID == 0 {
 		return xerr.NewInvalidParam("用户ID或视频ID为空")
 	}
 
@@ -20,6 +21,7 @@ func LikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) error {
 		VideoID: videoID,
 	}
 
+	// 三段式幂等：先查
 	var existed VideoLiker
 	err := db.WithContext(ctx).Where("user_id = ? AND video_id = ?", userID, videoID).First(&existed).Error
 	if err == nil {
@@ -29,14 +31,23 @@ func LikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) error {
 		return xerr.Wrap(err, "check like relation failed")
 	}
 
+	// 再插
 	if err := db.WithContext(ctx).Create(like).Error; err != nil {
+		// 撞 1062 唯一键后重查，命中则视为幂等成功
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			var existed VideoLiker
+			if err2 := db.WithContext(ctx).Where("user_id = ? AND video_id = ?", userID, videoID).First(&existed).Error; err2 == nil {
+				return nil
+			}
+		}
 		return xerr.Wrap(err, "like video failed")
 	}
 
 	return nil
 }
 
-func CancelLikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) error {
+func CancelLikeVideo(ctx context.Context, db *gorm.DB, userID, videoID int64) error {
 	result := db.WithContext(ctx).Where("user_id = ? AND video_id = ?", userID, videoID).Delete(&VideoLiker{})
 	if result.Error != nil {
 		return xerr.Wrap(result.Error, "cancel like video failed")
@@ -49,7 +60,7 @@ func CancelLikeVideo(ctx context.Context, db *gorm.DB, userID, videoID string) e
 	return nil
 }
 
-func GetLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID string, pageNumber, pageSize int32) ([]string, int64, error) {
+func GetLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID int64, pageNumber, pageSize int32) ([]int64, int64, error) {
 	dbQuery := db.WithContext(ctx).Model(&VideoLiker{}).Where("user_id = ?", userID)
 
 	var total int64
@@ -63,7 +74,7 @@ func GetLikedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID string, p
 		return nil, 0, xerr.Wrap(err, "get liked video ids failed")
 	}
 
-	videoIDs := make([]string, 0, len(likerRows))
+	videoIDs := make([]int64, 0, len(likerRows))
 	for _, row := range likerRows {
 		videoIDs = append(videoIDs, row.VideoID)
 	}

@@ -4,23 +4,23 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/app/video/rpc/video_pb"
+	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type GetFeedVideoLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewGetFeedVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFeedVideoLogic {
 	return &GetFeedVideoLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 

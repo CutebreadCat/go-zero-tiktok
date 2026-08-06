@@ -1,0 +1,137 @@
+# 基础设施 + 迁移工具 + 监控(Loki/Alloy/Grafana)编排
+#
+# 业务服务不再容器化:直接编译为本机二进制运行(见 Makefile run-*-local)
+# 本机二进制日志写入项目根 logs/,由 Alloy 挂载采集
+#
+# 用法:
+#   docker compose -f deploy/docker-compose.yml up -d                                  # 只起基础设施
+#   docker compose -f deploy/docker-compose.yml --profile monitoring up -d             # 起监控(可选)
+#   make migrate-up / make migrate-down                                                # 数据库迁移(临时起 migrate 容器)
+#   docker compose -f deploy/docker-compose.yml ps                                     # 查看状态
+#   docker compose -f deploy/docker-compose.yml down                                   # 停止
+#
+# 说明:
+#   - 基础设施(etcd/redis/mysql/kafka)和监控服务默认 restart: unless-stopped
+#   - migrate 与监控服务使用 profiles 隔离,不随 up -d 常驻
+#   - name 固定为 go_zero-tiktok:与旧根目录 compose 同名,保证容器/卷不重建、数据不丢
+
+name: go_zero-tiktok
+
+services:
+  # ===================== 基础设施 =====================
+  etcd:
+    image: registry.k8s.io/etcd:3.5.17-0
+    command:
+      - etcd
+      - --name=etcd
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd:2379
+      - --quota-backend-bytes=8589934592
+    ports:
+      - "2379:2379"
+    volumes:
+      - etcd-data:/etcd-data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6888:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-yourpassword}
+      MYSQL_DATABASE: gozero-tiktok
+      MYSQL_USER: gozero-tiktok
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-yourpassword}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+  kafka:
+    image: apache/kafka:4.0.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    restart: unless-stopped
+
+  # ===================== 迁移工具(随用随起,不常驻) =====================
+  migrate:
+    image: migrate/migrate:v4.19.1
+    profiles: ["migrate"]
+    volumes:
+      - ../migrations:/migrations
+    entrypoint: ["sh", "-c", "echo 'Run: make migrate-up' && sleep 3600"]
+
+  # ===================== 监控(Loki/Alloy/Grafana,可选) =====================
+  loki:
+    image: grafana/loki:3.2.0
+    profiles: ["monitoring"]
+    ports:
+      - "3100:3100"
+    command: ["-config.file=/etc/loki/loki-config.yaml"]
+    environment:
+      - RETENTION_PERIOD=${RETENTION_PERIOD:-72h}
+    volumes:
+      - ./monitoring/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/loki
+    restart: unless-stopped
+
+  alloy:
+    image: grafana/alloy:v1.5.0
+    profiles: ["monitoring"]
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.alloy
+    ports:
+      - "4317:4317"   # OTLP trace(可去掉)
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ../logs:/var/log/apps:ro   # 本机二进制日志(项目根 logs/)
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    profiles: ["monitoring"]
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+volumes:
+  etcd-data:
+  redis-data:
+  mysql-data:
+  kafka-data:
+  loki-data:
+  grafana-data:

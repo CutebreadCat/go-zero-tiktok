@@ -5,27 +5,27 @@ import (
 
 	"go_zero-tiktok/app/user/rpc/internal/svc"
 	"go_zero-tiktok/app/user/rpc/user_pb"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type BindMfaLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewBindMfaLogic(ctx context.Context, svcCtx *svc.ServiceContext) *BindMfaLogic {
 	return &BindMfaLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 
 func (l *BindMfaLogic) BindMfa(in *user_pb.BindMfaRequest) (*user_pb.BindMfaResponse, error) {
-	if in.UserId == "" || in.MfaSecret == "" || in.MfaCode == "" {
+	if in.UserId == 0 || in.MfaSecret == "" || in.MfaCode == "" {
 		return nil, xerr.NewInvalidParam("MFA 参数不能为空")
 	}
 

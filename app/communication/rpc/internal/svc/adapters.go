@@ -3,36 +3,46 @@ package svc
 import (
 	"context"
 
-	userbasetable "go_zero-tiktok/app/communication/rpc/internal/dal/tables/user_baseinfo"
-	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/app/communication/rpc/internal/config"
+	"go_zero-tiktok/app/user/rpc/userservice"
+	"go_zero-tiktok/pkg/contract"
 
-	"gorm.io/gorm"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/zrpc"
 )
 
-// UserRepoAdapter 用户仓储适配器
+// UserRepoAdapter 用户仓储适配器（通过 user RPC 获取用户信息）
 type UserRepoAdapter struct {
-	db *gorm.DB
+	userRpc userservice.UserService
 }
 
-func NewUserRepoAdapter(db *gorm.DB) *UserRepoAdapter {
-	return &UserRepoAdapter{db: db}
+func NewUserRepoAdapter(c config.Config) *UserRepoAdapter {
+	return &UserRepoAdapter{
+		userRpc: userservice.NewUserService(zrpc.MustNewClient(c.UserRpc)),
+	}
 }
 
-func (a *UserRepoAdapter) GetUsersByIDs(ctx context.Context, userIDs []string) ([]types.UserBaseinfo, error) {
-	users, err := userbasetable.GetUsersByIDs(ctx, a.db, userIDs)
+func (a *UserRepoAdapter) GetUsersByIDs(ctx context.Context, userIDs []int64) ([]types.UserBaseinfo, error) {
+	if len(userIDs) == 0 {
+		return []types.UserBaseinfo{}, nil
+	}
+
+	resp, err := a.userRpc.BatchGetUserInfo(ctx, &userservice.BatchGetUserInfoRequest{
+		UserIds: userIDs,
+	})
 	if err != nil {
+		logx.WithContext(ctx).Errorf("BatchGetUserInfo failed, userIDs=%v, err=%v", userIDs, err)
 		return nil, err
 	}
 
-	result := make([]types.UserBaseinfo, 0, len(users))
-	for _, u := range users {
+	result := make([]types.UserBaseinfo, 0, len(resp.Users))
+	for _, u := range resp.Users {
 		result = append(result, types.UserBaseinfo{
-			UserID:    u.UserID,
+			UserID:    u.UserId,
 			Username:  u.Username,
-			PhotoURL:  u.PhotoURL,
-			CreatedAt: myutils.TimeToStr(u.CreatedAt, ""),
-			UpdatedAt: myutils.TimeToStr(u.UpdatedAt, ""),
+			PhotoURL:  u.PhotoUrl,
+			CreatedAt: u.CreatedAt,
+			UpdatedAt: u.UpdatedAt,
 		})
 	}
 	return result, nil

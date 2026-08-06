@@ -2,68 +2,47 @@ syntax = "v1"
 
 import "../model.api"
 
-@server (
+// 账户模块：注册、登录、刷新令牌
+// 鉴权由网关全局 token.AuthMiddleware + publicPaths 白名单统一管控
+@server(
   group: user
-
   middleware: RateLimit
-
   tags:"user"
 )
 service tiktok-api {
+  // 注册
   @handler RegisterHandler
-  post /user/register (RegisterRequest) returns (RegisterResponse)
+  post /users (RegisterRequest) returns (RegisterResponse)
 
+  // 登录
   @handler LoginHandler
-  post /user/login (LoginRequest) returns (LoginResponse)
+  post /sessions (LoginRequest) returns (LoginResponse)
 
+  // 刷新令牌
   @handler RefreshTokenHandler
-  post /user/token/refresh (RefreshTokenRequest) returns (RefreshTokenResponse)
-
-  @handler GetUserInfoHandler
-  get /user/info (UserInfoRequest) returns (UserInfoResponse)
-
+  post /sessions/refresh (RefreshTokenRequest) returns (RefreshTokenResponse)
 }
 
 type (
-  RegisterRequest  {
+  RegisterRequest {
     Username string `form:"username"`
     Password string `form:"password"`
   }
-
-  RegisterResponse  {
+  RegisterResponse {
     Base   BaseResponse `json:"base"`
-    UserID string              `json:"user_id"`
+    UserID int64        `json:"user_id,string"`
   }
 
-  LoginRequest  {
+  LoginRequest {
     Username string `form:"username"`
     Password string `form:"password"`
     MfaCode  string `form:"mfa_code"`
   }
-
-  LoginResponse  {
+  LoginResponse {
     Base         BaseResponse `json:"base"`
-    UserID       string       `json:"user_id"`
+    UserID       int64        `json:"user_id,string"`
     AccessToken  string       `json:"access_token"`
     RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
-  }
-
-  UserInfoRequest  {
-    UserID string `form:"user_id"`
-  }
-
-  UserInfoResponse  {
-    Base BaseResponse `json:"base"`
-    User UserBaseinfo `json:"user"`
-  }
-
-  UserphotoRequest  {
-    PhotoURL     string `form:"photo_url"`
-  }
-
-  UserphotoResponse  {
-    StatusCode int32  `json:"status_code"`
-    StatusMsg  string `json:"status_msg"`
   }
 
   RefreshTokenRequest {
@@ -74,35 +53,34 @@ type (
     AccessToken  string       `json:"access_token"`
     RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
   }
-  MfaqrcodeRequest {
-    Mfa_ticket string `form:"mfa_ticket"`
-  }
-  MfaqrcodeResponse {
-    Base BaseResponse `json:"base"`
-    QRCodeURL string `json:"qr_code"`
-    mfa_secret string `json:"mfa_secret"`
-  }
-  BindMfaqrcodeRequest {
-     mfa_secret string `form:"mfa_secret"`
-     mfa_code string `form:"mfa_code"`
-  }
-  BindMfaqrcodeResponse {
-    Base BaseResponse `json:"base"`
-  }
-  JwchLoginRequest {
-    Username string `form:"username"`
-    Password string `form:"password"`
-  }
-  JwchLoginResponse {
-    Base         BaseResponse `json:"base"`
-  }
-  JwchGetUserCookieRequest {
 
+  GetUserInfoRequest {
   }
-  JwchGetUserCookieResponse {
-    Base         BaseResponse `json:"base"`
-    JwchID       string       `json:"jwch_id"`
-    Cookie       string       `json:"cookie" `
+  GetUserInfoResponse {
+    Base BaseResponse `json:"base"`
+    User UserBaseinfo `json:"user"`
   }
-   
+
+  UpdateUserPhotoRequest {
+    PhotoURL string `form:"photo_url"`
+  }
+  UpdateUserPhotoResponse {
+    Base BaseResponse `json:"base"`
+  }
+
+  GetMfaQRCodeRequest {
+  }
+  GetMfaQRCodeResponse {
+    Base      BaseResponse `json:"base"`
+    QRCodeURL string       `json:"qr_code_url"`
+    MfaSecret string       `json:"mfa_secret"`
+  }
+
+  BindMfaRequest {
+    MfaSecret string `form:"mfa_secret"`
+    MfaCode   string `form:"mfa_code"`
+  }
+  BindMfaResponse {
+    Base BaseResponse `json:"base"`
+  }
 )

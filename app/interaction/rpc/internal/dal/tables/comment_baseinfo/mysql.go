@@ -5,9 +5,10 @@ import (
 	"errors"
 
 	"go_zero-tiktok/app/interaction/rpc/internal/dal/query"
-	"go_zero-tiktok/internal/shared/xerr"
-	myutils "go_zero-tiktok/internal/utils"
+	myutils "go_zero-tiktok/pkg/utils"
+	"go_zero-tiktok/pkg/xerr"
 
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -16,14 +17,34 @@ func CreateComment(ctx context.Context, db *gorm.DB, comment *CommentBaseinfo) e
 		return xerr.NewInvalidParam("评论不存在")
 	}
 
+	// 三段式幂等：先查
+	var existed CommentBaseinfo
+	err := db.WithContext(ctx).Where("comment_id = ?", comment.CommentID).First(&existed).Error
+	if err == nil {
+		// 幂等：同一评论已创建，直接返回成功
+		return nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return xerr.Wrap(err, "check comment exist failed")
+	}
+
+	// 再插
 	if err := db.WithContext(ctx).Create(comment).Error; err != nil {
+		// 撞 1062 唯一键后重查，命中则视为幂等成功
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			var exist CommentBaseinfo
+			if err2 := db.WithContext(ctx).Where("comment_id = ?", comment.CommentID).First(&exist).Error; err2 == nil {
+				return nil
+			}
+		}
 		return xerr.Wrap(err, "create comment failed")
 	}
 
 	return nil
 }
 
-func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID string, userID string) error {
+func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID int64, userID int64) error {
 	var comment CommentBaseinfo
 	if err := db.WithContext(ctx).Where("comment_id = ?", commentID).First(&comment).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -47,7 +68,7 @@ func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID string, userI
 	return nil
 }
 
-func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, pageNumber, pageSize int32) ([]CommentBaseinfo, int64, error) {
+func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID int64, pageNumber, pageSize int32) ([]CommentBaseinfo, int64, error) {
 	dbQuery := db.WithContext(ctx).Model(&CommentBaseinfo{}).Where("video_id = ?", videoID)
 
 	var total int64
@@ -64,15 +85,35 @@ func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID string, page
 	return comments, total, nil
 }
 
-func LikeComment(ctx context.Context, db *gorm.DB, commentID string, userID string) error {
+func LikeComment(ctx context.Context, db *gorm.DB, commentID int64, userID int64) error {
+	if userID == 0 || commentID == 0 {
+		return xerr.NewInvalidParam("用户ID或评论ID为空")
+	}
+
 	like := CommentLiker{
 		UserID:    userID,
 		CommentID: commentID,
 	}
 
+	// 三段式幂等：先查
+	var existed CommentLiker
+	err := db.WithContext(ctx).Where("user_id = ? AND comment_id = ?", userID, commentID).First(&existed).Error
+	if err == nil {
+		return xerr.NewInvalidParam("已经点赞过该评论了")
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return xerr.Wrap(err, "check like relation failed")
+	}
+
+	// 再插
 	if err := db.WithContext(ctx).Create(&like).Error; err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return xerr.NewInvalidParam("已经点赞过该评论了")
+		// 撞 1062 唯一键后重查，命中则视为幂等成功
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			var existed CommentLiker
+			if err2 := db.WithContext(ctx).Where("user_id = ? AND comment_id = ?", userID, commentID).First(&existed).Error; err2 == nil {
+				return nil
+			}
 		}
 		return xerr.Wrap(err, "like comment failed")
 	}
@@ -80,7 +121,7 @@ func LikeComment(ctx context.Context, db *gorm.DB, commentID string, userID stri
 	return nil
 }
 
-func UnlikeComment(ctx context.Context, db *gorm.DB, commentID string, userID string) error {
+func UnlikeComment(ctx context.Context, db *gorm.DB, commentID int64, userID int64) error {
 	result := db.WithContext(ctx).Where("user_id = ? AND comment_id = ?", userID, commentID).Delete(&CommentLiker{})
 	if result.Error != nil {
 		return xerr.Wrap(result.Error, "unlike comment failed")
@@ -92,7 +133,7 @@ func UnlikeComment(ctx context.Context, db *gorm.DB, commentID string, userID st
 	return nil
 }
 
-func CommentPareantComment(ctx context.Context, db *gorm.DB, parentCommentID string, commentText string, userID string, videoID string) (string, error) {
+func CommentParentComment(ctx context.Context, db *gorm.DB, parentCommentID int64, commentText string, userID int64, videoID int64) (int64, error) {
 	comment := &CommentBaseinfo{
 		CommentID:       myutils.GenerateCommentID(),
 		UserID:          userID,
@@ -101,8 +142,28 @@ func CommentPareantComment(ctx context.Context, db *gorm.DB, parentCommentID str
 		ParentCommentID: parentCommentID,
 	}
 
+	// 三段式幂等：先查
+	var existed CommentBaseinfo
+	err := db.WithContext(ctx).Where("comment_id = ?", comment.CommentID).First(&existed).Error
+	if err == nil {
+		// 幂等：同一回复评论已创建，直接返回已有 ID
+		return comment.CommentID, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, xerr.Wrap(err, "check comment exist failed")
+	}
+
+	// 再插
 	if err := db.WithContext(ctx).Create(comment).Error; err != nil {
-		return "", xerr.Wrap(err, "create comment failed")
+		// 撞 1062 唯一键后重查，命中则视为幂等成功
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			var exist CommentBaseinfo
+			if err2 := db.WithContext(ctx).Where("comment_id = ?", comment.CommentID).First(&exist).Error; err2 == nil {
+				return comment.CommentID, nil
+			}
+		}
+		return 0, xerr.Wrap(err, "create comment failed")
 	}
 
 	return comment.CommentID, nil

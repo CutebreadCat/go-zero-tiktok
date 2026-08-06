@@ -5,29 +5,30 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
-	"go_zero-tiktok/internal/shared/xerr"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/app/video/rpc/video_pb"
+	"go_zero-tiktok/pkg/storage/aliyun"
+	myutils "go_zero-tiktok/pkg/utils"
+	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type PublishVideoLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewPublishVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PublishVideoLogic {
 	return &PublishVideoLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 
 func (l *PublishVideoLogic) PublishVideo(in *video_pb.PublishVideoRequest) (*video_pb.PublishVideoResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
 	if in.Title == "" {
@@ -38,7 +39,7 @@ func (l *PublishVideoLogic) PublishVideo(in *video_pb.PublishVideoRequest) (*vid
 	}
 
 	videoID := myutils.GenerateVideoID()
-	objectKey := in.UserId + "/" + videoID + "/" + in.Filename
+	objectKey := aliyun.BuildObjectKey(aliyun.ObjectTypeVideo, in.UserId, videoID, in.Filename)
 
 	videoURL, err := l.svcCtx.Storage.UploadFile(bytes.NewReader(in.VideoData), objectKey)
 	if err != nil {

@@ -4,31 +4,31 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/app/video/rpc/video_pb"
+	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type LikeVideoLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewLikeVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeVideoLogic {
 	return &LikeVideoLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 
 func (l *LikeVideoLogic) LikeVideo(in *video_pb.LikeVideoRequest) (*video_pb.LikeVideoResponse, error) {
-	if in.UserId == "" {
+	if in.UserId == 0 {
 		return nil, xerr.NewInvalidParam("用户ID不能为空")
 	}
-	if in.VideoId == "" {
+	if in.VideoId == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 

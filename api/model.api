@@ -7,7 +7,7 @@ type (
   }
 
   UserBaseinfo {
-    UserID     string `json:"user_id"`
+    UserID     int64  `json:"user_id,string"`
     Username   string `json:"username"`
     Password   string `json:"password"`
     PhotoURL   string `json:"photo_url"`
@@ -17,14 +17,14 @@ type (
   }
 
   UserFollow {
-    FollowerID string `json:"follower_id"`
-    UserID     string `json:"user_id"`
+    FollowerID int64 `json:"follower_id,string"`
+    UserID     int64 `json:"user_id,string"`
     Status     int32  `json:"status"`
   }
 
   VideoBaseinfo {
-    VideoID     string `json:"video_id"`
-    AuthorID    string `json:"author_id"`
+    VideoID     int64  `json:"video_id,string"`
+    AuthorID    int64  `json:"author_id,string"`
     VideoURL    string `json:"video_url"`
     CoverURL    string `json:"cover_url"`
     Title       string `json:"title"`
@@ -36,50 +36,21 @@ type (
   }
 
   VideoPopular {
-    VideoID        string `json:"video_id"`
+    VideoID        int64  `json:"video_id,string"`
     VisitCount     int64  `json:"visit_count"`
     LikeCount      int64  `json:"like_count"`
     CommentCount   int64  `json:"comment_count"`
   }
 
-  VideoLiker {
-    UserID  string `json:"user_id"`
-    VideoID string `json:"video_id"`
-  }
-
   CommentBaseinfo {
-    CommentID     string `json:"comment_id"`
-    UserID        string `json:"user_id"`
-    VideoID       string `json:"video_id"`
+    CommentID     int64  `json:"comment_id,string"`
+    UserID        int64  `json:"user_id,string"`
+    VideoID       int64  `json:"video_id,string"`
     Content       string `json:"content"`
     CreatedAt     string `json:"created_at"`
     UpdatedAt     string `json:"updated_at"`
     DeletedAt     string `json:"deleted_at"`
     LikeCount     int32  `json:"like_count"`
-    ParentCommentID string `json:"parent_comment_id"`
-  }
-  CommentLiker {
-    UserID  string `json:"user_id"`
-    CommentID string `json:"comment_id"`
-  }
-  User_mfa{
-    UserID string `json:"user_id"`
-    MFASecret string `json:"mfa_secret"`
-    MFAEnabled bool `json:"mfa_enabled"`
-    PasswordHash string `json:"password_hash"`
-    MFA_Pending_secret string `json:"mfa_pending_secret"`
-  }
-  User_chat{
-    UserID string `json:"user_id"`
-    RoomID string `json:"room_id"`
-    leix int32 `json:"leix"` // 0: 私聊, 1: 群聊
-    RoomName string `json:"room_name"`
-  }
-  MessageChat{
-    ID string `json:"id"`
-    RoomID string `json:"room_id"`
-    SenderID string `json:"sender_id"`
-    Content string `json:"content"`
-    CreatedAt string `json:"created_at"`
+    ParentCommentID int64 `json:"parent_comment_id,string"`
   }
 )

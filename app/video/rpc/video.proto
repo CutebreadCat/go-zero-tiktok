@@ -5,7 +5,7 @@ package video;
 option go_package = "./video_pb";
 
 message PublishVideoRequest {
-    string user_id = 1;
+    int64 user_id = 1;
     string title = 2;
     string description = 3;
     bytes video_data = 4;
@@ -13,7 +13,7 @@ message PublishVideoRequest {
 }
 
 message PublishVideoResponse {
-    string video_id = 1;
+    int64 video_id = 1;
 }
 
 message GetFeedVideoRequest {
@@ -23,8 +23,8 @@ message GetFeedVideoRequest {
 }
 
 message VideoInfo {
-    string video_id = 1;
-    string author_id = 2;
+    int64 video_id = 1;
+    int64 author_id = 2;
     string video_url = 3;
     string cover_url = 4;
     string title = 5;
@@ -38,7 +38,7 @@ message GetFeedVideoResponse {
 }
 
 message GetVideoListRequest {
-    string author_id = 1;
+    int64 author_id = 1;
     int32 page_num = 2;
     int32 page_size = 3;
 }
@@ -65,7 +65,7 @@ message GetPopularVideoRequest {
 }
 
 message VideoPopularInfo {
-    string video_id = 1;
+    int64 video_id = 1;
     int64 visit_count = 2;
     int64 like_count = 3;
 }
@@ -76,8 +76,8 @@ message GetPopularVideoResponse {
 }
 
 message LikeVideoRequest {
-    string user_id = 1;
-    string video_id = 2;
+    int64 user_id = 1;
+    int64 video_id = 2;
     int32 action_type = 3;  // 1-点赞 0-取消点赞
 }
 
@@ -85,7 +85,7 @@ message LikeVideoResponse {
 }
 
 message GetLikeListRequest {
-    string user_id = 1;
+    int64 user_id = 1;
     int32 page_num = 2;
     int32 page_size = 3;
 }
@@ -93,6 +93,14 @@ message GetLikeListRequest {
 message GetLikeListResponse {
     repeated VideoInfo videos = 1;
     int64 total = 2;
+}
+
+message IncreaseVideoVisitCountRequest {
+    int64 video_id = 1;
+    int64 delta = 2;
+}
+
+message IncreaseVideoVisitCountResponse {
 }
 
 service VideoService {
@@ -103,4 +111,5 @@ service VideoService {
     rpc GetPopularVideo(GetPopularVideoRequest) returns (GetPopularVideoResponse);
     rpc LikeVideo(LikeVideoRequest) returns (LikeVideoResponse);
     rpc GetLikeList(GetLikeListRequest) returns (GetLikeListResponse);
+    rpc IncreaseVideoVisitCount(IncreaseVideoVisitCountRequest) returns (IncreaseVideoVisitCountResponse);
 }

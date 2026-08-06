@@ -5,7 +5,7 @@
 
 # ---docker相关文件---
 compose.yml
-Dockerfile*
+Dockerfile
 .dockerignore
 
 # ---相关文档---
@@ -41,3 +41,5 @@ temp/
 # ---操作系统文件---
 .DS_Store
 Thumbs.db
+
+/bin

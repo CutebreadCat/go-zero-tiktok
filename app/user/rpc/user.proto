@@ -13,7 +13,7 @@ message LoginRequest {
 message LoginResponse {
     string access_token = 1;
     string refresh_token = 2;
-    string user_id = 3;
+    int64 user_id = 3;
 }
 
 message RegisterRequest {
@@ -22,7 +22,7 @@ message RegisterRequest {
 }
 
 message RegisterResponse {
-    string user_id = 1;
+    int64 user_id = 1;
 }
 
 message RefreshTokenRequest {
@@ -35,11 +35,11 @@ message RefreshTokenResponse {
 }
 
 message GetUserInfoRequest {
-    string user_id = 1;
+    int64 user_id = 1;
 }
 
 message UserInfo {
-    string user_id = 1;
+    int64 user_id = 1;
     string username = 2;
     string photo_url = 3;
     string created_at = 4;
@@ -50,8 +50,16 @@ message GetUserInfoResponse {
     UserInfo user = 1;
 }
 
+message BatchGetUserInfoRequest {
+    repeated int64 user_ids = 1;
+}
+
+message BatchGetUserInfoResponse {
+    repeated UserInfo users = 1;
+}
+
 message UpdateUserPhotoRequest {
-    string user_id = 1;
+    int64 user_id = 1;
     bytes photo = 2;
 }
 
@@ -60,7 +68,7 @@ message UpdateUserPhotoResponse {
 }
 
 message GetMfaQRCodeRequest {
-    string user_id = 1;
+    int64 user_id = 1;
 }
 
 message GetMfaQRCodeResponse {
@@ -69,7 +77,7 @@ message GetMfaQRCodeResponse {
 }
 
 message BindMfaRequest {
-    string user_id = 1;
+    int64 user_id = 1;
     string mfa_secret = 2;
     string mfa_code = 3;
 }
@@ -77,32 +85,13 @@ message BindMfaRequest {
 message BindMfaResponse {
 }
 
-message JwchLoginRequest {
-    string user_id = 1;
-    string username = 2;
-    string password = 3;
-}
-
-message JwchLoginResponse {
-}
-
-message JwchGetUserCookieRequest {
-    string user_id = 1;
-}
-
-message JwchGetUserCookieResponse {
-    string jwch_id = 1;
-    string cookie = 2;
-}
-
 service UserService {
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc Login(LoginRequest) returns (LoginResponse);
     rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
     rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+    rpc BatchGetUserInfo(BatchGetUserInfoRequest) returns (BatchGetUserInfoResponse);
     rpc UpdateUserPhoto(UpdateUserPhotoRequest) returns (UpdateUserPhotoResponse);
     rpc GetMfaQRCode(GetMfaQRCodeRequest) returns (GetMfaQRCodeResponse);
     rpc BindMfa(BindMfaRequest) returns (BindMfaResponse);
-    rpc JwchLogin(JwchLoginRequest) returns (JwchLoginResponse);
-    rpc JwchGetUserCookie(JwchGetUserCookieRequest) returns (JwchGetUserCookieResponse);
 }

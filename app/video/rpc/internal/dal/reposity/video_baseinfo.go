@@ -4,8 +4,8 @@ import (
 	"context"
 
 	videobasetable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_baseinfo"
-	"go_zero-tiktok/internal/types"
-	myutils "go_zero-tiktok/internal/utils"
+	"go_zero-tiktok/pkg/contract"
+	myutils "go_zero-tiktok/pkg/utils"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -26,7 +26,7 @@ func (r *VideoBaseinfoRepo) CreateVideo(ctx context.Context, video *videobasetab
 	return nil
 }
 
-func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, authorID, videoURL, coverURL, title, description string) error {
+func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoURL, coverURL, title, description string) error {
 	video := &videobasetable.VideoBaseinfo{
 		VideoID:     videoID,
 		AuthorID:    authorID,
@@ -49,7 +49,7 @@ func (r *VideoBaseinfoRepo) SearchVideosByKeyword(ctx context.Context, keyword s
 	return r.VideosToResponse(videos), total, nil
 }
 
-func (r *VideoBaseinfoRepo) GetVideosByIDs(ctx context.Context, videoIDs []string) ([]types.VideoBaseinfo, error) {
+func (r *VideoBaseinfoRepo) GetVideosByIDs(ctx context.Context, videoIDs []int64) ([]types.VideoBaseinfo, error) {
 	videos, err := videobasetable.GetVideosByIDs(ctx, r.db, videoIDs)
 	if err != nil {
 		return nil, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideosByIDs")
@@ -57,7 +57,7 @@ func (r *VideoBaseinfoRepo) GetVideosByIDs(ctx context.Context, videoIDs []strin
 	return r.VideosToResponse(videos), nil
 }
 
-func (r *VideoBaseinfoRepo) GetVideosByAuthorID(ctx context.Context, authorID string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+func (r *VideoBaseinfoRepo) GetVideosByAuthorID(ctx context.Context, authorID int64, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
 	videos, total, err := videobasetable.GetVideosByAuthorID(ctx, r.db, authorID, pageNum, pageSize)
 	if err != nil {
 		return nil, 0, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideosByAuthorID")

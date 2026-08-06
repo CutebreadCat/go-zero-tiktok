@@ -7,7 +7,7 @@ package interactionservice
 import (
 	"context"
 
-	"go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"

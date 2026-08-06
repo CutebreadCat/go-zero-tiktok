@@ -7,7 +7,7 @@ package server
 import (
 	"context"
 
-	"go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	"go_zero-tiktok/app/interaction/rpc/internal/logic"
 	"go_zero-tiktok/app/interaction/rpc/internal/svc"
 )

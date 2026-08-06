@@ -4,7 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	"go_zero-tiktok/app/interaction/rpc/interaction_pb/interaction_pb"
+	appLogger "go_zero-tiktok/pkg/logger"
+	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	"go_zero-tiktok/app/interaction/rpc/internal/config"
 	"go_zero-tiktok/app/interaction/rpc/internal/server"
 	"go_zero-tiktok/app/interaction/rpc/internal/svc"
@@ -22,7 +23,14 @@ func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(*configFile, &c, conf.UseEnv())
+	level := "info"
+	if c.Mode == service.DevMode || c.Mode == service.TestMode {
+		level = "debug"
+	}
+	appLogger.Init("interaction-rpc", level)
+	appLogger.RegisterOTelTraceExtractor()
+	defer appLogger.Close()
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
@@ -32,6 +40,7 @@ func main() {
 			reflection.Register(grpcServer)
 		}
 	})
+	appLogger.RegisterLogxBridge()
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)

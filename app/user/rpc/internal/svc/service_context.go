@@ -3,9 +3,8 @@ package svc
 import (
 	"go_zero-tiktok/app/user/rpc/internal/config"
 	userrepo "go_zero-tiktok/app/user/rpc/internal/dal/reposity"
-	userbasetable "go_zero-tiktok/app/user/rpc/internal/dal/tables/user_baseinfo"
 	userdomain "go_zero-tiktok/app/user/rpc/internal/domain"
-	"go_zero-tiktok/internal/infra/storage/aliyun"
+	"go_zero-tiktok/pkg/storage/aliyun"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -21,24 +20,21 @@ type ServiceContext struct {
 	UserAuthService    *userdomain.AuthService
 	UserMfaService     *userdomain.MfaService
 	UserProfileService *userdomain.ProfileService
-	UserJwchService    *userdomain.JwchService
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	db, err := gorm.Open(mysql.Open(c.DataSource), &gorm.Config{})
 	logx.Must(err)
-	logx.Must(db.AutoMigrate(&userbasetable.UserBaseinfo{}, &userbasetable.UserMFA{}))
 
 	rdb := redis.MustNewRedis(c.AppRedis)
 	dalRepo := NewRepositories(db)
 
-	aliyun.GetAliConfig()
-	aliyun.AliInit()
+	aliyun.LoadConfig()
+	aliyun.InitClient()
 
 	tokenAdapter := &TokenAdapter{}
 	mfaAdapter := &MfaAdapter{}
 	storageAdapter := &StorageAdapter{}
-	jwchFactory := &JwchClientFactoryAdapter{}
 
 	return &ServiceContext{
 		Config:             c,
@@ -48,7 +44,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		UserAuthService:    userdomain.NewAuthService(dalRepo.User, tokenAdapter, mfaAdapter, c.JwtAuth.AccessSecret, rdb),
 		UserMfaService:     userdomain.NewMfaService(dalRepo.User, mfaAdapter, mfaAdapter),
 		UserProfileService: userdomain.NewProfileService(dalRepo.User, storageAdapter),
-		UserJwchService:    userdomain.NewJwchService(dalRepo.User, jwchFactory),
 	}
 }
 

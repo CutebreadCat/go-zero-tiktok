@@ -1,0 +1,65 @@
+package reposity
+
+import (
+	"context"
+
+	videostattable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_stat"
+	"go_zero-tiktok/pkg/contract"
+
+	pkgerrors "github.com/pkg/errors"
+	"gorm.io/gorm"
+)
+
+type VideoStatRepo struct {
+	db *gorm.DB
+}
+
+func NewVideoStatRepo(db *gorm.DB) *VideoStatRepo {
+	return &VideoStatRepo{db: db}
+}
+
+func (r *VideoStatRepo) CreatePopularVideo(ctx context.Context, videoID int64) error {
+	if err := videostattable.CreatePopularVideo(ctx, r.db, videoID); err != nil {
+		return pkgerrors.WithMessage(err, "VideoStatRepo.CreatePopularVideo")
+	}
+	return nil
+}
+
+func (r *VideoStatRepo) IncreaseVideoVisitCount(ctx context.Context, videoID int64, delta int64) error {
+	if err := videostattable.IncreaseVideoVisitCount(ctx, r.db, videoID, delta); err != nil {
+		return pkgerrors.WithMessage(err, "VideoStatRepo.IncreaseVideoVisitCount")
+	}
+	return nil
+}
+
+func (r *VideoStatRepo) UpdateVideoLikeCount(ctx context.Context, videoID int64, delta int64) error {
+	if err := videostattable.UpdateVideoLikeCount(ctx, r.db, videoID, delta); err != nil {
+		return pkgerrors.WithMessage(err, "VideoStatRepo.UpdateVideoLikeCount")
+	}
+	return nil
+}
+
+func (r *VideoStatRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error) {
+	rows, total, err := videostattable.GetPopularVideoIDsByVisitCount(ctx, r.db, pageNum, pageSize)
+	if err != nil {
+		return nil, 0, pkgerrors.WithMessage(err, "VideoStatRepo.GetPopularVideoIDsByVisitCount")
+	}
+	return r.VideoStatsToResponse(rows), total, nil
+}
+
+func (r *VideoStatRepo) VideoStatToResponse(popular *videostattable.VideoStat) types.VideoPopular {
+	return types.VideoPopular{
+		VideoID:      popular.VideoID,
+		VisitCount:   popular.VisitCount,
+		LikeCount:    popular.LikeCount,
+		CommentCount: popular.CommentCount,
+	}
+}
+
+func (r *VideoStatRepo) VideoStatsToResponse(populars []videostattable.VideoStat) []types.VideoPopular {
+	result := make([]types.VideoPopular, 0, len(populars))
+	for _, p := range populars {
+		result = append(result, r.VideoStatToResponse(&p))
+	}
+	return result
+}

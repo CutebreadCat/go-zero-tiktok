@@ -4,28 +4,28 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb/video_pb"
-	"go_zero-tiktok/internal/shared/xerr"
+	"go_zero-tiktok/app/video/rpc/video_pb"
+	"go_zero-tiktok/pkg/xerr"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	logger "go_zero-tiktok/pkg/logger"
 )
 
 type GetVideoListLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
+	*logger.ContextLogger
 }
 
 func NewGetVideoListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetVideoListLogic {
 	return &GetVideoListLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+		ctx:           ctx,
+		svcCtx:        svcCtx,
+		ContextLogger: logger.WithContext(ctx),
 	}
 }
 
 func (l *GetVideoListLogic) GetVideoList(in *video_pb.GetVideoListRequest) (*video_pb.GetVideoListResponse, error) {
-	if in.AuthorId == "" {
+	if in.AuthorId == 0 {
 		return nil, xerr.NewInvalidParam("作者ID不能为空")
 	}
 	if in.PageSize <= 0 || in.PageSize > 100 {

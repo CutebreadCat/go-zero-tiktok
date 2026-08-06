@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: user.proto
+// source: app/user/rpc/user.proto
 
 package user_pb
 
@@ -19,15 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_Register_FullMethodName          = "/user.UserService/Register"
-	UserService_Login_FullMethodName             = "/user.UserService/Login"
-	UserService_RefreshToken_FullMethodName      = "/user.UserService/RefreshToken"
-	UserService_GetUserInfo_FullMethodName       = "/user.UserService/GetUserInfo"
-	UserService_UpdateUserPhoto_FullMethodName   = "/user.UserService/UpdateUserPhoto"
-	UserService_GetMfaQRCode_FullMethodName      = "/user.UserService/GetMfaQRCode"
-	UserService_BindMfa_FullMethodName           = "/user.UserService/BindMfa"
-	UserService_JwchLogin_FullMethodName         = "/user.UserService/JwchLogin"
-	UserService_JwchGetUserCookie_FullMethodName = "/user.UserService/JwchGetUserCookie"
+	UserService_Register_FullMethodName         = "/user.UserService/Register"
+	UserService_Login_FullMethodName            = "/user.UserService/Login"
+	UserService_RefreshToken_FullMethodName     = "/user.UserService/RefreshToken"
+	UserService_GetUserInfo_FullMethodName      = "/user.UserService/GetUserInfo"
+	UserService_BatchGetUserInfo_FullMethodName = "/user.UserService/BatchGetUserInfo"
+	UserService_UpdateUserPhoto_FullMethodName  = "/user.UserService/UpdateUserPhoto"
+	UserService_GetMfaQRCode_FullMethodName     = "/user.UserService/GetMfaQRCode"
+	UserService_BindMfa_FullMethodName          = "/user.UserService/BindMfa"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -38,11 +37,10 @@ type UserServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	GetUserInfo(ctx context.Context, in *GetUserInfoRequest, opts ...grpc.CallOption) (*GetUserInfoResponse, error)
+	BatchGetUserInfo(ctx context.Context, in *BatchGetUserInfoRequest, opts ...grpc.CallOption) (*BatchGetUserInfoResponse, error)
 	UpdateUserPhoto(ctx context.Context, in *UpdateUserPhotoRequest, opts ...grpc.CallOption) (*UpdateUserPhotoResponse, error)
 	GetMfaQRCode(ctx context.Context, in *GetMfaQRCodeRequest, opts ...grpc.CallOption) (*GetMfaQRCodeResponse, error)
 	BindMfa(ctx context.Context, in *BindMfaRequest, opts ...grpc.CallOption) (*BindMfaResponse, error)
-	JwchLogin(ctx context.Context, in *JwchLoginRequest, opts ...grpc.CallOption) (*JwchLoginResponse, error)
-	JwchGetUserCookie(ctx context.Context, in *JwchGetUserCookieRequest, opts ...grpc.CallOption) (*JwchGetUserCookieResponse, error)
 }
 
 type userServiceClient struct {
@@ -93,6 +91,16 @@ func (c *userServiceClient) GetUserInfo(ctx context.Context, in *GetUserInfoRequ
 	return out, nil
 }
 
+func (c *userServiceClient) BatchGetUserInfo(ctx context.Context, in *BatchGetUserInfoRequest, opts ...grpc.CallOption) (*BatchGetUserInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetUserInfoResponse)
+	err := c.cc.Invoke(ctx, UserService_BatchGetUserInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) UpdateUserPhoto(ctx context.Context, in *UpdateUserPhotoRequest, opts ...grpc.CallOption) (*UpdateUserPhotoResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateUserPhotoResponse)
@@ -123,26 +131,6 @@ func (c *userServiceClient) BindMfa(ctx context.Context, in *BindMfaRequest, opt
 	return out, nil
 }
 
-func (c *userServiceClient) JwchLogin(ctx context.Context, in *JwchLoginRequest, opts ...grpc.CallOption) (*JwchLoginResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(JwchLoginResponse)
-	err := c.cc.Invoke(ctx, UserService_JwchLogin_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) JwchGetUserCookie(ctx context.Context, in *JwchGetUserCookieRequest, opts ...grpc.CallOption) (*JwchGetUserCookieResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(JwchGetUserCookieResponse)
-	err := c.cc.Invoke(ctx, UserService_JwchGetUserCookie_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -151,11 +139,10 @@ type UserServiceServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error)
+	BatchGetUserInfo(context.Context, *BatchGetUserInfoRequest) (*BatchGetUserInfoResponse, error)
 	UpdateUserPhoto(context.Context, *UpdateUserPhotoRequest) (*UpdateUserPhotoResponse, error)
 	GetMfaQRCode(context.Context, *GetMfaQRCodeRequest) (*GetMfaQRCodeResponse, error)
 	BindMfa(context.Context, *BindMfaRequest) (*BindMfaResponse, error)
-	JwchLogin(context.Context, *JwchLoginRequest) (*JwchLoginResponse, error)
-	JwchGetUserCookie(context.Context, *JwchGetUserCookieRequest) (*JwchGetUserCookieResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -178,6 +165,9 @@ func (UnimplementedUserServiceServer) RefreshToken(context.Context, *RefreshToke
 func (UnimplementedUserServiceServer) GetUserInfo(context.Context, *GetUserInfoRequest) (*GetUserInfoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserInfo not implemented")
 }
+func (UnimplementedUserServiceServer) BatchGetUserInfo(context.Context, *BatchGetUserInfoRequest) (*BatchGetUserInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetUserInfo not implemented")
+}
 func (UnimplementedUserServiceServer) UpdateUserPhoto(context.Context, *UpdateUserPhotoRequest) (*UpdateUserPhotoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUserPhoto not implemented")
 }
@@ -186,12 +176,6 @@ func (UnimplementedUserServiceServer) GetMfaQRCode(context.Context, *GetMfaQRCod
 }
 func (UnimplementedUserServiceServer) BindMfa(context.Context, *BindMfaRequest) (*BindMfaResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BindMfa not implemented")
-}
-func (UnimplementedUserServiceServer) JwchLogin(context.Context, *JwchLoginRequest) (*JwchLoginResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method JwchLogin not implemented")
-}
-func (UnimplementedUserServiceServer) JwchGetUserCookie(context.Context, *JwchGetUserCookieRequest) (*JwchGetUserCookieResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method JwchGetUserCookie not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -286,6 +270,24 @@ func _UserService_GetUserInfo_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_BatchGetUserInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetUserInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).BatchGetUserInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_BatchGetUserInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).BatchGetUserInfo(ctx, req.(*BatchGetUserInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_UpdateUserPhoto_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateUserPhotoRequest)
 	if err := dec(in); err != nil {
@@ -340,42 +342,6 @@ func _UserService_BindMfa_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_JwchLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JwchLoginRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).JwchLogin(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_JwchLogin_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).JwchLogin(ctx, req.(*JwchLoginRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_JwchGetUserCookie_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JwchGetUserCookieRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).JwchGetUserCookie(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_JwchGetUserCookie_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).JwchGetUserCookie(ctx, req.(*JwchGetUserCookieRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -400,6 +366,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_GetUserInfo_Handler,
 		},
 		{
+			MethodName: "BatchGetUserInfo",
+			Handler:    _UserService_BatchGetUserInfo_Handler,
+		},
+		{
 			MethodName: "UpdateUserPhoto",
 			Handler:    _UserService_UpdateUserPhoto_Handler,
 		},
@@ -411,15 +381,7 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "BindMfa",
 			Handler:    _UserService_BindMfa_Handler,
 		},
-		{
-			MethodName: "JwchLogin",
-			Handler:    _UserService_JwchLogin_Handler,
-		},
-		{
-			MethodName: "JwchGetUserCookie",
-			Handler:    _UserService_JwchGetUserCookie_Handler,
-		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "user.proto",
+	Metadata: "app/user/rpc/user.proto",
 }

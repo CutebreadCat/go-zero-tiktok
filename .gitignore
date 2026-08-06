@@ -26,11 +26,21 @@ go.work.sum
 
 # env file
 .env
+/pkg/storage/aliyun/aliconfig.yaml
 /internal/infra/storage/aliyun/aliconfig.yaml
 /testdata
 /.gocache
+
+# Local (non-docker) mode build output
+/bin/
+
 # Editor/IDE
 # .idea/
 # .vscode/
 
 .js
+logs/
+
+go_zero-tiktok.code-workspace
+
+docs

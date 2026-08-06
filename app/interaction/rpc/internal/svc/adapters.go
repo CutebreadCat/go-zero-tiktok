@@ -3,19 +3,31 @@ package svc
 import (
 	"context"
 
-	videopopulartable "go_zero-tiktok/app/interaction/rpc/internal/dal/tables/video_popular"
+	"go_zero-tiktok/app/interaction/rpc/internal/config"
+	"go_zero-tiktok/app/video/rpc/videoservice"
 
-	"gorm.io/gorm"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/zrpc"
 )
 
+// VideoVisitAdapter 视频访问量适配器（通过 video RPC 累加访问量）
 type VideoVisitAdapter struct {
-	db *gorm.DB
+	videoRpc videoservice.VideoService
 }
 
-func NewVideoVisitAdapter(db *gorm.DB) *VideoVisitAdapter {
-	return &VideoVisitAdapter{db: db}
+func NewVideoVisitAdapter(c config.Config) *VideoVisitAdapter {
+	return &VideoVisitAdapter{
+		videoRpc: videoservice.NewVideoService(zrpc.MustNewClient(c.VideoRpc)),
+	}
 }
 
-func (a *VideoVisitAdapter) IncreaseVideoVisitCount(ctx context.Context, videoID string, delta int64) error {
-	return videopopulartable.IncreaseVideoVisitCount(ctx, a.db, videoID, delta)
+func (a *VideoVisitAdapter) IncreaseVideoVisitCount(ctx context.Context, videoID int64, delta int64) error {
+	_, err := a.videoRpc.IncreaseVideoVisitCount(ctx, &videoservice.IncreaseVideoVisitCountRequest{
+		VideoId: videoID,
+		Delta:   delta,
+	})
+	if err != nil {
+		logx.WithContext(ctx).Errorf("IncreaseVideoVisitCount failed, videoID=%d, delta=%d, err=%v", videoID, delta, err)
+	}
+	return err
 }
