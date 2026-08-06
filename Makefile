@@ -1,5 +1,5 @@
 .PHONY: api-build gateway-build user-rpc video-rpc interaction-rpc communication-rpc \
-        infra-up infra-stop monitoring-up monitoring-stop \
+        infra-pull infra-up infra-stop monitoring-up monitoring-stop \
         build-local run-gateway-local run-user-local run-video-local \
         run-interaction-local run-communication-local run-all-local \
         test vet fmt api-get db-shell mysql \
@@ -23,6 +23,9 @@ communication-rpc:
 	goctl rpc protoc app/communication/rpc/communication.proto --go_out=app/communication/rpc --go-grpc_out=app/communication/rpc --zrpc_out=app/communication/rpc --style go_zero
 
 # Infrastructure lifecycle (仅基础设施;监控见 monitoring-up)
+infra-pull:
+	docker compose -f deploy/docker-compose.yml pull --profile migrate
+
 infra-up:
 	docker compose -f deploy/docker-compose.yml up -d
 

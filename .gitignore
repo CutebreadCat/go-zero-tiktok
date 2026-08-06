@@ -42,3 +42,5 @@ go.work.sum
 logs/
 
 go_zero-tiktok.code-workspace
+
+docs
