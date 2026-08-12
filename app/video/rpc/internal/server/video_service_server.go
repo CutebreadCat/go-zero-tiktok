@@ -58,6 +58,21 @@ func (s *VideoServiceServer) GetLikeList(ctx context.Context, in *video_pb.GetLi
 	return l.GetLikeList(in)
 }
 
+func (s *VideoServiceServer) FavoriteVideo(ctx context.Context, in *video_pb.FavoriteVideoRequest) (*video_pb.FavoriteVideoResponse, error) {
+	l := logic.NewFavoriteVideoLogic(ctx, s.svcCtx)
+	return l.FavoriteVideo(in)
+}
+
+func (s *VideoServiceServer) CancelFavoriteVideo(ctx context.Context, in *video_pb.CancelFavoriteVideoRequest) (*video_pb.CancelFavoriteVideoResponse, error) {
+	l := logic.NewCancelFavoriteVideoLogic(ctx, s.svcCtx)
+	return l.CancelFavoriteVideo(in)
+}
+
+func (s *VideoServiceServer) GetFavoriteList(ctx context.Context, in *video_pb.GetFavoriteListRequest) (*video_pb.GetFavoriteListResponse, error) {
+	l := logic.NewGetFavoriteListLogic(ctx, s.svcCtx)
+	return l.GetFavoriteList(in)
+}
+
 func (s *VideoServiceServer) IncreaseVideoVisitCount(ctx context.Context, in *video_pb.IncreaseVideoVisitCountRequest) (*video_pb.IncreaseVideoVisitCountResponse, error) {
 	l := logic.NewIncreaseVideoVisitCountLogic(ctx, s.svcCtx)
 	return l.IncreaseVideoVisitCount(in)

@@ -10,24 +10,26 @@ import (
 )
 
 type VideoService struct {
-	videoRepo   IVideoRepo
-	popularRepo IPopularRepo
-	likerRepo   IVideoLikerRepo
-	storage     StorageProvider
+	videoRepo     IVideoRepo
+	popularRepo   IPopularRepo
+	likerRepo     IVideoLikerRepo
+	favoriterRepo IVideoFavoriterRepo
+	storage       StorageProvider
 }
 
-func NewVideoService(videoRepo IVideoRepo, popularRepo IPopularRepo, likerRepo IVideoLikerRepo, storage StorageProvider) *VideoService {
+func NewVideoService(videoRepo IVideoRepo, popularRepo IPopularRepo, likerRepo IVideoLikerRepo, favoriterRepo IVideoFavoriterRepo, storage StorageProvider) *VideoService {
 	return &VideoService{
-		videoRepo:   videoRepo,
-		popularRepo: popularRepo,
-		likerRepo:   likerRepo,
-		storage:     storage,
+		videoRepo:     videoRepo,
+		popularRepo:   popularRepo,
+		likerRepo:     likerRepo,
+		favoriterRepo: favoriterRepo,
+		storage:       storage,
 	}
 }
 
 // PublishVideo 创建视频并初始化 Popular 记录
-func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64, videoURL, coverURL, title, description string) error {
-	if err := s.videoRepo.CreateVideoFromParams(ctx, videoID, authorID, videoURL, coverURL, title, description); err != nil {
+func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description string) error {
+	if err := s.videoRepo.CreateVideoFromParams(ctx, videoID, authorID, videoObjectKey, coverObjectKey, title, description); err != nil {
 		return err
 	}
 	return s.popularRepo.CreatePopularVideo(ctx, videoID)
@@ -47,6 +49,22 @@ func (s *VideoService) CancelLikeVideo(ctx context.Context, userID, videoID int6
 		return err
 	}
 	return s.popularRepo.UpdateVideoLikeCount(ctx, videoID, -1)
+}
+
+// FavoriteVideo 收藏视频，同步更新 favorite count
+func (s *VideoService) FavoriteVideo(ctx context.Context, userID, videoID int64) error {
+	if err := s.favoriterRepo.FavoriteVideo(ctx, userID, videoID); err != nil {
+		return err
+	}
+	return s.popularRepo.UpdateVideoFavoriteCount(ctx, videoID, 1)
+}
+
+// CancelFavoriteVideo 取消收藏，同步更新 favorite count
+func (s *VideoService) CancelFavoriteVideo(ctx context.Context, userID, videoID int64) error {
+	if err := s.favoriterRepo.CancelFavoriteVideo(ctx, userID, videoID); err != nil {
+		return err
+	}
+	return s.popularRepo.UpdateVideoFavoriteCount(ctx, videoID, -1)
 }
 
 // IncreaseVideoVisitCount 同步增加视频访问量（供 interaction 服务跨 RPC 调用）
@@ -80,6 +98,21 @@ func (s *VideoService) recordVisits(videos []types.VideoBaseinfo) {
 // GetLikedVideos 获取用户点赞的视频列表（ID 水合为完整视频信息）
 func (s *VideoService) GetLikedVideos(ctx context.Context, userID int64, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
 	videoIDs, total, err := s.likerRepo.GetLikedVideoIDsByUserID(ctx, userID, pageNum, pageSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	videos, err := s.videoRepo.GetVideosByIDs(ctx, videoIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return videos, total, nil
+}
+
+// GetFavoritedVideos 获取用户收藏的视频列表（ID 水合为完整视频信息，按收藏时间倒序）
+func (s *VideoService) GetFavoritedVideos(ctx context.Context, userID int64, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+	videoIDs, total, err := s.favoriterRepo.GetFavoritedVideoIDsByUserID(ctx, userID, pageNum, pageSize)
 	if err != nil {
 		return nil, 0, err
 	}

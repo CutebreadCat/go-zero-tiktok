@@ -39,6 +39,13 @@ func (r *VideoStatRepo) UpdateVideoLikeCount(ctx context.Context, videoID int64,
 	return nil
 }
 
+func (r *VideoStatRepo) UpdateVideoFavoriteCount(ctx context.Context, videoID int64, delta int64) error {
+	if err := videostattable.UpdateVideoFavoriteCount(ctx, r.db, videoID, delta); err != nil {
+		return pkgerrors.WithMessage(err, "VideoStatRepo.UpdateVideoFavoriteCount")
+	}
+	return nil
+}
+
 func (r *VideoStatRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error) {
 	rows, total, err := videostattable.GetPopularVideoIDsByVisitCount(ctx, r.db, pageNum, pageSize)
 	if err != nil {
@@ -49,10 +56,11 @@ func (r *VideoStatRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, page
 
 func (r *VideoStatRepo) VideoStatToResponse(popular *videostattable.VideoStat) types.VideoPopular {
 	return types.VideoPopular{
-		VideoID:      popular.VideoID,
-		VisitCount:   popular.VisitCount,
-		LikeCount:    popular.LikeCount,
-		CommentCount: popular.CommentCount,
+		VideoID:       popular.VideoID,
+		VisitCount:    popular.VisitCount,
+		LikeCount:     popular.LikeCount,
+		CommentCount:  popular.CommentCount,
+		FavoriteCount: popular.FavoriteCount,
 	}
 }
 

@@ -38,10 +38,11 @@ type VideoBaseinfo struct {
 
 // VideoPopular 视频热度统计（video RPC 使用）
 type VideoPopular struct {
-	VideoID      int64 `json:"video_id,string"`
-	VisitCount   int64 `json:"visit_count"`
-	LikeCount    int64 `json:"like_count"`
-	CommentCount int64 `json:"comment_count"`
+	VideoID       int64 `json:"video_id,string"`
+	VisitCount    int64 `json:"visit_count"`
+	LikeCount     int64 `json:"like_count"`
+	CommentCount  int64 `json:"comment_count"`
+	FavoriteCount int64 `json:"favorite_count"`
 }
 
 // CommentBaseinfo 评论基础信息（interaction RPC 使用）

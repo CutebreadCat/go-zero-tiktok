@@ -68,6 +68,8 @@ message VideoPopularInfo {
     int64 video_id = 1;
     int64 visit_count = 2;
     int64 like_count = 3;
+    int64 comment_count = 4;
+    int64 favorite_count = 5;
 }
 
 message GetPopularVideoResponse {
@@ -95,6 +97,33 @@ message GetLikeListResponse {
     int64 total = 2;
 }
 
+message FavoriteVideoRequest {
+    int64 user_id = 1;
+    int64 video_id = 2;
+}
+
+message FavoriteVideoResponse {
+}
+
+message CancelFavoriteVideoRequest {
+    int64 user_id = 1;
+    int64 video_id = 2;
+}
+
+message CancelFavoriteVideoResponse {
+}
+
+message GetFavoriteListRequest {
+    int64 user_id = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message GetFavoriteListResponse {
+    repeated VideoInfo videos = 1;
+    int64 total = 2;
+}
+
 message IncreaseVideoVisitCountRequest {
     int64 video_id = 1;
     int64 delta = 2;
@@ -111,5 +140,8 @@ service VideoService {
     rpc GetPopularVideo(GetPopularVideoRequest) returns (GetPopularVideoResponse);
     rpc LikeVideo(LikeVideoRequest) returns (LikeVideoResponse);
     rpc GetLikeList(GetLikeListRequest) returns (GetLikeListResponse);
+    rpc FavoriteVideo(FavoriteVideoRequest) returns (FavoriteVideoResponse);
+    rpc CancelFavoriteVideo(CancelFavoriteVideoRequest) returns (CancelFavoriteVideoResponse);
+    rpc GetFavoriteList(GetFavoriteListRequest) returns (GetFavoriteListResponse);
     rpc IncreaseVideoVisitCount(IncreaseVideoVisitCountRequest) returns (IncreaseVideoVisitCountResponse);
 }

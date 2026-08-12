@@ -18,6 +18,7 @@ type IPopularRepo interface {
 	CreatePopularVideo(ctx context.Context, videoID int64) error
 	IncreaseVideoVisitCount(ctx context.Context, videoID int64, delta int64) error
 	UpdateVideoLikeCount(ctx context.Context, videoID int64, delta int64) error
+	UpdateVideoFavoriteCount(ctx context.Context, videoID int64, delta int64) error
 	GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error)
 }
 
@@ -25,6 +26,12 @@ type IVideoLikerRepo interface {
 	LikeVideo(ctx context.Context, userID, videoID int64) error
 	CancelLikeVideo(ctx context.Context, userID, videoID int64) error
 	GetLikedVideoIDsByUserID(ctx context.Context, userID int64, pageNumber, pageSize int32) ([]int64, int64, error)
+}
+
+type IVideoFavoriterRepo interface {
+	FavoriteVideo(ctx context.Context, userID, videoID int64) error
+	CancelFavoriteVideo(ctx context.Context, userID, videoID int64) error
+	GetFavoritedVideoIDsByUserID(ctx context.Context, userID int64, pageNumber, pageSize int32) ([]int64, int64, error)
 }
 
 type StorageProvider interface {

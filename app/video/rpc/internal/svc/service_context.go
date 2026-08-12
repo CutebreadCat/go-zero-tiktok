@@ -33,7 +33,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:       c,
 		DB:           db,
 		Dal:          dalRepo,
-		VideoService: videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, dalRepo.VideoLiker, storageAdapter),
+		VideoService: videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, dalRepo.VideoLiker, dalRepo.VideoFavoriter, storageAdapter),
 		Storage:      storageAdapter,
 	}
 }

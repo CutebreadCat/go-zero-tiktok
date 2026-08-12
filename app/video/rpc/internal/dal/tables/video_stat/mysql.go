@@ -12,10 +12,11 @@ import (
 
 func CreatePopularVideo(ctx context.Context, db *gorm.DB, videoID int64) error {
 	record := &VideoStat{
-		VideoID:      videoID,
-		VisitCount:   0,
-		LikeCount:    0,
-		CommentCount: 0,
+		VideoID:       videoID,
+		VisitCount:    0,
+		LikeCount:     0,
+		CommentCount:  0,
+		FavoriteCount: 0,
 	}
 
 	if err := db.WithContext(ctx).Create(record).Error; err != nil {
@@ -52,6 +53,22 @@ func UpdateVideoLikeCount(ctx context.Context, db *gorm.DB, videoID int64, delta
 
 	if result.RowsAffected == 0 {
 		return xerr.Wrap(fmt.Errorf("video %d not found", videoID), "update video like count failed")
+	}
+
+	return nil
+}
+
+func UpdateVideoFavoriteCount(ctx context.Context, db *gorm.DB, videoID int64, delta int64) error {
+	result := db.WithContext(ctx).
+		Model(&VideoStat{}).
+		Where("video_id = ?", videoID).
+		Update("favorite_count", gorm.Expr("CASE WHEN favorite_count + ? < 0 THEN 0 ELSE favorite_count + ? END", delta, delta))
+	if result.Error != nil {
+		return xerr.Wrap(result.Error, "update video favorite count failed")
+	}
+
+	if result.RowsAffected == 0 {
+		return xerr.Wrap(fmt.Errorf("video %d not found", videoID), "update video favorite count failed")
 	}
 
 	return nil

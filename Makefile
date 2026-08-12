@@ -24,7 +24,7 @@ communication-rpc:
 
 # Infrastructure lifecycle (仅基础设施;监控见 monitoring-up)
 infra-pull:
-	docker compose -f deploy/docker-compose.yml pull --profile migrate
+	docker compose -f deploy/docker-compose.yml pull
 
 infra-up:
 	docker compose -f deploy/docker-compose.yml up -d

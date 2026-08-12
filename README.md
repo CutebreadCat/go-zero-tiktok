@@ -129,7 +129,7 @@ go-zero-tiktok/
 ### 1. 启动基础设施
 
 ```bash
-make infra-pull   # 预拉取 etcd/MySQL/Redis/Kafka/migrate 镜像(首次部署建议执行,避免 up 时逐个下载)
+make infra-pull   # 预拉取 compose 中全部镜像(etcd/MySQL/Redis/Kafka/migrate/监控,首次部署建议执行)
 make infra-up
 ```
 
@@ -451,7 +451,7 @@ go test ./...
 
 | 命令 | 说明 |
 |---|---|
-| `make infra-pull` | 预拉取基础设施镜像（etcd/MySQL/Redis/Kafka/migrate） |
+| `make infra-pull` | 预拉取 compose 中全部镜像（含监控，避免逐个下载） |
 | `make infra-up` / `make infra-stop` | 启动 / 停止基础设施容器 |
 | `make migrate-up` / `make migrate-down` | 执行 / 回滚数据库迁移 |
 | `make build-local` | 构建全部服务到 `bin/` |

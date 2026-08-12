@@ -7,11 +7,11 @@ import (
 	"flag"
 	"fmt"
 
-	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/app/gateway/api/internal/config"
 	"go_zero-tiktok/app/gateway/api/internal/handler"
 	token "go_zero-tiktok/app/gateway/api/internal/middleware/token"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
+	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/core/conf"

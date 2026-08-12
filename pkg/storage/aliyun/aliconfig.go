@@ -19,6 +19,7 @@ type Config struct {
 		Secret     string `yaml:"secret"`
 		Endpoint   string `yaml:"endpoint"`
 		BucketName string `yaml:"bucket_name"`
+		CDNDomain  string `yaml:"cdn_domain"`
 	} `yaml:"oss_access"`
 }
 
@@ -43,6 +44,7 @@ func LoadConfig() {
 	conf.OSSAccess.Secret = viper.GetString(ossAccessSecretKey)
 	conf.OSSAccess.Endpoint = viper.GetString(ossAccessEndpointKey)
 	conf.OSSAccess.BucketName = viper.GetString(ossAccessBucketNameKey)
+	conf.OSSAccess.CDNDomain = viper.GetString(ossAccessCDNDomainKey)
 	appLogger.Info("阿里云配置已加载")
 }
 
@@ -132,4 +134,16 @@ func buildObjectURL(objectKey string) string {
 	endpoint := strings.TrimPrefix(conf.OSSAccess.Endpoint, "https://")
 	endpoint = strings.TrimPrefix(endpoint, "http://")
 	return fmt.Sprintf("https://%s.%s/%s", conf.OSSAccess.BucketName, endpoint, objectKey)
+}
+
+// BuildURL 根据 object key 拼接访问 URL：优先使用 CDN 域名，未配置则回退到 OSS endpoint。
+func BuildURL(objectKey string) string {
+	cdnDomain := strings.TrimSpace(conf.OSSAccess.CDNDomain)
+	if cdnDomain != "" {
+		cdnDomain = strings.TrimPrefix(cdnDomain, "https://")
+		cdnDomain = strings.TrimPrefix(cdnDomain, "http://")
+		cdnDomain = strings.TrimSuffix(cdnDomain, "/")
+		return fmt.Sprintf("https://%s/%s", cdnDomain, objectKey)
+	}
+	return buildObjectURL(objectKey)
 }

@@ -79,25 +79,26 @@ func schemaDDL() []string {
 		)`,
 		`CREATE INDEX idx_follow_user ON user_follow(user_id)`,
 		`CREATE TABLE video_baseinfo (
-			video_id        bigint       NOT NULL,
-			author_id       bigint       NOT NULL,
-			video_url       varchar(255) NOT NULL,
-			cover_url       varchar(255) DEFAULT NULL,
-			title           varchar(128) NOT NULL,
-			description     varchar(255) DEFAULT NULL,
-			idempotency_key varchar(64)  DEFAULT NULL,
-			deleted_at      datetime     DEFAULT NULL,
-			created_at      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			video_id         bigint       NOT NULL,
+			author_id        bigint       NOT NULL,
+			video_object_key varchar(255) NOT NULL,
+			cover_object_key varchar(255) DEFAULT NULL,
+			title            varchar(128) NOT NULL,
+			description      varchar(255) DEFAULT NULL,
+			idempotency_key  varchar(64)  DEFAULT NULL,
+			deleted_at       datetime     DEFAULT NULL,
+			created_at       datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at       datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (video_id),
 			UNIQUE (author_id, idempotency_key)
 		)`,
 		`CREATE INDEX idx_author_id ON video_baseinfo(author_id)`,
 		`CREATE TABLE video_stat (
-			video_id      bigint NOT NULL,
-			visit_count   bigint NOT NULL DEFAULT 0,
-			like_count    bigint NOT NULL DEFAULT 0,
-			comment_count bigint NOT NULL DEFAULT 0,
+			video_id        bigint NOT NULL,
+			visit_count     bigint NOT NULL DEFAULT 0,
+			like_count      bigint NOT NULL DEFAULT 0,
+			comment_count   bigint NOT NULL DEFAULT 0,
+			favorite_count  bigint NOT NULL DEFAULT 0,
 			PRIMARY KEY (video_id)
 		)`,
 		`CREATE TABLE video_liker (
@@ -109,6 +110,15 @@ func schemaDDL() []string {
 			UNIQUE (user_id, idempotency_key)
 		)`,
 		`CREATE INDEX idx_video_id ON video_liker(video_id)`,
+		`CREATE TABLE video_favoriter (
+			user_id         bigint       NOT NULL,
+			video_id        bigint       NOT NULL,
+			idempotency_key varchar(64)  DEFAULT NULL,
+			created_at      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (user_id, video_id),
+			UNIQUE (user_id, idempotency_key)
+		)`,
+		`CREATE INDEX idx_favorite_video_id ON video_favoriter(video_id)`,
 		`CREATE TABLE comment_baseinfo (
 			comment_id       bigint        NOT NULL,
 			user_id          bigint        NOT NULL,

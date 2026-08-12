@@ -22,6 +22,18 @@ service tiktok-api {
   @handler GetLikeListHandler
   get /users/me/likes (GetLikeListRequest) returns (GetLikeListResponse)
 
+  // 收藏视频
+  @handler FavoriteVideoHandler
+  put /videos/:id/favorite (FavoriteVideoRequest) returns (FavoriteVideoResponse)
+
+  // 取消收藏视频
+  @handler CancelFavoriteVideoHandler
+  delete /videos/:id/favorite (CancelFavoriteVideoRequest) returns (CancelFavoriteVideoResponse)
+
+  // 我收藏的视频列表
+  @handler GetFavoriteListHandler
+  get /users/me/favorites (GetFavoriteListRequest) returns (GetFavoriteListResponse)
+
   // 发表评论
   @handler CommentVideoHandler
   post /videos/:id/comments (CommentVideoRequest) returns (CommentVideoResponse)
@@ -70,6 +82,30 @@ type (
     Base      BaseResponse   `json:"base"`
     VideoList []VideoBaseinfo `json:"video_list"`
     LikeCount int64          `json:"like_count"`
+  }
+
+  FavoriteVideoRequest {
+    VideoId int64 `path:"id"`
+  }
+  FavoriteVideoResponse {
+    Base BaseResponse `json:"base"`
+  }
+
+  CancelFavoriteVideoRequest {
+    VideoId int64 `path:"id"`
+  }
+  CancelFavoriteVideoResponse {
+    Base BaseResponse `json:"base"`
+  }
+
+  GetFavoriteListRequest {
+    PageNum  int32 `form:"page_num"`
+    PageSize int32 `form:"page_size"`
+  }
+  GetFavoriteListResponse {
+    Base          BaseResponse    `json:"base"`
+    VideoList     []VideoBaseinfo `json:"video_list"`
+    FavoriteCount int64           `json:"favorite_count"`
   }
 
   CommentVideoRequest {

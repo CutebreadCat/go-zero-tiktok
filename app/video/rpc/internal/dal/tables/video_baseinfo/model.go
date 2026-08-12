@@ -8,8 +8,8 @@ import (
 type VideoBaseinfo struct {
 	VideoID        int64      `gorm:"primaryKey;type:bigint;column:video_id"`
 	AuthorID       int64      `gorm:"not null;type:bigint;column:author_id"`
-	VideoURL       string     `gorm:"not null;type:varchar(255);column:video_url"`
-	CoverURL       string     `gorm:"type:varchar(255);column:cover_url"`
+	VideoObjectKey string     `gorm:"not null;type:varchar(255);column:video_object_key"`
+	CoverObjectKey string     `gorm:"type:varchar(255);column:cover_object_key"`
 	Title          string     `gorm:"not null;type:varchar(128);column:title"`
 	Description    string     `gorm:"type:varchar(255);column:description"`
 	CreatedAt      time.Time  `gorm:"autoCreateTime;column:created_at"`

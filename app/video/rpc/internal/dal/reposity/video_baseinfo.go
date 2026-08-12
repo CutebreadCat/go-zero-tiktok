@@ -5,6 +5,7 @@ import (
 
 	videobasetable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_baseinfo"
 	"go_zero-tiktok/pkg/contract"
+	"go_zero-tiktok/pkg/storage/aliyun"
 	myutils "go_zero-tiktok/pkg/utils"
 
 	pkgerrors "github.com/pkg/errors"
@@ -26,14 +27,14 @@ func (r *VideoBaseinfoRepo) CreateVideo(ctx context.Context, video *videobasetab
 	return nil
 }
 
-func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoURL, coverURL, title, description string) error {
+func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description string) error {
 	video := &videobasetable.VideoBaseinfo{
-		VideoID:     videoID,
-		AuthorID:    authorID,
-		VideoURL:    videoURL,
-		CoverURL:    coverURL,
-		Title:       title,
-		Description: description,
+		VideoID:        videoID,
+		AuthorID:       authorID,
+		VideoObjectKey: videoObjectKey,
+		CoverObjectKey: coverObjectKey,
+		Title:          title,
+		Description:    description,
 	}
 	if err := videobasetable.CreateVideo(ctx, r.db, video); err != nil {
 		return pkgerrors.WithMessage(err, "VideoBaseinfoRepo.CreateVideoFromParams")
@@ -74,11 +75,17 @@ func (r *VideoBaseinfoRepo) GetVideoByLastTime(ctx context.Context, lastTime str
 }
 
 func (r *VideoBaseinfoRepo) VideoToResponse(video *videobasetable.VideoBaseinfo) types.VideoBaseinfo {
+	videoURL := aliyun.BuildURL(video.VideoObjectKey)
+	coverURL := ""
+	if video.CoverObjectKey != "" {
+		coverURL = aliyun.BuildURL(video.CoverObjectKey)
+	}
+
 	return types.VideoBaseinfo{
 		VideoID:     video.VideoID,
 		AuthorID:    video.AuthorID,
-		VideoURL:    video.VideoURL,
-		CoverURL:    video.CoverURL,
+		VideoURL:    videoURL,
+		CoverURL:    coverURL,
 		Title:       video.Title,
 		Description: video.Description,
 		CreatedAt:   myutils.TimeToStr(video.CreatedAt, ""),

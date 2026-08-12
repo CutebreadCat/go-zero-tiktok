@@ -4,11 +4,11 @@ import (
 	"flag"
 	"fmt"
 
-	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	"go_zero-tiktok/app/interaction/rpc/internal/config"
 	"go_zero-tiktok/app/interaction/rpc/internal/server"
 	"go_zero-tiktok/app/interaction/rpc/internal/svc"
+	appLogger "go_zero-tiktok/pkg/logger"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
