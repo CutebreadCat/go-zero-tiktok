@@ -22,10 +22,12 @@ func NewMultiTopicConsumerUnit(pool *WorkerPool, fetchers []*Partition) *MultiTo
 // NewMultiTopicConsumerUnitFromConfigs 创建消费组模式的多 topic 消费单元。
 // 每个 topic 一个 group reader，由 Kafka 消费组负责分区分配与负载均衡；
 // 消息进入分片 WorkerPool，按 key 保序消费。
-func NewMultiTopicConsumerUnitFromConfigs(configs []ConsumerTopicConfig, brokers []string, groupID string, handler ConsumerHandler, workerCount, queueSize int) *MultiTopicConsumerUnit {
-	// 失败处理：有限次指数退避重试，超过上限写 DLQ（若配置）/跳过并提交 offset，
+// retryCfg 可配置失败回调（OnFailure，如降级同步落库）、重试次数与 DLQ。
+func NewMultiTopicConsumerUnitFromConfigs(configs []ConsumerTopicConfig, brokers []string, groupID string, handler ConsumerHandler, workerCount, queueSize int, retryCfg RetryConfig) *MultiTopicConsumerUnit {
+	// 失败处理：有限次指数退避重试，超过上限先触发 OnFailure 降级回调（若配置），
+	// 仍失败则写 DLQ（若配置）/跳过并提交 offset，
 	// 防止单条 poison message 阻塞整个分片消费进度。
-	pool := NewWorkerPool(workerCount, queueSize, NewRetryConsumer(handler, RetryConfig{}))
+	pool := NewWorkerPool(workerCount, queueSize, NewRetryConsumer(handler, retryCfg))
 	fetchers := make([]*Partition, 0, len(configs))
 	for _, cfg := range configs {
 		r := kafkaGo.NewReader(kafkaGo.ReaderConfig{

@@ -17,9 +17,16 @@ type RetryConfig struct {
 	Backoff     func(retry int) time.Duration // 可选，为空时使用指数退避
 	DLQProducer *Producer                     // 可选，死信队列生产者
 	DLQTopic    string                        // 可选，死信 topic
+
+	// OnFailure 消费重试耗尽后的失败回调（降级兜底）。
+	// 典型用途：异步落库失败后降级为同步落库（如直接写 MySQL），避免事件丢失。
+	// 返回 nil 表示降级成功，该消息视为已处理，正常提交 offset；
+	// 返回 error 表示降级也失败，随后仍走 DLQ（若配置）并跳过该消息。
+	OnFailure func(ctx context.Context, msg *Event, err error) error
 }
 
-// RetryConsumer 对 ConsumerHandler 包装有限次重试，超过后写入死信队列并返回 nil
+// RetryConsumer 对 ConsumerHandler 包装有限次重试，超过后优先触发 OnFailure 失败回调
+// 做降级兜底（如降级同步落库），回调仍失败则写入死信队列并返回 nil。
 // 返回 nil 是为了让上层正常提交 offset，避免单条 poison message 阻塞整个消费进度
 type RetryConsumer struct {
 	handler ConsumerHandler
@@ -50,6 +57,18 @@ func (c *RetryConsumer) Consume(ctx context.Context, msg *Event) error {
 			if i < c.cfg.MaxRetry {
 				time.Sleep(c.cfg.Backoff(i))
 			}
+		}
+	}
+
+	// 重试耗尽：优先触发失败回调做降级兜底（如降级同步落库）。
+	// 回调成功视为已处理（正常提交 offset）；回调失败才丢弃/写 DLQ。
+	if c.cfg.OnFailure != nil {
+		if fallbackErr := c.cfg.OnFailure(ctx, msg, lastErr); fallbackErr == nil {
+			appLogger.Warnf("consume failed after %d retries, onFailure fallback succeeded, message treated as handled: %v", c.cfg.MaxRetry, lastErr)
+			return nil
+		} else {
+			lastErr = fallbackErr
+			appLogger.Errorf("onFailure fallback failed: %v", fallbackErr)
 		}
 	}
 

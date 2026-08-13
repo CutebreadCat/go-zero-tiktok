@@ -32,6 +32,7 @@ func main() {
 	appLogger.RegisterOTelTraceExtractor()
 	defer appLogger.Close()
 	ctx := svc.NewServiceContext(c)
+	defer ctx.Close()
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		video_pb.RegisterVideoServiceServer(grpcServer, server.NewVideoServiceServer(ctx))

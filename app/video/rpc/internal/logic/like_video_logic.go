@@ -34,11 +34,11 @@ func (l *LikeVideoLogic) LikeVideo(in *video_pb.LikeVideoRequest) (*video_pb.Lik
 
 	switch in.ActionType {
 	case 1:
-		if err := l.svcCtx.VideoService.LikeVideo(l.ctx, in.UserId, in.VideoId); err != nil {
+		if err := l.svcCtx.InteractionService.LikeVideo(l.ctx, in.UserId, in.VideoId); err != nil {
 			return nil, xerr.HandleDaoError(err, "LikeVideo")
 		}
 	case 0:
-		if err := l.svcCtx.VideoService.CancelLikeVideo(l.ctx, in.UserId, in.VideoId); err != nil {
+		if err := l.svcCtx.InteractionService.CancelLikeVideo(l.ctx, in.UserId, in.VideoId); err != nil {
 			return nil, xerr.HandleDaoError(err, "CancelLikeVideo")
 		}
 	default:

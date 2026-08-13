@@ -32,7 +32,12 @@ func (l *GetLikeListLogic) GetLikeList(in *video_pb.GetLikeListRequest) (*video_
 		return nil, xerr.NewInvalidParam("每页数量必须在1-100之间")
 	}
 
-	videos, total, err := l.svcCtx.VideoService.GetLikedVideos(l.ctx, in.UserId, in.PageNum, in.PageSize)
+	videoIDs, total, err := l.svcCtx.InteractionService.GetLikedVideoIDs(l.ctx, in.UserId, in.PageNum, in.PageSize)
+	if err != nil {
+		return nil, xerr.Wrap(err, "GetLikeList")
+	}
+
+	videos, err := l.svcCtx.VideoService.GetVideosByIDs(l.ctx, videoIDs)
 	if err != nil {
 		return nil, xerr.Wrap(err, "GetLikeList")
 	}

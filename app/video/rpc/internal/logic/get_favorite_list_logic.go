@@ -32,7 +32,12 @@ func (l *GetFavoriteListLogic) GetFavoriteList(in *video_pb.GetFavoriteListReque
 		return nil, xerr.NewInvalidParam("每页数量必须在1-100之间")
 	}
 
-	videos, total, err := l.svcCtx.VideoService.GetFavoritedVideos(l.ctx, in.UserId, in.PageNum, in.PageSize)
+	videoIDs, total, err := l.svcCtx.InteractionService.GetFavoritedVideoIDs(l.ctx, in.UserId, in.PageNum, in.PageSize)
+	if err != nil {
+		return nil, xerr.Wrap(err, "GetFavoriteList")
+	}
+
+	videos, err := l.svcCtx.VideoService.GetVideosByIDs(l.ctx, videoIDs)
 	if err != nil {
 		return nil, xerr.Wrap(err, "GetFavoriteList")
 	}

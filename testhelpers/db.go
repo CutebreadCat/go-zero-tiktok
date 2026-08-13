@@ -101,24 +101,17 @@ func schemaDDL() []string {
 			favorite_count  bigint NOT NULL DEFAULT 0,
 			PRIMARY KEY (video_id)
 		)`,
-		`CREATE TABLE video_liker (
+		`CREATE TABLE video_interaction (
+			id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 			user_id         bigint       NOT NULL,
 			video_id        bigint       NOT NULL,
+			action_type     tinyint      NOT NULL DEFAULT 1,
 			idempotency_key varchar(64)  DEFAULT NULL,
 			created_at      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (user_id, video_id),
-			UNIQUE (user_id, idempotency_key)
+			UNIQUE (user_id, video_id, action_type),
+			UNIQUE (user_id, action_type, idempotency_key)
 		)`,
-		`CREATE INDEX idx_video_id ON video_liker(video_id)`,
-		`CREATE TABLE video_favoriter (
-			user_id         bigint       NOT NULL,
-			video_id        bigint       NOT NULL,
-			idempotency_key varchar(64)  DEFAULT NULL,
-			created_at      datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (user_id, video_id),
-			UNIQUE (user_id, idempotency_key)
-		)`,
-		`CREATE INDEX idx_favorite_video_id ON video_favoriter(video_id)`,
+		`CREATE INDEX idx_video_id ON video_interaction(video_id)`,
 		`CREATE TABLE comment_baseinfo (
 			comment_id       bigint        NOT NULL,
 			user_id          bigint        NOT NULL,

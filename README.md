@@ -188,6 +188,7 @@ curl -X POST http://localhost:8888/users \
 | `MYSQL_PORT` | MySQL 端口（宿主机映射） | `3309` |
 | `MYSQL_PASSWORD` | MySQL 密码 | `yourpassword` |
 | `REDIS_HOST` | Redis 地址 | `127.0.0.1:6888` |
+| `KAFKA_BROKERS` | Kafka 地址（视频 like 事件异步链路） | `127.0.0.1:9092` |
 | `ACCESS_SECRET` | JWT 签名密钥（**5 个服务必须一致**） | `your_access_secret` |
 | `OTLP_ENDPOINT` | 链路追踪导出地址（可选，不开监控可留空） | `localhost:4317` |
 
@@ -228,6 +229,7 @@ MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3309
 MYSQL_PASSWORD=你的新密码
 REDIS_HOST=127.0.0.1:6888
+KAFKA_BROKERS=127.0.0.1:9092
 ACCESS_SECRET=你的随机密钥
 OTLP_ENDPOINT=localhost:4317
 EOF
@@ -438,7 +440,7 @@ app/communication/rpc/internal/dal/tables/user_follow/      mysql_test.go
 app/communication/rpc/internal/dal/tables/user_relation_stat/mysql_test.go
 app/interaction/rpc/internal/dal/tables/comment_baseinfo/   mysql_test.go
 app/video/rpc/internal/dal/tables/video_baseinfo/           mysql_test.go
-app/video/rpc/internal/dal/tables/video_liker/              mysql_test.go
+app/video/rpc/internal/dal/tables/video_interaction/        mysql_test.go
 ```
 
 ```bash

@@ -43,7 +43,7 @@ monitoring-stop:
 # Local (non-docker) mode: binaries read app/*/etc/*.yaml, with host env vars
 # pointing at 127.0.0.1 instead of docker service names. Override any var to
 # target another environment (e.g. docker/k8s service names).
-LOCAL_ENV := ETCD_HOSTS=127.0.0.1:2379 MYSQL_HOST=127.0.0.1 MYSQL_PORT=3309 MYSQL_PASSWORD=yourpassword REDIS_HOST=127.0.0.1:6888 ACCESS_SECRET=your_access_secret OTLP_ENDPOINT=localhost:4317
+LOCAL_ENV := ETCD_HOSTS=127.0.0.1:2379 MYSQL_HOST=127.0.0.1 MYSQL_PORT=3309 MYSQL_PASSWORD=yourpassword REDIS_HOST=127.0.0.1:6888 KAFKA_BROKERS=127.0.0.1:9092 ACCESS_SECRET=your_access_secret OTLP_ENDPOINT=localhost:4317
 
 build-local:
 	go build -o bin/gateway ./app/gateway/api

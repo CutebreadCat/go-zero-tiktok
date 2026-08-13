@@ -34,6 +34,18 @@ func (l *GetPopularVideoLogic) GetPopularVideo(in *video_pb.GetPopularVideoReque
 		return nil, xerr.Wrap(err, "GetPopularVideo")
 	}
 
+	// 使用 Redis 缓存中的 like_count 覆盖 MySQL 中的值，保证用户看到实时计数。
+	videoIDs := make([]int64, 0, len(videoPopulars))
+	for _, p := range videoPopulars {
+		videoIDs = append(videoIDs, p.VideoID)
+	}
+	likeCounts, err := l.svcCtx.InteractionService.GetLikeCounts(l.ctx, videoIDs)
+	if err != nil {
+		// 缓存读取失败降级为使用 MySQL 值，不影响主链路。
+		logger.Warnf("GetPopularVideo get like counts from cache failed: %v", err)
+		likeCounts = make(map[int64]int64, len(videoPopulars))
+	}
+
 	videoInfos := make([]*video_pb.VideoInfo, 0, len(videos))
 	for _, v := range videos {
 		videoInfos = append(videoInfos, &video_pb.VideoInfo{
@@ -49,10 +61,14 @@ func (l *GetPopularVideoLogic) GetPopularVideo(in *video_pb.GetPopularVideoReque
 
 	popularInfos := make([]*video_pb.VideoPopularInfo, 0, len(videoPopulars))
 	for _, p := range videoPopulars {
+		likeCount := p.LikeCount
+		if cached, ok := likeCounts[p.VideoID]; ok {
+			likeCount = cached
+		}
 		popularInfos = append(popularInfos, &video_pb.VideoPopularInfo{
 			VideoId:       p.VideoID,
 			VisitCount:    p.VisitCount,
-			LikeCount:     p.LikeCount,
+			LikeCount:     likeCount,
 			CommentCount:  p.CommentCount,
 			FavoriteCount: p.FavoriteCount,
 		})

@@ -32,7 +32,7 @@ func (l *CancelFavoriteVideoLogic) CancelFavoriteVideo(in *video_pb.CancelFavori
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 
-	if err := l.svcCtx.VideoService.CancelFavoriteVideo(l.ctx, in.UserId, in.VideoId); err != nil {
+	if err := l.svcCtx.InteractionService.CancelFavoriteVideo(l.ctx, in.UserId, in.VideoId); err != nil {
 		return nil, xerr.HandleDaoError(err, "CancelFavoriteVideo")
 	}
 

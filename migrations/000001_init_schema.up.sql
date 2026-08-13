@@ -8,6 +8,7 @@
 -- 6. 新增 user_relation_stat（communication 服务）
 -- 7. 单库，时间戳统一 datetime(3)
 -- 8. user_mfa 合并入 user_baseinfo（1:1 关系，删除冗余 password_hash）
+-- 9. video_liker + video_favoriter 合并为 video_interaction（action_type 区分点赞/收藏）
 
 CREATE TABLE `user_baseinfo` (
   `user_id`            bigint       NOT NULL COMMENT '雪花ID',
@@ -64,25 +65,18 @@ CREATE TABLE `video_stat` (
   PRIMARY KEY (`video_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='视频统计(原video_popular)';
 
-CREATE TABLE `video_liker` (
-  `user_id`         bigint       NOT NULL COMMENT '点赞用户雪花ID',
+CREATE TABLE `video_interaction` (
+  `id`              bigint       NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `user_id`         bigint       NOT NULL COMMENT '交互用户雪花ID',
   `video_id`        bigint       NOT NULL COMMENT '视频雪花ID',
+  `action_type`     tinyint      NOT NULL DEFAULT 1 COMMENT '1=点赞 2=收藏',
   `idempotency_key` varchar(64) DEFAULT NULL COMMENT '幂等键(UUID 36字符)',
   `created_at`      datetime(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (`user_id`, `video_id`),
-  UNIQUE KEY `uk_user_idempotency` (`user_id`, `idempotency_key`),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_video_action` (`user_id`, `video_id`, `action_type`),
+  UNIQUE KEY `uk_user_action_idempotency` (`user_id`, `action_type`, `idempotency_key`),
   KEY `idx_video_id` (`video_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='视频点赞';
-
-CREATE TABLE `video_favoriter` (
-  `user_id`         bigint       NOT NULL COMMENT '收藏用户雪花ID',
-  `video_id`        bigint       NOT NULL COMMENT '视频雪花ID',
-  `idempotency_key` varchar(64) DEFAULT NULL COMMENT '幂等键(UUID 36字符)',
-  `created_at`      datetime(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (`user_id`, `video_id`),
-  UNIQUE KEY `uk_user_idempotency` (`user_id`, `idempotency_key`),
-  KEY `idx_video_id` (`video_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='视频收藏';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='视频交互(点赞/收藏)';
 
 CREATE TABLE `comment_baseinfo` (
   `comment_id`      bigint        NOT NULL COMMENT '雪花ID',
