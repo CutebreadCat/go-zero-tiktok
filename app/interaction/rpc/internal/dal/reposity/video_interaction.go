@@ -84,6 +84,28 @@ func (r *VideoInteractionRepo) BatchRemoveLikeInteractions(ctx context.Context, 
 	return nil
 }
 
+func (r *VideoInteractionRepo) GetFavoriteUserIDsByVideoID(ctx context.Context, videoID int64) ([]int64, error) {
+	ids, err := videointeractiontable.GetFavoriteUserIDsByVideoID(ctx, r.db, videoID)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "VideoInteractionRepo.GetFavoriteUserIDsByVideoID")
+	}
+	return ids, nil
+}
+
+func (r *VideoInteractionRepo) BatchAddFavoriteInteractions(ctx context.Context, videoID int64, userIDs []int64) error {
+	if err := videointeractiontable.BatchAddFavoriteInteractions(ctx, r.db, videoID, userIDs); err != nil {
+		return pkgerrors.WithMessage(err, "VideoInteractionRepo.BatchAddFavoriteInteractions")
+	}
+	return nil
+}
+
+func (r *VideoInteractionRepo) BatchRemoveFavoriteInteractions(ctx context.Context, videoID int64, userIDs []int64) error {
+	if err := videointeractiontable.BatchRemoveFavoriteInteractions(ctx, r.db, videoID, userIDs); err != nil {
+		return pkgerrors.WithMessage(err, "VideoInteractionRepo.BatchRemoveFavoriteInteractions")
+	}
+	return nil
+}
+
 func (r *VideoInteractionRepo) ApplyLikeEvent(ctx context.Context, action string, userID, videoID int64) error {
 	if err := videointeractiontable.ApplyLikeEvent(ctx, r.db, action, userID, videoID); err != nil {
 		return pkgerrors.WithMessage(err, "VideoInteractionRepo.ApplyLikeEvent")

@@ -10,10 +10,10 @@
 | GCFeed 模块 | 状态 | go-zero-tiktok 现状 | 差距 |
 |---|---|---|---|
 | 账户 account | ✅ | 注册/登录/刷新/资料/头像/MFA | 基本齐,缺登出 |
-| 视频 video | ✅ | 发布/feed/list/search/popular/点赞 | 齐 |
+| 视频 video | ✅ | 发布/feed/list/search/popular | 齐（点赞/收藏已迁出） |
 | Feed feed | ✅ | GetFeedVideo/GetPopularVideo | 缺推荐流 scene、游标分页、打散 |
 | 推荐 recommendation | ✅ | 无 | 整个缺失(召回/排序/曝光去重) |
-| 互动 interaction | ✅ | 评论/回复/评论点赞 | 缺收藏(favorite) |
+| 互动 interaction | ✅ | 点赞/收藏/评论/回复/评论点赞 | 齐 |
 | 关系 relation | ✅ | 关注/粉丝/关注列表/好友 | 齐 |
 | 消息 message | ✅ | 无 | 整个缺失(通知/未读/已读) |
 | 播放优化 playback | ✅ | 表已建(playback_qos_reports)无业务 | 表建了没接 |
@@ -33,9 +33,11 @@
 - 引入游标分页(当前是 page_num/page_size 传统分页;目标 `{items, next_cursor, has_more}`)
 - 曝光去重,避免刷到重复视频
 
-**2. 收藏(interaction 服务)**
-- 点赞已有,补收藏非常轻:一张 `video_favorite` 表 + 两个接口
+**2. 收藏(interaction 服务)** ✅ 已完成
+- 已复用 `video_interaction` 表(action_type=2)实现收藏关系,避免新增 `video_favorite` 表。
 - REST:`PUT /videos/:id/favorite` / `DELETE /videos/:id/favorite`
+- 内部链路:Redis 缓存 + Kafka 事件 + LikeSync 兜底,与点赞同构。
+- 同时完成服务边界重构:点赞/收藏/评论统一归属 `interaction.rpc`,`video.rpc` 不再持有互动领域。
 
 ### P1 — 体验闭环
 
@@ -56,7 +58,7 @@
 
 | 能力 | GCFeed 路径 | go-zero-tiktok 落地 |
 |---|---|---|
-| 收藏 | PUT/DELETE `/api/videos/{id}/favorite` | `interaction` 组,新表 video_favorite |
+| 收藏 | PUT/DELETE `/api/videos/{id}/favorite` | `interaction` 组,复用 `video_interaction` 表 action_type=2 |
 | 消息列表 | GET `/api/messages` | 新服务或 communication |
 | 未读计数 | GET `/api/message-stats/unread` | 同上 |
 | 批量已读 | PATCH `/api/messages` | 同上 |
@@ -66,13 +68,14 @@
 ## 四、执行顺序
 
 ```
-M1 收藏 + 播放上报落地(改动小、风险低,先做)
-M2 Feed 推荐流 + 游标分页(video 服务增强)
-M3 消息中心(新业务域 + Kafka 事件)
-M4 审核/后台运营(GCFeed 对齐后再追)
+M1 ✅ 收藏已完成(含服务边界重构)
+M2 播放上报落地(video 服务,改动小)
+M3 Feed 推荐流 + 游标分页(video 服务增强)
+M4 消息中心(新业务域 + Kafka 事件)
+M5 审核/后台运营(GCFeed 对齐后再追)
 ```
 
-每步独立可交付。M1 是零架构改动、价值最直接。
+每步独立可交付。M1 已完成并将互动领域收敛到 `interaction.rpc`。
 
 ---
 

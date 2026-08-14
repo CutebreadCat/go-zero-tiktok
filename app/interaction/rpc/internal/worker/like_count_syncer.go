@@ -92,40 +92,89 @@ func (s *LikeCountSyncer) Stop() {
 	})
 }
 
-// syncOnce 执行一次批量同步。
+// syncOnce 执行一次批量同步，分别处理点赞与收藏脏集合。
 func (s *LikeCountSyncer) syncOnce(ctx context.Context) error {
 	if s.cache == nil {
 		return nil
 	}
 
-	videoIDs, err := s.cache.PopDirtyVideos(ctx, s.batchSize)
+	likeVideoIDs, err := s.cache.PopDirtyVideos(ctx, s.batchSize)
 	if err != nil {
 		return err
 	}
-	if len(videoIDs) == 0 {
-		return nil
+	for _, videoID := range likeVideoIDs {
+		if err := s.syncVideoLike(ctx, videoID); err != nil {
+			appLogger.Errorf("sync like video %d failed: %v", videoID, err)
+		}
 	}
 
-	for _, videoID := range videoIDs {
-		if err := s.syncVideo(ctx, videoID); err != nil {
-			appLogger.Errorf("sync video %d failed: %v", videoID, err)
+	favoriteVideoIDs, err := s.cache.PopFavoriteDirtyVideos(ctx, s.batchSize)
+	if err != nil {
+		return err
+	}
+	for _, videoID := range favoriteVideoIDs {
+		if err := s.syncVideoFavorite(ctx, videoID); err != nil {
+			appLogger.Errorf("sync favorite video %d failed: %v", videoID, err)
 		}
 	}
 
 	return nil
 }
 
+// syncVideoLike 同步单个视频的点赞关系与计数。
+func (s *LikeCountSyncer) syncVideoLike(ctx context.Context, videoID int64) error {
+	return s.syncVideo(
+		ctx, videoID,
+		s.cache.GetVideoLikeUserIDs,
+		s.interactionRepo.GetLikeUserIDsByVideoID,
+		s.interactionRepo.BatchAddLikeInteractions,
+		s.interactionRepo.BatchRemoveLikeInteractions,
+		s.popularRepo.SetLikeCount,
+		s.cache.SetLikeCount,
+		"like",
+	)
+}
+
+// syncVideoFavorite 同步单个视频的收藏关系与计数。
+func (s *LikeCountSyncer) syncVideoFavorite(ctx context.Context, videoID int64) error {
+	return s.syncVideo(
+		ctx, videoID,
+		s.cache.GetVideoFavoriteUserIDs,
+		s.interactionRepo.GetFavoriteUserIDsByVideoID,
+		s.interactionRepo.BatchAddFavoriteInteractions,
+		s.interactionRepo.BatchRemoveFavoriteInteractions,
+		s.popularRepo.SetFavoriteCount,
+		s.cache.SetFavoriteCount,
+		"favorite",
+	)
+}
+
+type getVideoUserIDsFn func(ctx context.Context, videoID int64) ([]int64, error)
+type batchModifyInteractionsFn func(ctx context.Context, videoID int64, userIDs []int64) error
+
+type setCountFn func(ctx context.Context, videoID int64, count int64) error
+
 // syncVideo 同步单个视频：关系 diff + 计数对齐。
-func (s *LikeCountSyncer) syncVideo(ctx context.Context, videoID int64) error {
+func (s *LikeCountSyncer) syncVideo(
+	ctx context.Context,
+	videoID int64,
+	getRedisUserIDs getVideoUserIDsFn,
+	getMysqlUserIDs getVideoUserIDsFn,
+	batchAdd batchModifyInteractionsFn,
+	batchRemove batchModifyInteractionsFn,
+	setDBCount setCountFn,
+	setCacheCount setCountFn,
+	action string,
+) error {
 	// 1. 读取 Redis 当前关系。
-	redisUserIDs, err := s.cache.GetVideoLikeUserIDs(ctx, videoID)
+	redisUserIDs, err := getRedisUserIDs(ctx, videoID)
 	if err != nil {
 		return err
 	}
 	redisSet := toInt64Set(redisUserIDs)
 
 	// 2. 读取 MySQL 当前关系。
-	mysqlUserIDs, err := s.interactionRepo.GetLikeUserIDsByVideoID(ctx, videoID)
+	mysqlUserIDs, err := getMysqlUserIDs(ctx, videoID)
 	if err != nil {
 		return err
 	}
@@ -146,26 +195,26 @@ func (s *LikeCountSyncer) syncVideo(ctx context.Context, videoID int64) error {
 
 	// 4. 批量同步关系。
 	if len(toAdd) > 0 {
-		if err := s.interactionRepo.BatchAddLikeInteractions(ctx, videoID, toAdd); err != nil {
-			appLogger.Errorf("batch add like interactions failed, video_id=%d: %v", videoID, err)
+		if err := batchAdd(ctx, videoID, toAdd); err != nil {
+			appLogger.Errorf("batch add %s interactions failed, video_id=%d: %v", action, videoID, err)
 		}
 	}
 	if len(toRemove) > 0 {
-		if err := s.interactionRepo.BatchRemoveLikeInteractions(ctx, videoID, toRemove); err != nil {
-			appLogger.Errorf("batch remove like interactions failed, video_id=%d: %v", videoID, err)
+		if err := batchRemove(ctx, videoID, toRemove); err != nil {
+			appLogger.Errorf("batch remove %s interactions failed, video_id=%d: %v", action, videoID, err)
 		}
 	}
 
 	// 5. 对齐计数：以 Redis 用户集合大小为准。
-	likeCount := int64(len(redisUserIDs))
-	if err := s.popularRepo.SetLikeCount(ctx, videoID, likeCount); err != nil {
+	count := int64(len(redisUserIDs))
+	if err := setDBCount(ctx, videoID, count); err != nil {
 		// 如果视频 stat 记录不存在（如视频未发布），记录日志跳过。
-		appLogger.Errorf("set like_count failed, video_id=%d count=%d: %v", videoID, likeCount, err)
+		appLogger.Errorf("set %s_count failed, video_id=%d count=%d: %v", action, videoID, count, err)
 	}
 
 	// 6. 把 Redis count 基准同步为当前真实值（去除脏数据可能导致的累计偏差）。
-	if err := s.cache.SetLikeCount(ctx, videoID, likeCount); err != nil {
-		appLogger.Warnf("syncVideo set like_count cache failed, video_id=%d: %v", videoID, err)
+	if err := setCacheCount(ctx, videoID, count); err != nil {
+		appLogger.Warnf("syncVideo set %s_count cache failed, video_id=%d: %v", action, videoID, err)
 	}
 
 	return nil

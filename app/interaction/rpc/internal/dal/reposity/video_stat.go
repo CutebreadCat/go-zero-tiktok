@@ -53,6 +53,13 @@ func (r *VideoStatRepo) SetLikeCount(ctx context.Context, videoID int64, count i
 	return nil
 }
 
+func (r *VideoStatRepo) SetFavoriteCount(ctx context.Context, videoID int64, count int64) error {
+	if err := videostattable.SetFavoriteCount(ctx, r.db, videoID, count); err != nil {
+		return pkgerrors.WithMessage(err, "VideoStatRepo.SetFavoriteCount")
+	}
+	return nil
+}
+
 func (r *VideoStatRepo) GetLikeCounts(ctx context.Context, videoIDs []int64) (map[int64]int64, error) {
 	counts, err := videostattable.GetLikeCounts(ctx, r.db, videoIDs)
 	if err != nil {

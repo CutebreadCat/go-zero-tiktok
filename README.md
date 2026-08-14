@@ -31,7 +31,7 @@
 
 - **账户体系**：注册 / 登录 / 刷新令牌，JWT 双令牌（Access + Refresh），可选 MFA（多因素认证）二次校验
 - **视频服务**：发布视频、作者作品列表、关键词搜索、热门排行、Feed 信息流（游标/分页）
-- **互动服务**：视频点赞/取消、评论/回复/删除、评论点赞，幂等键保证重复请求安全
+- **互动服务**：视频点赞/取消、收藏/取消收藏、评论/回复/删除、评论点赞；点赞/收藏已走“Redis + Kafka + 兜底 Syncer”异步链路
 - **关系服务**：关注/取关、粉丝/关注/好友（互关）列表，`user_relation_stat` 原子计数，软删除可恢复
 - **统一网关**：集中鉴权（`token.AuthMiddleware` + 公开路径白名单）、限流（`RateLimit`），RPC 间通过 etcd 服务发现
 - **可观测性**：Prometheus 指标 + zap 结构化日志（自动注入 trace_id / span_id / user_id）
@@ -51,7 +51,7 @@
         ┌───────▼──────┐   ┌───────▼──────┐   ┌────────────▼─────┐   ┌─────────────────┐
         │  user.rpc    │   │  video.rpc   │   │ interaction.rpc  │   │ communication.rpc│
         │     :8890    │   │    :8891     │   │      :8892       │   │      :8893      │
-        │ 账户 / MFA   │   │ 视频 / 搜索   │   │ 点赞 / 评论      │   │ 关注 / 好友      │
+        │ 账户 / MFA   │   │ 视频 / 搜索   │   │ 点赞/收藏/评论   │   │ 关注 / 好友      │
         └──────┬───────┘   └──────┬───────┘   └────────┬─────────┘   └────────┬────────┘
                └──────────────────┴──────────┬─────────┴──────────────────────┘
                                 ┌────────────▼────────────┐
@@ -65,10 +65,12 @@
 | gateway | HTTP 网关（鉴权、限流、聚合） | 8888 | 9100 | `app/gateway/api` |
 | user.rpc | 账户：注册、登录、MFA | 8890 | 9101 | `app/user/rpc` |
 | video.rpc | 视频：发布、搜索、热门、Feed | 8891 | 9102 | `app/video/rpc` |
-| interaction.rpc | 互动：点赞、评论、回复 | 8892 | 9103 | `app/interaction/rpc` |
+| interaction.rpc | 互动：点赞、收藏、评论、回复 | 8892 | 9103 | `app/interaction/rpc` |
 | communication.rpc | 关系：关注、粉丝、好友 | 8893 | 9104 | `app/communication/rpc` |
 
 各 RPC 服务内部采用 **domain / dal 分层**：`domain` 承载业务逻辑与仓储接口，`dal/reposity` 实现数据访问，`dal/tables` 定义 GORM 模型。
+
+> **组织约定**：业务领域统一收敛到 `internal/domain`（可建子目录），不在 `internal/` 根级别新增与 `domain` 平层的目录；RPC 服务之间禁止相互调用，跨服务数据需求由网关编排或共享数据库表满足。
 
 ## 技术栈
 
@@ -400,6 +402,9 @@ sudo systemctl restart gozero-user-rpc gozero-video-rpc gozero-interaction-rpc g
 | PUT | `/videos/:id/like` | 点赞视频 | 需登录 |
 | DELETE | `/videos/:id/like` | 取消点赞 | 需登录 |
 | GET | `/users/me/likes` | 我的点赞列表 | 需登录 |
+| PUT | `/videos/:id/favorite` | 收藏视频 | 需登录 |
+| DELETE | `/videos/:id/favorite` | 取消收藏 | 需登录 |
+| GET | `/users/me/favorites` | 我的收藏列表 | 需登录 |
 | POST | `/videos/:id/comments` | 发表评论 | 需登录 |
 | GET | `/videos/:id/comments` | 评论列表 | 需登录 |
 | DELETE | `/comments/:id` | 删除评论 | 需登录 |
@@ -439,8 +444,8 @@ sudo systemctl restart gozero-user-rpc gozero-video-rpc gozero-interaction-rpc g
 app/communication/rpc/internal/dal/tables/user_follow/      mysql_test.go
 app/communication/rpc/internal/dal/tables/user_relation_stat/mysql_test.go
 app/interaction/rpc/internal/dal/tables/comment_baseinfo/   mysql_test.go
+app/interaction/rpc/internal/dal/tables/video_interaction/  mysql_test.go
 app/video/rpc/internal/dal/tables/video_baseinfo/           mysql_test.go
-app/video/rpc/internal/dal/tables/video_interaction/        mysql_test.go
 ```
 
 ```bash

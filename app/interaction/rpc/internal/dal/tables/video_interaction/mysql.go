@@ -130,11 +130,20 @@ func GetFavoritedVideoIDsByUserID(ctx context.Context, db *gorm.DB, userID int64
 
 // GetLikeUserIDsByVideoID 获取点赞某视频的全部用户 ID（供 syncer 对比差集）。
 func GetLikeUserIDsByVideoID(ctx context.Context, db *gorm.DB, videoID int64) ([]int64, error) {
+	return getUserIDsByVideoIDAndAction(ctx, db, videoID, ActionTypeLike)
+}
+
+// GetFavoriteUserIDsByVideoID 获取收藏某视频的全部用户 ID（供 syncer 对比差集）。
+func GetFavoriteUserIDsByVideoID(ctx context.Context, db *gorm.DB, videoID int64) ([]int64, error) {
+	return getUserIDsByVideoIDAndAction(ctx, db, videoID, ActionTypeFavorite)
+}
+
+func getUserIDsByVideoIDAndAction(ctx context.Context, db *gorm.DB, videoID int64, actionType int32) ([]int64, error) {
 	var rows []VideoInteraction
 	if err := db.WithContext(ctx).
-		Where("video_id = ? AND action_type = ?", videoID, ActionTypeLike).
+		Where("video_id = ? AND action_type = ?", videoID, actionType).
 		Find(&rows).Error; err != nil {
-		return nil, xerr.Wrap(err, "get like user ids failed")
+		return nil, xerr.Wrap(err, "get interaction user ids failed")
 	}
 
 	ids := make([]int64, 0, len(rows))
@@ -167,11 +176,44 @@ func BatchAddLikeInteractions(ctx context.Context, db *gorm.DB, videoID int64, u
 
 // BatchRemoveLikeInteractions 批量删除点赞关系。
 func BatchRemoveLikeInteractions(ctx context.Context, db *gorm.DB, videoID int64, userIDs []int64) error {
+	return batchRemoveInteractions(ctx, db, videoID, ActionTypeLike, userIDs)
+}
+
+// BatchAddFavoriteInteractions 批量插入收藏关系（使用 INSERT IGNORE 忽略已存在记录）。
+func BatchAddFavoriteInteractions(ctx context.Context, db *gorm.DB, videoID int64, userIDs []int64) error {
+	return batchAddInteractions(ctx, db, videoID, ActionTypeFavorite, userIDs)
+}
+
+// BatchRemoveFavoriteInteractions 批量删除收藏关系。
+func BatchRemoveFavoriteInteractions(ctx context.Context, db *gorm.DB, videoID int64, userIDs []int64) error {
+	return batchRemoveInteractions(ctx, db, videoID, ActionTypeFavorite, userIDs)
+}
+
+func batchAddInteractions(ctx context.Context, db *gorm.DB, videoID int64, actionType int32, userIDs []int64) error {
+	if len(userIDs) == 0 {
+		return nil
+	}
+
+	records := make([]*VideoInteraction, 0, len(userIDs))
+	for _, uid := range userIDs {
+		records = append(records, &VideoInteraction{
+			UserID:     uid,
+			VideoID:    videoID,
+			ActionType: actionType,
+		})
+	}
+
+	return db.WithContext(ctx).
+		Clauses(clause.Insert{Modifier: "IGNORE"}).
+		CreateInBatches(records, 500).Error
+}
+
+func batchRemoveInteractions(ctx context.Context, db *gorm.DB, videoID int64, actionType int32, userIDs []int64) error {
 	if len(userIDs) == 0 {
 		return nil
 	}
 	return db.WithContext(ctx).
-		Where("video_id = ? AND action_type = ? AND user_id IN ?", videoID, ActionTypeLike, userIDs).
+		Where("video_id = ? AND action_type = ? AND user_id IN ?", videoID, actionType, userIDs).
 		Delete(&VideoInteraction{}).Error
 }
 
@@ -211,15 +253,48 @@ func RemoveLikeInteraction(ctx context.Context, db *gorm.DB, userID, videoID int
 	return result.RowsAffected > 0, nil
 }
 
-// ApplyLikeEvent 在事务内应用点赞/取消点赞事件。
-// action 取值与 interaction.LikeAction 一致："like" / "cancel"。
+// AddFavoriteInteraction 幂等插入一条收藏关系。
+func AddFavoriteInteraction(ctx context.Context, db *gorm.DB, userID, videoID int64) (bool, error) {
+	if userID == 0 || videoID == 0 {
+		return false, xerr.NewInvalidParam("用户ID或视频ID为空")
+	}
+	record := &VideoInteraction{
+		UserID:     userID,
+		VideoID:    videoID,
+		ActionType: ActionTypeFavorite,
+	}
+	result := db.WithContext(ctx).
+		Clauses(likeConflictClause(db)).
+		Create(record)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return result.RowsAffected > 0, nil
+}
+
+// RemoveFavoriteInteraction 幂等删除一条收藏关系。
+func RemoveFavoriteInteraction(ctx context.Context, db *gorm.DB, userID, videoID int64) (bool, error) {
+	if userID == 0 || videoID == 0 {
+		return false, xerr.NewInvalidParam("用户ID或视频ID为空")
+	}
+	result := db.WithContext(ctx).
+		Where("user_id = ? AND video_id = ? AND action_type = ?", userID, videoID, ActionTypeFavorite).
+		Delete(&VideoInteraction{})
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return result.RowsAffected > 0, nil
+}
+
+// ApplyLikeEvent 在事务内应用点赞/取消点赞/收藏/取消收藏事件。
+// action 取值与 interaction.LikeAction 一致："like" / "cancel" / "favorite" / "cancel_favorite"。
 func ApplyLikeEvent(ctx context.Context, db *gorm.DB, action string, userID, videoID int64) error {
 	if userID == 0 || videoID == 0 {
 		return xerr.NewInvalidParam("用户ID或视频ID为空")
 	}
 
 	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// 保证 video_stat 行存在，避免 UpdateVideoLikeCount 因记录缺失失败。
+		// 保证 video_stat 行存在，避免计数更新因记录缺失失败。
 		if err := videostattable.EnsurePopularVideo(ctx, tx, videoID); err != nil {
 			return xerr.Wrap(err, "ApplyLikeEvent ensure video_stat")
 		}
@@ -241,6 +316,24 @@ func ApplyLikeEvent(ctx context.Context, db *gorm.DB, action string, userID, vid
 			}
 			if removed {
 				return videostattable.UpdateVideoLikeCount(ctx, tx, videoID, -1)
+			}
+			return nil
+		case "favorite":
+			added, err := AddFavoriteInteraction(ctx, tx, userID, videoID)
+			if err != nil {
+				return err
+			}
+			if added {
+				return videostattable.UpdateVideoFavoriteCount(ctx, tx, videoID, 1)
+			}
+			return nil
+		case "cancel_favorite":
+			removed, err := RemoveFavoriteInteraction(ctx, tx, userID, videoID)
+			if err != nil {
+				return err
+			}
+			if removed {
+				return videostattable.UpdateVideoFavoriteCount(ctx, tx, videoID, -1)
 			}
 			return nil
 		default:

@@ -99,15 +99,23 @@ func UpdateVideoFavoriteCount(ctx context.Context, db *gorm.DB, videoID int64, d
 }
 
 func SetLikeCount(ctx context.Context, db *gorm.DB, videoID int64, count int64) error {
+	return setCount(ctx, db, videoID, "like_count", count)
+}
+
+func SetFavoriteCount(ctx context.Context, db *gorm.DB, videoID int64, count int64) error {
+	return setCount(ctx, db, videoID, "favorite_count", count)
+}
+
+func setCount(ctx context.Context, db *gorm.DB, videoID int64, column string, count int64) error {
 	result := db.WithContext(ctx).
 		Model(&VideoStat{}).
 		Where("video_id = ?", videoID).
-		Update("like_count", count)
+		Update(column, count)
 	if result.Error != nil {
-		return xerr.Wrap(result.Error, "set video like count failed")
+		return xerr.Wrap(result.Error, fmt.Sprintf("set video %s failed", column))
 	}
 	if result.RowsAffected == 0 {
-		return xerr.Wrap(fmt.Errorf("video %d not found", videoID), "set video like count failed")
+		return xerr.Wrap(fmt.Errorf("video %d not found", videoID), fmt.Sprintf("set video %s failed", column))
 	}
 	return nil
 }

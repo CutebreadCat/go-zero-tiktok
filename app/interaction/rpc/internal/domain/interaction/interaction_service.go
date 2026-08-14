@@ -10,8 +10,7 @@ import (
 )
 
 // InteractionService 视频互动领域服务，负责点赞/收藏关系与计数。
-// like_count 采用“先写 Redis + 发 Kafka 事件 + 定时批量 flush 到 MySQL”的最终一致性方案；
-// favorite_count 仍保持同步，后续可同样异步化。
+// like_count 与 favorite_count 均采用“先写 Redis + 发 Kafka 事件 + 定时批量 flush 到 MySQL”的最终一致性方案。
 type InteractionService struct {
 	interactionRepo videodomain.IVideoInteractionRepo
 	popularRepo     videodomain.IPopularRepo
@@ -105,16 +104,62 @@ func (s *InteractionService) syncCancelLikeVideo(ctx context.Context, userID, vi
 	return s.popularRepo.UpdateVideoLikeCount(ctx, videoID, -1)
 }
 
-// FavoriteVideo 收藏视频（计数仍走同步，后续可同样异步化）。
+// FavoriteVideo 收藏视频：先写 Redis，再发 Kafka 事件。
 func (s *InteractionService) FavoriteVideo(ctx context.Context, userID, videoID int64) error {
+	if s.likeCache == nil {
+		return s.syncFavoriteVideo(ctx, userID, videoID)
+	}
+
+	isNew, err := s.likeCache.FavoriteVideo(ctx, userID, videoID)
+	if err != nil {
+		return err
+	}
+	if !isNew {
+		return xerr.NewInvalidParam("重复收藏")
+	}
+
+	if s.asyncEnabled {
+		if err := s.publishLikeEvent(ctx, userID, videoID, LikeActionFavorite); err != nil {
+			appLogger.Warnf("FavoriteVideo publish event failed: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// CancelFavoriteVideo 取消收藏：先写 Redis，再发 Kafka 事件。
+func (s *InteractionService) CancelFavoriteVideo(ctx context.Context, userID, videoID int64) error {
+	if s.likeCache == nil {
+		return s.syncCancelFavoriteVideo(ctx, userID, videoID)
+	}
+
+	cancelled, err := s.likeCache.CancelFavoriteVideo(ctx, userID, videoID)
+	if err != nil {
+		return err
+	}
+	if !cancelled {
+		return xerr.NewInvalidParam("收藏关系不存在")
+	}
+
+	if s.asyncEnabled {
+		if err := s.publishLikeEvent(ctx, userID, videoID, LikeActionCancelFavorite); err != nil {
+			appLogger.Warnf("CancelFavoriteVideo publish event failed: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// syncFavoriteVideo Kafka/Redis 未就绪时的同步降级：直接写 MySQL。
+func (s *InteractionService) syncFavoriteVideo(ctx context.Context, userID, videoID int64) error {
 	if err := s.interactionRepo.FavoriteVideo(ctx, userID, videoID); err != nil {
 		return err
 	}
 	return s.popularRepo.UpdateVideoFavoriteCount(ctx, videoID, 1)
 }
 
-// CancelFavoriteVideo 取消收藏。
-func (s *InteractionService) CancelFavoriteVideo(ctx context.Context, userID, videoID int64) error {
+// syncCancelFavoriteVideo Kafka/Redis 未就绪时的同步降级：直接写 MySQL。
+func (s *InteractionService) syncCancelFavoriteVideo(ctx context.Context, userID, videoID int64) error {
 	if err := s.interactionRepo.CancelFavoriteVideo(ctx, userID, videoID); err != nil {
 		return err
 	}
@@ -129,9 +174,12 @@ func (s *InteractionService) GetLikedVideoIDs(ctx context.Context, userID int64,
 	return s.likeCache.GetLikedVideoIDs(ctx, userID, pageNum, pageSize)
 }
 
-// GetFavoritedVideoIDs 获取用户收藏的视频 ID 列表。
+// GetFavoritedVideoIDs 获取用户收藏的视频 ID 列表（优先 Redis，未就绪则回源 MySQL）。
 func (s *InteractionService) GetFavoritedVideoIDs(ctx context.Context, userID int64, pageNum, pageSize int32) ([]int64, int64, error) {
-	return s.interactionRepo.GetFavoritedVideoIDsByUserID(ctx, userID, pageNum, pageSize)
+	if s.likeCache == nil {
+		return s.interactionRepo.GetFavoritedVideoIDsByUserID(ctx, userID, pageNum, pageSize)
+	}
+	return s.likeCache.GetFavoritedVideoIDs(ctx, userID, pageNum, pageSize)
 }
 
 // GetLikeCounts 批量获取视频 like_count，优先读 Redis 缓存，未命中回源 MySQL。
@@ -167,12 +215,37 @@ func (s *InteractionService) GetLikeCounts(ctx context.Context, videoIDs []int64
 	return cached, nil
 }
 
-// GetFavoriteCounts 批量获取视频 favorite_count（当前直接读 MySQL，后续可同样加 Redis 缓存）。
+// GetFavoriteCounts 批量获取视频 favorite_count，优先读 Redis 缓存，未命中回源 MySQL。
 func (s *InteractionService) GetFavoriteCounts(ctx context.Context, videoIDs []int64) (map[int64]int64, error) {
 	if len(videoIDs) == 0 {
 		return map[int64]int64{}, nil
 	}
-	return s.popularRepo.GetFavoriteCounts(ctx, videoIDs)
+
+	if s.likeCache == nil {
+		return s.popularRepo.GetFavoriteCounts(ctx, videoIDs)
+	}
+
+	cached, missed, err := s.likeCache.GetFavoriteCounts(ctx, videoIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(missed) > 0 {
+		stats, err := s.popularRepo.GetFavoriteCounts(ctx, missed)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := s.likeCache.SetFavoriteCounts(ctx, stats); err != nil {
+			appLogger.Warnf("GetFavoriteCounts write back to redis failed: %v", err)
+		}
+
+		for id, count := range stats {
+			cached[id] = count
+		}
+	}
+
+	return cached, nil
 }
 
 func (s *InteractionService) publishLikeEvent(ctx context.Context, userID, videoID int64, action LikeAction) error {
