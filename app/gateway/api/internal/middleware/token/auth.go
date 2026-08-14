@@ -40,13 +40,13 @@ func AuthMiddleware(secret string) rest.Middleware {
 				return
 			}
 
-			parts := strings.Fields(r.Header.Get("Authorization"))
-			if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			accessToken := extractAccessToken(r)
+			if accessToken == "" {
 				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token invalid"))
 				return
 			}
 
-			claims, err := jwtpkg.ParseToken(secret, parts[1])
+			claims, err := jwtpkg.ParseToken(secret, accessToken)
 			if err != nil || claims.TokenType != jwtpkg.AccessTokenType {
 				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token invalid"))
 				return
@@ -57,6 +57,19 @@ func AuthMiddleware(secret string) rest.Middleware {
 			next(w, r.WithContext(ctx))
 		}
 	}
+}
+
+// extractAccessToken 优先从 Cookie 读取 access_token，取不到再尝试 Authorization: Bearer。
+func extractAccessToken(r *http.Request) string {
+	if token, err := jwtpkg.GetAccessTokenFromCookie(r); err == nil && token != "" {
+		return token
+	}
+
+	parts := strings.Fields(r.Header.Get("Authorization"))
+	if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+		return parts[1]
+	}
+	return ""
 }
 
 var publicPaths = map[string]struct{}{

@@ -10,6 +10,7 @@ import (
 	"go_zero-tiktok/app/gateway/api/internal/logic/user"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
+	jwtpkg "go_zero-tiktok/pkg/jwt"
 )
 
 func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
@@ -25,6 +26,8 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
+			jwtpkg.SetAccessTokenCookie(w, resp.AccessToken)
+			jwtpkg.SetRefreshTokenCookie(w, resp.RefreshToken)
 			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}

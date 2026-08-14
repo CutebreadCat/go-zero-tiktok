@@ -26,7 +26,9 @@ services:
       - --name=etcd
       - --data-dir=/etcd-data
       - --listen-client-urls=http://0.0.0.0:2379
-      - --advertise-client-urls=http://etcd:2379
+      # 宿主机模式:业务服务在本机运行,advertise 必须指向宿主机可解析地址。
+      # 如要回到 docker 内网模式: --advertise-client-urls=http://etcd:2379
+      - --advertise-client-urls=http://127.0.0.1:2379
       - --quota-backend-bytes=8589934592
     ports:
       - "2379:2379"
@@ -64,7 +66,9 @@ services:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      # 业务服务在本机二进制运行(宿主机模式),advertised 必须指向宿主机可解析地址。
+      # 如要回到 docker 内网模式: KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS:-PLAINTEXT://127.0.0.1:9092}
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER

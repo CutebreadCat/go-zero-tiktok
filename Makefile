@@ -2,7 +2,7 @@
         infra-pull infra-up infra-stop monitoring-up monitoring-stop \
         build-local run-gateway-local run-user-local run-video-local \
         run-interaction-local run-communication-local run-all-local \
-        test vet fmt api-get db-shell mysql \
+        test vet fmt api-get api-apifox db-shell mysql \
         migrate-up migrate-down \
         log-clean log-clean-dry log-clean-stop
 
@@ -84,8 +84,11 @@ fmt:
 	gofmt -w app pkg
 
 # Documentation and local database access
-api-get:
-	goctl api swagger --api api/main.api --dir docs
+# 使用 go-zero 内置 swagger 插件导出 .api 为 JSON（OpenAPI 2.0），可直接导入 Apifox
+api-apifox:
+	goctl api swagger --api api/main.api --dir docs --filename tiktok-api
+
+api-get: api-apifox
 
 db-shell:
 	docker compose -f deploy/docker-compose.yml exec mysql mysql -uroot -pyourpassword

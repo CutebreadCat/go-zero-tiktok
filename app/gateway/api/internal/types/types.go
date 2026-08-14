@@ -217,13 +217,14 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Base         BaseResponse `json:"base"`
 	UserID       int64        `json:"user_id,string"`
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+	AccessToken  string       `json:"-"`
+	RefreshToken string       `json:"-"`
 }
 
 type PublishVideoRequest struct {
 	Title       string `form:"title"`
 	Description string `form:"description"`
+	File        string `form:"file,optional"`
 }
 
 type PublishVideoResponse struct {
@@ -232,13 +233,13 @@ type PublishVideoResponse struct {
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string `cookie:"refresh_token"`
+	RefreshToken string `json:"-"`
 }
 
 type RefreshTokenResponse struct {
 	Base         BaseResponse `json:"base"`
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+	AccessToken  string       `json:"-"`
+	RefreshToken string       `json:"-"`
 }
 
 type RegisterRequest struct {
@@ -278,11 +279,12 @@ type UnsubscribeResponse struct {
 }
 
 type UpdateUserPhotoRequest struct {
-	PhotoURL string `form:"photo_url"`
+	File string `form:"file,optional"`
 }
 
 type UpdateUserPhotoResponse struct {
-	Base BaseResponse `json:"base"`
+	Base     BaseResponse `json:"base"`
+	PhotoURL string       `json:"photo_url"`
 }
 
 type UserBaseinfo struct {
