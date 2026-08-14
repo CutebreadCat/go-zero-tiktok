@@ -22,7 +22,6 @@ type (
 	GetSubscriberListResponse = communication_pb.GetSubscriberListResponse
 	SubscribeRequest          = communication_pb.SubscribeRequest
 	SubscribeResponse         = communication_pb.SubscribeResponse
-	UserInfo                  = communication_pb.UserInfo
 
 	CommunicationService interface {
 		Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (*SubscribeResponse, error)

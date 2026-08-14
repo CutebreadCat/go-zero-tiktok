@@ -3,7 +3,7 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/app/interaction/rpc/internal/cache"
+	"go_zero-tiktok/app/interaction/rpc/internal/domain/cache"
 	videodomain "go_zero-tiktok/app/interaction/rpc/internal/domain"
 	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/pkg/xerr"

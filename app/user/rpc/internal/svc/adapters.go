@@ -5,7 +5,7 @@ import (
 	"io"
 	"strconv"
 
-	"go_zero-tiktok/app/user/rpc/internal/mfa"
+	"go_zero-tiktok/app/user/rpc/internal/domain/mfa"
 	"go_zero-tiktok/pkg/jwt"
 	"go_zero-tiktok/pkg/storage/aliyun"
 

@@ -19,14 +19,8 @@ message GetFansListRequest {
     int32 page_size = 3;
 }
 
-message UserInfo {
-    int64 user_id = 1;
-    string username = 2;
-    string photo_url = 3;
-}
-
 message GetFansListResponse {
-    repeated UserInfo users = 1;
+    repeated int64 user_ids = 1;
     int64 total = 2;
 }
 
@@ -37,7 +31,7 @@ message GetSubscriberListRequest {
 }
 
 message GetSubscriberListResponse {
-    repeated UserInfo users = 1;
+    repeated int64 user_ids = 1;
     int64 total = 2;
 }
 
@@ -48,7 +42,7 @@ message GetFriendListRequest {
 }
 
 message GetFriendListResponse {
-    repeated UserInfo users = 1;
+    repeated int64 user_ids = 1;
     int64 total = 2;
 }
 

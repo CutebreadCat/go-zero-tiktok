@@ -6,6 +6,7 @@ import (
 	"go_zero-tiktok/pkg/storage/aliyun"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -14,6 +15,7 @@ import (
 type ServiceContext struct {
 	Config       config.Config
 	DB           *gorm.DB
+	Redis        *redis.Redis
 	Dal          *Repositories
 	VideoService *videodomain.VideoService
 	Storage      *StorageAdapter
@@ -24,18 +26,22 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	db, err := gorm.Open(mysql.Open(c.DataSource), &gorm.Config{})
 	logx.Must(err)
 
+	// 初始化应用 Redis（Feed 候选池 feed:global）
+	rdb := redis.MustNewRedis(c.AppRedis)
+
 	// 初始化阿里云配置
 	aliyun.LoadConfig()
 	aliyun.InitClient()
 
-	dalRepo := NewRepositories(db)
+	dalRepo := NewRepositories(db, rdb)
 	storageAdapter := &StorageAdapter{}
 
 	return &ServiceContext{
 		Config:       c,
 		DB:           db,
+		Redis:        rdb,
 		Dal:          dalRepo,
-		VideoService: videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, storageAdapter),
+		VideoService: videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, storageAdapter, dalRepo.Feed),
 		Storage:      storageAdapter,
 	}
 }

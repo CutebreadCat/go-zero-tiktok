@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"go_zero-tiktok/app/interaction/rpc/internal/cache"
-	videodomain "go_zero-tiktok/app/interaction/rpc/internal/domain"
+	"go_zero-tiktok/app/interaction/rpc/internal/domain"
+	"go_zero-tiktok/app/interaction/rpc/internal/domain/cache"
 	appLogger "go_zero-tiktok/pkg/logger"
 )
 
@@ -19,8 +19,8 @@ const (
 // 核心策略：Redis 为事实来源，MySQL 为最终持久化；syncer 定期对齐两者。
 type LikeCountSyncer struct {
 	cache           *cache.LikeCountCache
-	interactionRepo videodomain.IVideoInteractionRepo
-	popularRepo     videodomain.IPopularRepo
+	interactionRepo domain.IVideoInteractionRepo
+	popularRepo     domain.IPopularRepo
 
 	interval  time.Duration
 	batchSize int
@@ -43,8 +43,8 @@ func WithBatchSize(n int) SyncerOption {
 // NewLikeCountSyncer 创建 syncer。
 func NewLikeCountSyncer(
 	likeCache *cache.LikeCountCache,
-	interactionRepo videodomain.IVideoInteractionRepo,
-	popularRepo videodomain.IPopularRepo,
+	interactionRepo domain.IVideoInteractionRepo,
+	popularRepo domain.IPopularRepo,
 	opts ...SyncerOption,
 ) *LikeCountSyncer {
 	s := &LikeCountSyncer{

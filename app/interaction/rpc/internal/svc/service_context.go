@@ -3,11 +3,11 @@ package svc
 import (
 	"context"
 
-	"go_zero-tiktok/app/interaction/rpc/internal/cache"
 	"go_zero-tiktok/app/interaction/rpc/internal/config"
 	commentdomain "go_zero-tiktok/app/interaction/rpc/internal/domain"
+	"go_zero-tiktok/app/interaction/rpc/internal/domain/cache"
 	"go_zero-tiktok/app/interaction/rpc/internal/domain/interaction"
-	"go_zero-tiktok/app/interaction/rpc/internal/worker"
+	"go_zero-tiktok/app/interaction/rpc/internal/domain/worker"
 	appkafka "go_zero-tiktok/pkg/kafka"
 
 	"github.com/zeromicro/go-zero/core/logx"

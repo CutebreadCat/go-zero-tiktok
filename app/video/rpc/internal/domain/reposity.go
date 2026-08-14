@@ -2,8 +2,10 @@ package domain
 
 import (
 	"context"
-	"go_zero-tiktok/pkg/contract"
 	"io"
+	"time"
+
+	"go_zero-tiktok/pkg/contract"
 )
 
 type IVideoRepo interface {
@@ -44,4 +46,17 @@ type IVideoInteractionRepo interface {
 
 type StorageProvider interface {
 	UploadFile(reader io.Reader, objectKey string) (string, error)
+}
+
+// IFeedRepo Feed 候选池（feed:global ZSet）访问接口。
+// 候选池只存"有序 video_id 索引"，视频详情以 MySQL 为准（索引+水合模式）。
+type IFeedRepo interface {
+	// AddToGlobalPool 发布成功后写入候选池，并裁剪窗口外成员。
+	AddToGlobalPool(ctx context.Context, videoID int64, publishAt time.Time) error
+	// GetGlobalPoolIDs 取 (lastTimeMs, +inf] 范围内按 score 倒序的 video_id。
+	GetGlobalPoolIDs(ctx context.Context, lastTimeMs int64, limit int) ([]int64, error)
+	// RemoveFromGlobalPool 从候选池移除视频（下架/删除时调用）。
+	RemoveFromGlobalPool(ctx context.Context, videoID int64) error
+	// PoolLen 返回候选池当前成员数。
+	PoolLen(ctx context.Context) (int64, error)
 }
