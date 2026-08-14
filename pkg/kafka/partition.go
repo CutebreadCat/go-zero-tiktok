@@ -110,17 +110,13 @@ func NewPartition(reader MessageReader, pool *WorkerPool) *Partition {
 }
 
 func (p *Partition) Start(ctx context.Context) {
-	appLogger.Info("partition fetcher starting")
 	go func() {
 		coord := newCommitCoordinator()
-		appLogger.Info("partition fetcher goroutine started")
 		for {
 			select {
 			case <-ctx.Done():
-				appLogger.Infof("partition fetcher stopped: %v", ctx.Err())
 				return
 			case <-p.stopCh:
-				appLogger.Info("partition fetcher stopped by Stop")
 				return
 			default:
 			}
@@ -149,7 +145,6 @@ func (p *Partition) Start(ctx context.Context) {
 			// 保证并发处理下 commit 只推进"已处理的最长连续前缀"。
 			coord.init(msg.Partition, msg.Offset)
 			if err := p.pool.SubmitCtx(ctx, event, p.commitFunc(ctx, coord, msg)); err != nil {
-				appLogger.Infof("partition fetcher stopped submitting: %v", err)
 				return
 			}
 		}
@@ -169,8 +164,6 @@ func (p *Partition) commitFunc(ctx context.Context, coord *commitCoordinator, ms
 		}
 		if err := p.reader.Commit(ctx, &Message{Topic: msg.Topic, Partition: msg.Partition, Offset: to}); err != nil {
 			appLogger.Errorf("commit message failed: partition=%d offset=%d err=%v", msg.Partition, to, err)
-		} else {
-			appLogger.Infof("message committed: partition=%d offset=%d", msg.Partition, to)
 		}
 	}
 }

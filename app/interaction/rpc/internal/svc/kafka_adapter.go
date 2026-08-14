@@ -3,7 +3,7 @@ package svc
 import (
 	"context"
 
-	"go_zero-tiktok/app/video/rpc/internal/domain/interaction"
+	"go_zero-tiktok/app/interaction/rpc/internal/domain/interaction"
 	"go_zero-tiktok/pkg/kafka"
 	appLogger "go_zero-tiktok/pkg/logger"
 )

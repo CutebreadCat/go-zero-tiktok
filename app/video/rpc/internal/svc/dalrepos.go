@@ -7,15 +7,13 @@ import (
 )
 
 type Repositories struct {
-	Video            *videorepo.VideoBaseinfoRepo
-	VideoStat        *videorepo.VideoStatRepo
-	VideoInteraction *videorepo.VideoInteractionRepo
+	Video     *videorepo.VideoBaseinfoRepo
+	VideoStat *videorepo.VideoStatRepo
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
-		Video:            videorepo.NewVideoBaseinfoRepo(db),
-		VideoStat:        videorepo.NewVideoStatRepo(db),
-		VideoInteraction: videorepo.NewVideoInteractionRepo(db),
+		Video:     videorepo.NewVideoBaseinfoRepo(db),
+		VideoStat: videorepo.NewVideoStatRepo(db),
 	}
 }

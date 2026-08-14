@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	videopb "go_zero-tiktok/app/video/rpc/video_pb"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -35,7 +35,7 @@ func (l *FavoriteVideoLogic) FavoriteVideo(req *types.FavoriteVideoRequest) (res
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 
-	_, err = l.svcCtx.VideoRpc.FavoriteVideo(l.ctx, &videopb.FavoriteVideoRequest{
+	_, err = l.svcCtx.InteractionRpc.FavoriteVideo(l.ctx, &interactionpb.FavoriteVideoRequest{
 		UserId:  userID,
 		VideoId: req.VideoId,
 	})

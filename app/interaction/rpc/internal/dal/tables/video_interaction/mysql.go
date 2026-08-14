@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"go_zero-tiktok/app/video/rpc/internal/dal/query"
-	videostattable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_stat"
+	"go_zero-tiktok/app/interaction/rpc/internal/dal/query"
+	videostattable "go_zero-tiktok/app/interaction/rpc/internal/dal/tables/video_stat"
 	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/go-sql-driver/mysql"

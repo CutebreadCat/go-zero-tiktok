@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/pkg/xerr"
 
 	kafkaGo "github.com/segmentio/kafka-go"
@@ -71,7 +70,6 @@ func (k *KafkaReader) Commit(ctx context.Context, msg *Message) error {
 		return nil
 	}
 
-	appLogger.Infof("提交 Kafka offset: topic=%s, partition=%d, offset=%d", msg.Topic, msg.Partition, msg.Offset)
 	if err := k.r.CommitMessages(ctx, kafkaGo.Message{
 		Topic:     msg.Topic,
 		Partition: msg.Partition,

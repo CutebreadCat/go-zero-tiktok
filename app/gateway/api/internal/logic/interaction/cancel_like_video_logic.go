@@ -5,7 +5,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
-	videopb "go_zero-tiktok/app/video/rpc/video_pb"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -35,7 +35,7 @@ func (l *CancelLikeVideoLogic) CancelLikeVideo(req *types.CancelLikeVideoRequest
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
 
-	_, err = l.svcCtx.VideoRpc.LikeVideo(l.ctx, &videopb.LikeVideoRequest{
+	_, err = l.svcCtx.InteractionRpc.LikeVideo(l.ctx, &interactionpb.LikeVideoRequest{
 		UserId:     userID,
 		VideoId:    req.VideoId,
 		ActionType: 0, // 取消点赞

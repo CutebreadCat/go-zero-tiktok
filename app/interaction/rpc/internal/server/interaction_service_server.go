@@ -23,6 +23,7 @@ func NewInteractionServiceServer(svcCtx *svc.ServiceContext) *InteractionService
 	}
 }
 
+// 评论
 func (s *InteractionServiceServer) CommentVideo(ctx context.Context, in *interaction_pb.CommentVideoRequest) (*interaction_pb.CommentVideoResponse, error) {
 	l := logic.NewCommentVideoLogic(ctx, s.svcCtx)
 	return l.CommentVideo(in)
@@ -46,4 +47,35 @@ func (s *InteractionServiceServer) GetCommentList(ctx context.Context, in *inter
 func (s *InteractionServiceServer) LikeComment(ctx context.Context, in *interaction_pb.LikeCommentRequest) (*interaction_pb.LikeCommentResponse, error) {
 	l := logic.NewLikeCommentLogic(ctx, s.svcCtx)
 	return l.LikeComment(in)
+}
+
+// 视频互动
+func (s *InteractionServiceServer) LikeVideo(ctx context.Context, in *interaction_pb.LikeVideoRequest) (*interaction_pb.LikeVideoResponse, error) {
+	l := logic.NewLikeVideoLogic(ctx, s.svcCtx)
+	return l.LikeVideo(in)
+}
+
+func (s *InteractionServiceServer) FavoriteVideo(ctx context.Context, in *interaction_pb.FavoriteVideoRequest) (*interaction_pb.FavoriteVideoResponse, error) {
+	l := logic.NewFavoriteVideoLogic(ctx, s.svcCtx)
+	return l.FavoriteVideo(in)
+}
+
+func (s *InteractionServiceServer) CancelFavoriteVideo(ctx context.Context, in *interaction_pb.CancelFavoriteVideoRequest) (*interaction_pb.CancelFavoriteVideoResponse, error) {
+	l := logic.NewCancelFavoriteVideoLogic(ctx, s.svcCtx)
+	return l.CancelFavoriteVideo(in)
+}
+
+func (s *InteractionServiceServer) GetLikeList(ctx context.Context, in *interaction_pb.GetLikeListRequest) (*interaction_pb.GetLikeListResponse, error) {
+	l := logic.NewGetLikeListLogic(ctx, s.svcCtx)
+	return l.GetLikeList(in)
+}
+
+func (s *InteractionServiceServer) GetFavoriteList(ctx context.Context, in *interaction_pb.GetFavoriteListRequest) (*interaction_pb.GetFavoriteListResponse, error) {
+	l := logic.NewGetFavoriteListLogic(ctx, s.svcCtx)
+	return l.GetFavoriteList(in)
+}
+
+func (s *InteractionServiceServer) BatchGetVideoInteractionStats(ctx context.Context, in *interaction_pb.BatchGetVideoInteractionStatsRequest) (*interaction_pb.BatchGetVideoInteractionStatsResponse, error) {
+	l := logic.NewBatchGetVideoInteractionStatsLogic(ctx, s.svcCtx)
+	return l.BatchGetVideoInteractionStats(in)
 }

@@ -14,24 +14,16 @@ import (
 )
 
 type (
-	CancelFavoriteVideoRequest      = video_pb.CancelFavoriteVideoRequest
-	CancelFavoriteVideoResponse     = video_pb.CancelFavoriteVideoResponse
-	FavoriteVideoRequest            = video_pb.FavoriteVideoRequest
-	FavoriteVideoResponse           = video_pb.FavoriteVideoResponse
-	GetFavoriteListRequest          = video_pb.GetFavoriteListRequest
-	GetFavoriteListResponse         = video_pb.GetFavoriteListResponse
 	GetFeedVideoRequest             = video_pb.GetFeedVideoRequest
 	GetFeedVideoResponse            = video_pb.GetFeedVideoResponse
-	GetLikeListRequest              = video_pb.GetLikeListRequest
-	GetLikeListResponse             = video_pb.GetLikeListResponse
 	GetPopularVideoRequest          = video_pb.GetPopularVideoRequest
 	GetPopularVideoResponse         = video_pb.GetPopularVideoResponse
 	GetVideoListRequest             = video_pb.GetVideoListRequest
 	GetVideoListResponse            = video_pb.GetVideoListResponse
+	GetVideosByIDsRequest           = video_pb.GetVideosByIDsRequest
+	GetVideosByIDsResponse          = video_pb.GetVideosByIDsResponse
 	IncreaseVideoVisitCountRequest  = video_pb.IncreaseVideoVisitCountRequest
 	IncreaseVideoVisitCountResponse = video_pb.IncreaseVideoVisitCountResponse
-	LikeVideoRequest                = video_pb.LikeVideoRequest
-	LikeVideoResponse               = video_pb.LikeVideoResponse
 	PublishVideoRequest             = video_pb.PublishVideoRequest
 	PublishVideoResponse            = video_pb.PublishVideoResponse
 	SearchVideoRequest              = video_pb.SearchVideoRequest
@@ -45,11 +37,7 @@ type (
 		GetVideoList(ctx context.Context, in *GetVideoListRequest, opts ...grpc.CallOption) (*GetVideoListResponse, error)
 		SearchVideo(ctx context.Context, in *SearchVideoRequest, opts ...grpc.CallOption) (*SearchVideoResponse, error)
 		GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
-		LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error)
-		GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error)
-		FavoriteVideo(ctx context.Context, in *FavoriteVideoRequest, opts ...grpc.CallOption) (*FavoriteVideoResponse, error)
-		CancelFavoriteVideo(ctx context.Context, in *CancelFavoriteVideoRequest, opts ...grpc.CallOption) (*CancelFavoriteVideoResponse, error)
-		GetFavoriteList(ctx context.Context, in *GetFavoriteListRequest, opts ...grpc.CallOption) (*GetFavoriteListResponse, error)
+		GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error)
 		IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
 	}
 
@@ -89,29 +77,9 @@ func (m *defaultVideoService) GetPopularVideo(ctx context.Context, in *GetPopula
 	return client.GetPopularVideo(ctx, in, opts...)
 }
 
-func (m *defaultVideoService) LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error) {
+func (m *defaultVideoService) GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error) {
 	client := video_pb.NewVideoServiceClient(m.cli.Conn())
-	return client.LikeVideo(ctx, in, opts...)
-}
-
-func (m *defaultVideoService) GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error) {
-	client := video_pb.NewVideoServiceClient(m.cli.Conn())
-	return client.GetLikeList(ctx, in, opts...)
-}
-
-func (m *defaultVideoService) FavoriteVideo(ctx context.Context, in *FavoriteVideoRequest, opts ...grpc.CallOption) (*FavoriteVideoResponse, error) {
-	client := video_pb.NewVideoServiceClient(m.cli.Conn())
-	return client.FavoriteVideo(ctx, in, opts...)
-}
-
-func (m *defaultVideoService) CancelFavoriteVideo(ctx context.Context, in *CancelFavoriteVideoRequest, opts ...grpc.CallOption) (*CancelFavoriteVideoResponse, error) {
-	client := video_pb.NewVideoServiceClient(m.cli.Conn())
-	return client.CancelFavoriteVideo(ctx, in, opts...)
-}
-
-func (m *defaultVideoService) GetFavoriteList(ctx context.Context, in *GetFavoriteListRequest, opts ...grpc.CallOption) (*GetFavoriteListResponse, error) {
-	client := video_pb.NewVideoServiceClient(m.cli.Conn())
-	return client.GetFavoriteList(ctx, in, opts...)
+	return client.GetVideosByIDs(ctx, in, opts...)
 }
 
 func (m *defaultVideoService) IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error) {

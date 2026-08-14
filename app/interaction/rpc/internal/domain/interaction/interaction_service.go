@@ -3,8 +3,8 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/app/video/rpc/internal/cache"
-	videodomain "go_zero-tiktok/app/video/rpc/internal/domain"
+	"go_zero-tiktok/app/interaction/rpc/internal/cache"
+	videodomain "go_zero-tiktok/app/interaction/rpc/internal/domain"
 	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/pkg/xerr"
 )
@@ -165,6 +165,14 @@ func (s *InteractionService) GetLikeCounts(ctx context.Context, videoIDs []int64
 	}
 
 	return cached, nil
+}
+
+// GetFavoriteCounts 批量获取视频 favorite_count（当前直接读 MySQL，后续可同样加 Redis 缓存）。
+func (s *InteractionService) GetFavoriteCounts(ctx context.Context, videoIDs []int64) (map[int64]int64, error) {
+	if len(videoIDs) == 0 {
+		return map[int64]int64{}, nil
+	}
+	return s.popularRepo.GetFavoriteCounts(ctx, videoIDs)
 }
 
 func (s *InteractionService) publishLikeEvent(ctx context.Context, userID, videoID int64, action LikeAction) error {

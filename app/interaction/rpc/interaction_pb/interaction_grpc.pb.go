@@ -19,22 +19,36 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	InteractionService_CommentVideo_FullMethodName   = "/interaction.InteractionService/CommentVideo"
-	InteractionService_ReplyComment_FullMethodName   = "/interaction.InteractionService/ReplyComment"
-	InteractionService_DeleteComment_FullMethodName  = "/interaction.InteractionService/DeleteComment"
-	InteractionService_GetCommentList_FullMethodName = "/interaction.InteractionService/GetCommentList"
-	InteractionService_LikeComment_FullMethodName    = "/interaction.InteractionService/LikeComment"
+	InteractionService_CommentVideo_FullMethodName                  = "/interaction.InteractionService/CommentVideo"
+	InteractionService_ReplyComment_FullMethodName                  = "/interaction.InteractionService/ReplyComment"
+	InteractionService_DeleteComment_FullMethodName                 = "/interaction.InteractionService/DeleteComment"
+	InteractionService_GetCommentList_FullMethodName                = "/interaction.InteractionService/GetCommentList"
+	InteractionService_LikeComment_FullMethodName                   = "/interaction.InteractionService/LikeComment"
+	InteractionService_LikeVideo_FullMethodName                     = "/interaction.InteractionService/LikeVideo"
+	InteractionService_FavoriteVideo_FullMethodName                 = "/interaction.InteractionService/FavoriteVideo"
+	InteractionService_CancelFavoriteVideo_FullMethodName           = "/interaction.InteractionService/CancelFavoriteVideo"
+	InteractionService_GetLikeList_FullMethodName                   = "/interaction.InteractionService/GetLikeList"
+	InteractionService_GetFavoriteList_FullMethodName               = "/interaction.InteractionService/GetFavoriteList"
+	InteractionService_BatchGetVideoInteractionStats_FullMethodName = "/interaction.InteractionService/BatchGetVideoInteractionStats"
 )
 
 // InteractionServiceClient is the client API for InteractionService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InteractionServiceClient interface {
+	// 评论
 	CommentVideo(ctx context.Context, in *CommentVideoRequest, opts ...grpc.CallOption) (*CommentVideoResponse, error)
 	ReplyComment(ctx context.Context, in *ReplyCommentRequest, opts ...grpc.CallOption) (*ReplyCommentResponse, error)
 	DeleteComment(ctx context.Context, in *DeleteCommentRequest, opts ...grpc.CallOption) (*DeleteCommentResponse, error)
 	GetCommentList(ctx context.Context, in *GetCommentListRequest, opts ...grpc.CallOption) (*GetCommentListResponse, error)
 	LikeComment(ctx context.Context, in *LikeCommentRequest, opts ...grpc.CallOption) (*LikeCommentResponse, error)
+	// 视频互动
+	LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error)
+	FavoriteVideo(ctx context.Context, in *FavoriteVideoRequest, opts ...grpc.CallOption) (*FavoriteVideoResponse, error)
+	CancelFavoriteVideo(ctx context.Context, in *CancelFavoriteVideoRequest, opts ...grpc.CallOption) (*CancelFavoriteVideoResponse, error)
+	GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error)
+	GetFavoriteList(ctx context.Context, in *GetFavoriteListRequest, opts ...grpc.CallOption) (*GetFavoriteListResponse, error)
+	BatchGetVideoInteractionStats(ctx context.Context, in *BatchGetVideoInteractionStatsRequest, opts ...grpc.CallOption) (*BatchGetVideoInteractionStatsResponse, error)
 }
 
 type interactionServiceClient struct {
@@ -95,15 +109,83 @@ func (c *interactionServiceClient) LikeComment(ctx context.Context, in *LikeComm
 	return out, nil
 }
 
+func (c *interactionServiceClient) LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LikeVideoResponse)
+	err := c.cc.Invoke(ctx, InteractionService_LikeVideo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *interactionServiceClient) FavoriteVideo(ctx context.Context, in *FavoriteVideoRequest, opts ...grpc.CallOption) (*FavoriteVideoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FavoriteVideoResponse)
+	err := c.cc.Invoke(ctx, InteractionService_FavoriteVideo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *interactionServiceClient) CancelFavoriteVideo(ctx context.Context, in *CancelFavoriteVideoRequest, opts ...grpc.CallOption) (*CancelFavoriteVideoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelFavoriteVideoResponse)
+	err := c.cc.Invoke(ctx, InteractionService_CancelFavoriteVideo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *interactionServiceClient) GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLikeListResponse)
+	err := c.cc.Invoke(ctx, InteractionService_GetLikeList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *interactionServiceClient) GetFavoriteList(ctx context.Context, in *GetFavoriteListRequest, opts ...grpc.CallOption) (*GetFavoriteListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFavoriteListResponse)
+	err := c.cc.Invoke(ctx, InteractionService_GetFavoriteList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *interactionServiceClient) BatchGetVideoInteractionStats(ctx context.Context, in *BatchGetVideoInteractionStatsRequest, opts ...grpc.CallOption) (*BatchGetVideoInteractionStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchGetVideoInteractionStatsResponse)
+	err := c.cc.Invoke(ctx, InteractionService_BatchGetVideoInteractionStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InteractionServiceServer is the server API for InteractionService service.
 // All implementations must embed UnimplementedInteractionServiceServer
 // for forward compatibility.
 type InteractionServiceServer interface {
+	// 评论
 	CommentVideo(context.Context, *CommentVideoRequest) (*CommentVideoResponse, error)
 	ReplyComment(context.Context, *ReplyCommentRequest) (*ReplyCommentResponse, error)
 	DeleteComment(context.Context, *DeleteCommentRequest) (*DeleteCommentResponse, error)
 	GetCommentList(context.Context, *GetCommentListRequest) (*GetCommentListResponse, error)
 	LikeComment(context.Context, *LikeCommentRequest) (*LikeCommentResponse, error)
+	// 视频互动
+	LikeVideo(context.Context, *LikeVideoRequest) (*LikeVideoResponse, error)
+	FavoriteVideo(context.Context, *FavoriteVideoRequest) (*FavoriteVideoResponse, error)
+	CancelFavoriteVideo(context.Context, *CancelFavoriteVideoRequest) (*CancelFavoriteVideoResponse, error)
+	GetLikeList(context.Context, *GetLikeListRequest) (*GetLikeListResponse, error)
+	GetFavoriteList(context.Context, *GetFavoriteListRequest) (*GetFavoriteListResponse, error)
+	BatchGetVideoInteractionStats(context.Context, *BatchGetVideoInteractionStatsRequest) (*BatchGetVideoInteractionStatsResponse, error)
 	mustEmbedUnimplementedInteractionServiceServer()
 }
 
@@ -128,6 +210,24 @@ func (UnimplementedInteractionServiceServer) GetCommentList(context.Context, *Ge
 }
 func (UnimplementedInteractionServiceServer) LikeComment(context.Context, *LikeCommentRequest) (*LikeCommentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LikeComment not implemented")
+}
+func (UnimplementedInteractionServiceServer) LikeVideo(context.Context, *LikeVideoRequest) (*LikeVideoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method LikeVideo not implemented")
+}
+func (UnimplementedInteractionServiceServer) FavoriteVideo(context.Context, *FavoriteVideoRequest) (*FavoriteVideoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FavoriteVideo not implemented")
+}
+func (UnimplementedInteractionServiceServer) CancelFavoriteVideo(context.Context, *CancelFavoriteVideoRequest) (*CancelFavoriteVideoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelFavoriteVideo not implemented")
+}
+func (UnimplementedInteractionServiceServer) GetLikeList(context.Context, *GetLikeListRequest) (*GetLikeListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetLikeList not implemented")
+}
+func (UnimplementedInteractionServiceServer) GetFavoriteList(context.Context, *GetFavoriteListRequest) (*GetFavoriteListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFavoriteList not implemented")
+}
+func (UnimplementedInteractionServiceServer) BatchGetVideoInteractionStats(context.Context, *BatchGetVideoInteractionStatsRequest) (*BatchGetVideoInteractionStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchGetVideoInteractionStats not implemented")
 }
 func (UnimplementedInteractionServiceServer) mustEmbedUnimplementedInteractionServiceServer() {}
 func (UnimplementedInteractionServiceServer) testEmbeddedByValue()                            {}
@@ -240,6 +340,114 @@ func _InteractionService_LikeComment_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _InteractionService_LikeVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LikeVideoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractionServiceServer).LikeVideo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InteractionService_LikeVideo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractionServiceServer).LikeVideo(ctx, req.(*LikeVideoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InteractionService_FavoriteVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FavoriteVideoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractionServiceServer).FavoriteVideo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InteractionService_FavoriteVideo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractionServiceServer).FavoriteVideo(ctx, req.(*FavoriteVideoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InteractionService_CancelFavoriteVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelFavoriteVideoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractionServiceServer).CancelFavoriteVideo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InteractionService_CancelFavoriteVideo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractionServiceServer).CancelFavoriteVideo(ctx, req.(*CancelFavoriteVideoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InteractionService_GetLikeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLikeListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractionServiceServer).GetLikeList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InteractionService_GetLikeList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractionServiceServer).GetLikeList(ctx, req.(*GetLikeListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InteractionService_GetFavoriteList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFavoriteListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractionServiceServer).GetFavoriteList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InteractionService_GetFavoriteList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractionServiceServer).GetFavoriteList(ctx, req.(*GetFavoriteListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InteractionService_BatchGetVideoInteractionStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchGetVideoInteractionStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractionServiceServer).BatchGetVideoInteractionStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: InteractionService_BatchGetVideoInteractionStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractionServiceServer).BatchGetVideoInteractionStats(ctx, req.(*BatchGetVideoInteractionStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // InteractionService_ServiceDesc is the grpc.ServiceDesc for InteractionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +474,30 @@ var InteractionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LikeComment",
 			Handler:    _InteractionService_LikeComment_Handler,
+		},
+		{
+			MethodName: "LikeVideo",
+			Handler:    _InteractionService_LikeVideo_Handler,
+		},
+		{
+			MethodName: "FavoriteVideo",
+			Handler:    _InteractionService_FavoriteVideo_Handler,
+		},
+		{
+			MethodName: "CancelFavoriteVideo",
+			Handler:    _InteractionService_CancelFavoriteVideo_Handler,
+		},
+		{
+			MethodName: "GetLikeList",
+			Handler:    _InteractionService_GetLikeList_Handler,
+		},
+		{
+			MethodName: "GetFavoriteList",
+			Handler:    _InteractionService_GetFavoriteList_Handler,
+		},
+		{
+			MethodName: "BatchGetVideoInteractionStats",
+			Handler:    _InteractionService_BatchGetVideoInteractionStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

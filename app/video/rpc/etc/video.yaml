@@ -7,24 +7,6 @@ Etcd:
 
 DataSource: "root:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local"
 
-AppRedis:
-  Host: "${REDIS_HOST}"
-  Type: node
-
-Kafka:
-  Brokers:
-  - "${KAFKA_BROKERS}"
-  Topic: "video-like-events"
-  GroupID: "video-like-consumer-group"
-  Enable: true
-  WorkerCount: 10
-  QueueSize: 1000
-
-LikeSync:
-  Enable: false
-  Interval: 300s
-  BatchSize: 100
-
 # 链路追踪:go-zero 内置 Telemetry(OTLP gRPC 导出,可接 Tempo/Jaeger)
 Telemetry:
   Name: video-rpc

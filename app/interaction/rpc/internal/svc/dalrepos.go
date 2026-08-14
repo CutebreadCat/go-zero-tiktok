@@ -7,11 +7,15 @@ import (
 )
 
 type Repositories struct {
-	Comment *commentrepo.CommentRepo
+	Comment          *commentrepo.CommentRepo
+	VideoInteraction *commentrepo.VideoInteractionRepo
+	VideoStat        *commentrepo.VideoStatRepo
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
-		Comment: commentrepo.NewCommentRepo(db),
+		Comment:          commentrepo.NewCommentRepo(db),
+		VideoInteraction: commentrepo.NewVideoInteractionRepo(db),
+		VideoStat:        commentrepo.NewVideoStatRepo(db),
 	}
 }

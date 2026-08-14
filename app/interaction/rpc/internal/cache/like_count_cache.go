@@ -25,6 +25,15 @@ const (
 	// LikeDirtyKey 记录有待 flush 到 MySQL 的视频 ID。
 	LikeDirtyKey = "video:like:dirty"
 
+	// VideoFavoriteUsersKey 收藏某视频的用户集合。
+	VideoFavoriteUsersKey = "video:favorite:users:%d"
+	// UserFavoriteVideosKey 某用户收藏的视频有序集合。
+	UserFavoriteVideosKey = "user:favorite:videos:%d"
+	// FavoriteCountKey 维护各视频当前 favorite_count 总值。
+	FavoriteCountKey = "video:favorite:count"
+	// FavoriteDirtyKey 记录有待 flush 的收藏视频 ID。
+	FavoriteDirtyKey = "video:favorite:dirty"
+
 	// likeKeyTTLSeconds Redis 点赞相关 key 的过期时间：30 天。
 	likeKeyTTLSeconds = 30 * 24 * 60 * 60
 )

@@ -3,8 +3,8 @@ package logic
 import (
 	"context"
 
-	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb"
+	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
+	"go_zero-tiktok/app/interaction/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/pkg/logger"
@@ -24,10 +24,7 @@ func NewFavoriteVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Fav
 	}
 }
 
-func (l *FavoriteVideoLogic) FavoriteVideo(in *video_pb.FavoriteVideoRequest) (*video_pb.FavoriteVideoResponse, error) {
-	if in.UserId == 0 {
-		return nil, xerr.NewInvalidParam("用户ID不能为空")
-	}
+func (l *FavoriteVideoLogic) FavoriteVideo(in *interaction_pb.FavoriteVideoRequest) (*interaction_pb.FavoriteVideoResponse, error) {
 	if in.VideoId == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
@@ -36,8 +33,5 @@ func (l *FavoriteVideoLogic) FavoriteVideo(in *video_pb.FavoriteVideoRequest) (*
 		return nil, xerr.HandleDaoError(err, "FavoriteVideo")
 	}
 
-	// 记录访问量
-	l.svcCtx.VideoService.RecordVisit(in.VideoId)
-
-	return &video_pb.FavoriteVideoResponse{}, nil
+	return &interaction_pb.FavoriteVideoResponse{}, nil
 }

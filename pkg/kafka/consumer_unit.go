@@ -39,29 +39,23 @@ func NewMultiTopicConsumerUnitFromConfigs(configs []ConsumerTopicConfig, brokers
 			MaxWait:        readerMaxWait,
 			CommitInterval: 0, // 同步提交：offset 提交节奏完全由 commitCoordinator 控制
 		})
-		appLogger.Infof("Kafka consumer group reader configured: brokers=%v topic=%s groupID=%s", brokers, cfg.Topic, groupID)
 		fetchers = append(fetchers, NewPartition(NewReader(r), pool))
 	}
 	return &MultiTopicConsumerUnit{pool: pool, fetchers: fetchers}
 }
 
 func (u *MultiTopicConsumerUnit) Start(ctx context.Context) {
-	appLogger.Infof("starting consumer unit with %d fetchers", len(u.fetchers))
 	u.pool.Start(ctx)
-	appLogger.Info("worker pool started")
 	// 消费组模式：kafka-go 在首次 Fetch 时自动加入消费组并等待分区分配，
 	// 无需猜测性的 stabilize sleep。
-	for i, f := range u.fetchers {
-		appLogger.Infof("starting fetcher %d", i)
+	for _, f := range u.fetchers {
 		f.Start(ctx)
 	}
-	appLogger.Info("consumer unit started")
 }
 
 // Stop 优雅关闭：先停止 fetcher（不再提交新任务），再等 pool 把已提交任务处理完，
 // 最后关闭 reader（解除阻塞中的 Fetch 并归还消费组分区）。
 func (u *MultiTopicConsumerUnit) Stop() {
-	appLogger.Info("stopping consumer unit")
 	for _, f := range u.fetchers {
 		f.Stop()
 	}
@@ -71,5 +65,4 @@ func (u *MultiTopicConsumerUnit) Stop() {
 			appLogger.Errorf("close fetcher reader failed: %v", err)
 		}
 	}
-	appLogger.Info("consumer unit stopped")
 }

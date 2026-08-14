@@ -3,8 +3,8 @@ package logic
 import (
 	"context"
 
-	"go_zero-tiktok/app/video/rpc/internal/svc"
-	"go_zero-tiktok/app/video/rpc/video_pb"
+	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
+	"go_zero-tiktok/app/interaction/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/pkg/logger"
@@ -24,10 +24,7 @@ func NewCancelFavoriteVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext
 	}
 }
 
-func (l *CancelFavoriteVideoLogic) CancelFavoriteVideo(in *video_pb.CancelFavoriteVideoRequest) (*video_pb.CancelFavoriteVideoResponse, error) {
-	if in.UserId == 0 {
-		return nil, xerr.NewInvalidParam("用户ID不能为空")
-	}
+func (l *CancelFavoriteVideoLogic) CancelFavoriteVideo(in *interaction_pb.CancelFavoriteVideoRequest) (*interaction_pb.CancelFavoriteVideoResponse, error) {
 	if in.VideoId == 0 {
 		return nil, xerr.NewInvalidParam("视频ID不能为空")
 	}
@@ -36,5 +33,5 @@ func (l *CancelFavoriteVideoLogic) CancelFavoriteVideo(in *video_pb.CancelFavori
 		return nil, xerr.HandleDaoError(err, "CancelFavoriteVideo")
 	}
 
-	return &video_pb.CancelFavoriteVideoResponse{}, nil
+	return &interaction_pb.CancelFavoriteVideoResponse{}, nil
 }

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	videointeractiontable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_interaction"
-	videostattable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_stat"
-	"go_zero-tiktok/app/video/rpc/internal/dal/reposity"
+	videointeractiontable "go_zero-tiktok/app/interaction/rpc/internal/dal/tables/video_interaction"
+	videostattable "go_zero-tiktok/app/interaction/rpc/internal/dal/tables/video_stat"
+	"go_zero-tiktok/app/interaction/rpc/internal/dal/reposity"
 	"go_zero-tiktok/testhelpers"
 )
 

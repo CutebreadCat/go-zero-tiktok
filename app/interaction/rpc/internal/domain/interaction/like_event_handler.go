@@ -3,7 +3,7 @@ package interaction
 import (
 	"context"
 
-	videodomain "go_zero-tiktok/app/video/rpc/internal/domain"
+	videodomain "go_zero-tiktok/app/interaction/rpc/internal/domain"
 	"go_zero-tiktok/pkg/kafka"
 	appLogger "go_zero-tiktok/pkg/logger"
 )
@@ -26,7 +26,6 @@ func (h *LikeEventHandler) Consume(ctx context.Context, event *kafka.Event) erro
 		return nil
 	}
 
-	appLogger.Infof("LikeEventHandler received event: action=%s user_id=%d video_id=%d", e.Action, e.UserID, e.VideoID)
 	return h.interactionRepo.ApplyLikeEvent(ctx, string(e.Action), e.UserID, e.VideoID)
 }
 

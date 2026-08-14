@@ -94,15 +94,12 @@ func (p *WorkerPool) Start(ctx context.Context) {
 // 收到 ctx 取消或 stopCh 关闭信号后切换为 drain 模式，消费完队列中剩余任务再退出。
 // handler panic 时由 consumeJob 兜底转 error，worker 循环不会死亡（自愈）。
 func (p *WorkerPool) runWorker(ctx context.Context, workerID int, shard <-chan Job) {
-	appLogger.Infof("worker %d started", workerID)
 	for {
 		select {
 		case <-ctx.Done():
-			appLogger.Infof("worker %d draining on ctx cancel: %v", workerID, ctx.Err())
 			p.drain(workerID, shard)
 			return
 		case <-p.stopCh:
-			appLogger.Infof("worker %d draining on pool stop", workerID)
 			p.drain(workerID, shard)
 			return
 		case job := <-shard:
@@ -119,7 +116,6 @@ func (p *WorkerPool) drain(workerID int, shard <-chan Job) {
 		case job := <-shard:
 			p.consumeJob(job)
 		default:
-			appLogger.Infof("worker %d drain complete", workerID)
 			return
 		}
 	}

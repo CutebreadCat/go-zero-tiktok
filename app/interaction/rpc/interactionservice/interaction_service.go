@@ -14,24 +14,45 @@ import (
 )
 
 type (
-	CommentInfo            = interaction_pb.CommentInfo
-	CommentVideoRequest    = interaction_pb.CommentVideoRequest
-	CommentVideoResponse   = interaction_pb.CommentVideoResponse
-	DeleteCommentRequest   = interaction_pb.DeleteCommentRequest
-	DeleteCommentResponse  = interaction_pb.DeleteCommentResponse
-	GetCommentListRequest  = interaction_pb.GetCommentListRequest
-	GetCommentListResponse = interaction_pb.GetCommentListResponse
-	LikeCommentRequest     = interaction_pb.LikeCommentRequest
-	LikeCommentResponse    = interaction_pb.LikeCommentResponse
-	ReplyCommentRequest    = interaction_pb.ReplyCommentRequest
-	ReplyCommentResponse   = interaction_pb.ReplyCommentResponse
+	BatchGetVideoInteractionStatsRequest  = interaction_pb.BatchGetVideoInteractionStatsRequest
+	BatchGetVideoInteractionStatsResponse = interaction_pb.BatchGetVideoInteractionStatsResponse
+	CancelFavoriteVideoRequest            = interaction_pb.CancelFavoriteVideoRequest
+	CancelFavoriteVideoResponse           = interaction_pb.CancelFavoriteVideoResponse
+	CommentInfo                           = interaction_pb.CommentInfo
+	CommentVideoRequest                   = interaction_pb.CommentVideoRequest
+	CommentVideoResponse                  = interaction_pb.CommentVideoResponse
+	DeleteCommentRequest                  = interaction_pb.DeleteCommentRequest
+	DeleteCommentResponse                 = interaction_pb.DeleteCommentResponse
+	FavoriteVideoRequest                  = interaction_pb.FavoriteVideoRequest
+	FavoriteVideoResponse                 = interaction_pb.FavoriteVideoResponse
+	GetCommentListRequest                 = interaction_pb.GetCommentListRequest
+	GetCommentListResponse                = interaction_pb.GetCommentListResponse
+	GetFavoriteListRequest                = interaction_pb.GetFavoriteListRequest
+	GetFavoriteListResponse               = interaction_pb.GetFavoriteListResponse
+	GetLikeListRequest                    = interaction_pb.GetLikeListRequest
+	GetLikeListResponse                   = interaction_pb.GetLikeListResponse
+	LikeCommentRequest                    = interaction_pb.LikeCommentRequest
+	LikeCommentResponse                   = interaction_pb.LikeCommentResponse
+	LikeVideoRequest                      = interaction_pb.LikeVideoRequest
+	LikeVideoResponse                     = interaction_pb.LikeVideoResponse
+	ReplyCommentRequest                   = interaction_pb.ReplyCommentRequest
+	ReplyCommentResponse                  = interaction_pb.ReplyCommentResponse
+	VideoInteractionStat                  = interaction_pb.VideoInteractionStat
 
 	InteractionService interface {
+		// 评论
 		CommentVideo(ctx context.Context, in *CommentVideoRequest, opts ...grpc.CallOption) (*CommentVideoResponse, error)
 		ReplyComment(ctx context.Context, in *ReplyCommentRequest, opts ...grpc.CallOption) (*ReplyCommentResponse, error)
 		DeleteComment(ctx context.Context, in *DeleteCommentRequest, opts ...grpc.CallOption) (*DeleteCommentResponse, error)
 		GetCommentList(ctx context.Context, in *GetCommentListRequest, opts ...grpc.CallOption) (*GetCommentListResponse, error)
 		LikeComment(ctx context.Context, in *LikeCommentRequest, opts ...grpc.CallOption) (*LikeCommentResponse, error)
+		// 视频互动
+		LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error)
+		FavoriteVideo(ctx context.Context, in *FavoriteVideoRequest, opts ...grpc.CallOption) (*FavoriteVideoResponse, error)
+		CancelFavoriteVideo(ctx context.Context, in *CancelFavoriteVideoRequest, opts ...grpc.CallOption) (*CancelFavoriteVideoResponse, error)
+		GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error)
+		GetFavoriteList(ctx context.Context, in *GetFavoriteListRequest, opts ...grpc.CallOption) (*GetFavoriteListResponse, error)
+		BatchGetVideoInteractionStats(ctx context.Context, in *BatchGetVideoInteractionStatsRequest, opts ...grpc.CallOption) (*BatchGetVideoInteractionStatsResponse, error)
 	}
 
 	defaultInteractionService struct {
@@ -45,6 +66,7 @@ func NewInteractionService(cli zrpc.Client) InteractionService {
 	}
 }
 
+// 评论
 func (m *defaultInteractionService) CommentVideo(ctx context.Context, in *CommentVideoRequest, opts ...grpc.CallOption) (*CommentVideoResponse, error) {
 	client := interaction_pb.NewInteractionServiceClient(m.cli.Conn())
 	return client.CommentVideo(ctx, in, opts...)
@@ -68,4 +90,35 @@ func (m *defaultInteractionService) GetCommentList(ctx context.Context, in *GetC
 func (m *defaultInteractionService) LikeComment(ctx context.Context, in *LikeCommentRequest, opts ...grpc.CallOption) (*LikeCommentResponse, error) {
 	client := interaction_pb.NewInteractionServiceClient(m.cli.Conn())
 	return client.LikeComment(ctx, in, opts...)
+}
+
+// 视频互动
+func (m *defaultInteractionService) LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error) {
+	client := interaction_pb.NewInteractionServiceClient(m.cli.Conn())
+	return client.LikeVideo(ctx, in, opts...)
+}
+
+func (m *defaultInteractionService) FavoriteVideo(ctx context.Context, in *FavoriteVideoRequest, opts ...grpc.CallOption) (*FavoriteVideoResponse, error) {
+	client := interaction_pb.NewInteractionServiceClient(m.cli.Conn())
+	return client.FavoriteVideo(ctx, in, opts...)
+}
+
+func (m *defaultInteractionService) CancelFavoriteVideo(ctx context.Context, in *CancelFavoriteVideoRequest, opts ...grpc.CallOption) (*CancelFavoriteVideoResponse, error) {
+	client := interaction_pb.NewInteractionServiceClient(m.cli.Conn())
+	return client.CancelFavoriteVideo(ctx, in, opts...)
+}
+
+func (m *defaultInteractionService) GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error) {
+	client := interaction_pb.NewInteractionServiceClient(m.cli.Conn())
+	return client.GetLikeList(ctx, in, opts...)
+}
+
+func (m *defaultInteractionService) GetFavoriteList(ctx context.Context, in *GetFavoriteListRequest, opts ...grpc.CallOption) (*GetFavoriteListResponse, error) {
+	client := interaction_pb.NewInteractionServiceClient(m.cli.Conn())
+	return client.GetFavoriteList(ctx, in, opts...)
+}
+
+func (m *defaultInteractionService) BatchGetVideoInteractionStats(ctx context.Context, in *BatchGetVideoInteractionStatsRequest, opts ...grpc.CallOption) (*BatchGetVideoInteractionStatsResponse, error) {
+	client := interaction_pb.NewInteractionServiceClient(m.cli.Conn())
+	return client.BatchGetVideoInteractionStats(ctx, in, opts...)
 }

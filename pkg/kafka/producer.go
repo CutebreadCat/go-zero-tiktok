@@ -118,7 +118,6 @@ func (k *Producer) SendMessage(ctx context.Context, m *Event) error {
 		return xerr.Wrap(err, "Producer.SendMessage.Marshal")
 	}
 
-	appLogger.Infof("发送消息到 Kafka, topic=%s, key=%s", m.Msg.Topic, string(m.Msg.Key))
 	err = k.writer.WriteMessages(ctx, kafka.Message{
 		Key:   m.Msg.Key,
 		Value: payload,
@@ -126,7 +125,6 @@ func (k *Producer) SendMessage(ctx context.Context, m *Event) error {
 	if err != nil {
 		return xerr.Wrap(err, "Producer.SendMessage.WriteMessages")
 	}
-	appLogger.Info("消息成功写入 Kafka")
 	return nil
 }
 

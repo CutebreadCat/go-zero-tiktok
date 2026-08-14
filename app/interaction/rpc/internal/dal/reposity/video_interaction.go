@@ -3,7 +3,7 @@ package reposity
 import (
 	"context"
 
-	videointeractiontable "go_zero-tiktok/app/video/rpc/internal/dal/tables/video_interaction"
+	videointeractiontable "go_zero-tiktok/app/interaction/rpc/internal/dal/tables/video_interaction"
 
 	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"

@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"go_zero-tiktok/app/video/rpc/internal/cache"
-	videodomain "go_zero-tiktok/app/video/rpc/internal/domain"
+	"go_zero-tiktok/app/interaction/rpc/internal/cache"
+	videodomain "go_zero-tiktok/app/interaction/rpc/internal/domain"
 	appLogger "go_zero-tiktok/pkg/logger"
 )
 
