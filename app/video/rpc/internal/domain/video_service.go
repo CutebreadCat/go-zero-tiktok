@@ -31,19 +31,35 @@ func NewVideoService(videoRepo IVideoRepo, popularRepo IPopularRepo, storage Sto
 
 // PublishVideo 创建视频并初始化 Popular 记录，发布成功后写入 Feed 候选池。
 // 候选池写入失败不阻断发布（DB 是主数据源，Redis 是加速层）。
-func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description string) error {
+// 返回发布时刻 publishAt，供 gateway 编排扇出时保证 feed:global 与 feed:inbox 的 score 一致。
+func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description string) (time.Time, error) {
+	publishAt := time.Now()
 	if err := s.videoRepo.CreateVideoFromParams(ctx, videoID, authorID, videoObjectKey, coverObjectKey, title, description); err != nil {
-		return err
+		return time.Time{}, err
 	}
 	if err := s.popularRepo.CreatePopularVideo(ctx, videoID); err != nil {
-		return err
+		return time.Time{}, err
 	}
 
 	// 写入候选池 feed:global（失败仅记日志，不影响发布主流程）
 	if s.feedRepo != nil {
-		if err := s.feedRepo.AddToGlobalPool(ctx, videoID, time.Now()); err != nil {
+		if err := s.feedRepo.AddToGlobalPool(ctx, videoID, publishAt); err != nil {
 			logx.Errorf("add video %d to feed global pool failed: %v", videoID, err)
 		}
+	}
+	return publishAt, nil
+}
+
+// FanoutToUsers 关注流扇出：将视频写入每个粉丝的收件箱 feed:inbox:{uid}。
+// 扇出属于"尽力而为"——失败仅记日志返回错误，由调用方决定是否阻断发布（设计上不应阻断）。
+// 粉丝列表由 gateway 编排层从 communication.rpc 获取，本方法只写 video.rpc 自己的 Redis 索引。
+func (s *VideoService) FanoutToUsers(ctx context.Context, videoID int64, userIDs []int64, publishAt time.Time) error {
+	if s.feedRepo == nil || len(userIDs) == 0 {
+		return nil
+	}
+	if err := s.feedRepo.FanoutInbox(ctx, videoID, userIDs, publishAt); err != nil {
+		logx.Errorf("fanout video %d to %d users failed: %v", videoID, len(userIDs), err)
+		return err
 	}
 	return nil
 }
@@ -121,12 +137,15 @@ func (s *VideoService) GetVideosByAuthor(ctx context.Context, authorID int64, pa
 	return videos, total, nil
 }
 
-func (s *VideoService) GetFeedVideos(ctx context.Context, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
-	// 优先走候选池（Redis ZSet 索引 + MySQL 水合）
+// GetFeedVideos 获取 Feed 流。viewerID 为当前浏览用户（<=0 表示无登录态，仅看全站候选池）。
+// 有登录态时合并两条流：feed:global（全站候选池）+ feed:inbox:{viewerID}（关注的人发布的），
+// 按 score(发布时间) 倒序归并、去重，再游标分页。
+func (s *VideoService) GetFeedVideos(ctx context.Context, viewerID int64, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+	// 优先走 Redis 索引（ZSet 索引 + MySQL 水合）
 	if s.feedRepo != nil {
-		videos, total, err := s.getFeedFromGlobalPool(ctx, lastTime, pageSize)
+		videos, total, err := s.getFeedFromPools(ctx, viewerID, lastTime, pageSize)
 		if err != nil {
-			logx.Errorf("get feed from global pool failed, fallback to db: %v", err)
+			logx.Errorf("get feed from pools failed, fallback to db: %v", err)
 		} else if len(videos) > 0 {
 			s.recordVisits(videos)
 			return videos, total, nil
@@ -142,9 +161,10 @@ func (s *VideoService) GetFeedVideos(ctx context.Context, lastTime string, pageN
 	return videos, total, nil
 }
 
-// getFeedFromGlobalPool 从候选池取视频：先 ZREVRANGEBYSCORE 拿有序 id，再 GetVideosByIDs 水合详情。
+// getFeedFromPools 从 Redis 索引取视频：先分别 ZREVRANGEBYSCORE 拿两条流的有序索引，
+// 再按 score 归并去重（同一视频只出现一次），最后 GetVideosByIDs 水合详情。
 // 候选池只保留最近 7 天，因此窗口外视频由 MySQL 兜底补齐，保证不空页。
-func (s *VideoService) getFeedFromGlobalPool(ctx context.Context, lastTime string, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+func (s *VideoService) getFeedFromPools(ctx context.Context, viewerID int64, lastTime string, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
 	// lastTime 字符串转毫秒时间戳，作为 ZSet 游标
 	var lastTimeMs int64
 	if lt := strings.TrimSpace(lastTime); lt != "" {
@@ -155,29 +175,78 @@ func (s *VideoService) getFeedFromGlobalPool(ctx context.Context, lastTime strin
 		lastTimeMs = t.UnixMilli()
 	}
 
-	// 多取一条判断是否还有更多（用于 total 边界）
-	ids, err := s.feedRepo.GetGlobalPoolIDs(ctx, lastTimeMs, int(pageSize)+1)
+	// 每条流多取一条判断 hasMore（合并去重后再判断）
+	global, err := s.feedRepo.GetGlobalPool(ctx, lastTimeMs, int(pageSize)+1)
 	if err != nil {
 		return nil, 0, err
 	}
-
-	total := int64(len(ids))
-	hasMore := len(ids) > int(pageSize)
-	if hasMore {
-		ids = ids[:pageSize]
+	var inbox []types.FeedIndex
+	if viewerID > 0 {
+		inbox, err = s.feedRepo.GetUserInbox(ctx, viewerID, lastTimeMs, int(pageSize)+1)
+		if err != nil {
+			return nil, 0, err
+		}
 	}
-	if len(ids) == 0 {
-		// 候选池为空（冷启动/无视频），交由调用方走 MySQL 兜底
+
+	merged, hasMore := mergeFeedIndexes(global, inbox, pageSize)
+	if len(merged) == 0 {
+		// 索引为空（冷启动/无视频），交由调用方走 MySQL 兜底
 		return nil, 0, nil
 	}
 
-	videos, err := s.videoRepo.GetVideosByIDs(ctx, ids)
+	videoIDs := make([]int64, 0, len(merged))
+	for _, fi := range merged {
+		videoIDs = append(videoIDs, fi.VideoID)
+	}
+
+	videos, err := s.videoRepo.GetVideosByIDs(ctx, videoIDs)
 	if err != nil {
 		return nil, 0, err
 	}
 
+	total := int64(len(videos))
 	if hasMore {
-		total = int64(len(videos))
+		total = int64(len(videoIDs))
 	}
 	return videos, total, nil
+}
+
+// mergeFeedIndexes 将两条按 score 倒序的流按 score 归并、去重，截取前 limit 条。
+// 返回 (截断后的索引, hasMore)：合并后条数 > limit 说明还有更多。
+// 两流都已按 score 倒序（ZREVRANGEBYSCORE），归并复杂度 O(N)。
+func mergeFeedIndexes(global, inbox []types.FeedIndex, limit int32) ([]types.FeedIndex, bool) {
+	cap := len(global) + len(inbox)
+	merged := make([]types.FeedIndex, 0, cap)
+	i, j := 0, 0
+	for i < len(global) && j < len(inbox) {
+		a, b := global[i], inbox[j]
+		switch {
+		case a.VideoID == b.VideoID:
+			merged = append(merged, a)
+			i++
+			j++
+		case a.Score >= b.Score:
+			merged = append(merged, a)
+			i++
+		default:
+			merged = append(merged, b)
+			j++
+		}
+		if len(merged) > int(limit) {
+			return merged[:limit], true
+		}
+	}
+	for ; i < len(global); i++ {
+		merged = append(merged, global[i])
+		if len(merged) > int(limit) {
+			return merged[:limit], true
+		}
+	}
+	for ; j < len(inbox); j++ {
+		merged = append(merged, inbox[j])
+		if len(merged) > int(limit) {
+			return merged[:limit], true
+		}
+	}
+	return merged, false
 }

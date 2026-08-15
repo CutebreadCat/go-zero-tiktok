@@ -36,6 +36,13 @@ type VideoBaseinfo struct {
 	DeletedAt   string `json:"deleted_at"`
 }
 
+// FeedIndex Feed 流索引项（feed:global / feed:inbox:{uid} ZSet 的成员 + score）。
+// Score 为发布时间戳(UnixMilli)，用于跨流按时间倒序合并。
+type FeedIndex struct {
+	VideoID int64 `json:"video_id,string"`
+	Score   int64 `json:"score"`
+}
+
 // VideoPopular 视频热度统计（video RPC 使用）
 type VideoPopular struct {
 	VideoID       int64 `json:"video_id,string"`

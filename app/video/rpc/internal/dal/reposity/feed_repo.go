@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/stores/redis"
+
+	"go_zero-tiktok/pkg/contract" // package types
 )
 
 const (
@@ -16,7 +18,7 @@ const (
 	feedRetention = 7 * 24 * time.Hour
 )
 
-// FeedRepo 全站 Feed 候选池数据访问层。
+// FeedRepo 全站 Feed 候选池 + 关注流收件箱数据访问层。
 //
 // 设计原则：Redis 只存"有序 video_id 索引"，视频详情永远以 MySQL 为准（索引+水合模式）。
 // 这样详情变更只需改 MySQL，索引永远是一份有序 id 列表，无双写不一致。
@@ -27,6 +29,12 @@ type FeedRepo struct {
 // NewFeedRepo 构建候选池仓储。
 func NewFeedRepo(rdb *redis.Redis) *FeedRepo {
 	return &FeedRepo{rdb: rdb}
+}
+
+// inboxKey 用户关注流收件箱：member=video_id, score=发布时间戳(UnixMilli)。
+// 仅存"关注的人发布的视频"，写入时机为发视频扇出（fanout on publish）。
+func inboxKey(uid int64) string {
+	return "feed:inbox:" + strconv.FormatInt(uid, 10)
 }
 
 // AddToGlobalPool 发布成功后写入候选池，并顺手裁剪过期成员（保留最近 feedRetention）。
@@ -43,27 +51,61 @@ func (r *FeedRepo) AddToGlobalPool(ctx context.Context, videoID int64, publishAt
 	return err
 }
 
-// GetGlobalPoolIDs 从候选池取 (lastTimeMs, +inf] 范围内按 score 倒序的 video_id。
+// AddToUserInbox 扇出：将视频写入单个用户的收件箱 feed:inbox:{uid}。
+func (r *FeedRepo) AddToUserInbox(ctx context.Context, uid, videoID int64, publishAt time.Time) error {
+	_, err := r.rdb.ZaddCtx(ctx, inboxKey(uid), publishAt.UnixMilli(), strconv.FormatInt(videoID, 10))
+	return err
+}
+
+// FanoutInbox 批量扇出：将视频一次性写入多个用户的收件箱（pipeline 合并 RTT）。
+// 扇出属于"尽力而为"——调用方通常选择失败仅记日志、不阻断发布主流程。
+func (r *FeedRepo) FanoutInbox(ctx context.Context, videoID int64, userIDs []int64, publishAt time.Time) error {
+	if len(userIDs) == 0 {
+		return nil
+	}
+	score := float64(publishAt.UnixMilli())
+	member := strconv.FormatInt(videoID, 10)
+
+	err := r.rdb.Pipelined(func(pipe redis.Pipeliner) error {
+		for _, uid := range userIDs {
+			pipe.ZAdd(ctx, inboxKey(uid), redis.Z{Score: score, Member: member})
+		}
+		return nil
+	})
+	return err
+}
+
+// GetGlobalPool 从候选池取 (lastTimeMs, +inf] 范围内按 score 倒序的视频索引。
 // lastTimeMs 为上一页最后一条的发布时间戳；传 0 表示从最新开始取。
-// 返回的 id 天然按发布时间倒序排列。
-func (r *FeedRepo) GetGlobalPoolIDs(ctx context.Context, lastTimeMs int64, limit int) ([]int64, error) {
+// 返回的索引天然按发布时间倒序排列。
+func (r *FeedRepo) GetGlobalPool(ctx context.Context, lastTimeMs int64, limit int) ([]types.FeedIndex, error) {
+	return r.getZSetIndexes(ctx, feedGlobalKey, lastTimeMs, limit)
+}
+
+// GetUserInbox 从用户收件箱取 (lastTimeMs, +inf] 范围内按 score 倒序的视频索引。
+func (r *FeedRepo) GetUserInbox(ctx context.Context, uid, lastTimeMs int64, limit int) ([]types.FeedIndex, error) {
+	return r.getZSetIndexes(ctx, inboxKey(uid), lastTimeMs, limit)
+}
+
+// getZSetIndexes 从任意 ZSet 取 (lastTimeMs, +inf] 范围按 score 倒序的 (video_id, score) 对。
+func (r *FeedRepo) getZSetIndexes(ctx context.Context, key string, lastTimeMs int64, limit int) ([]types.FeedIndex, error) {
 	// go-zero 参数语义: start->Min(下限), stop->Max(上限), Offset=page*size, Count=size
 	// ZREVRANGEBYSCORE key max min => Min=lastTimeMs+1(开区间跳过已翻过的游标), Max=+inf
 	pairs, err := r.rdb.ZrevrangebyscoreWithScoresAndLimitCtx(
-		ctx, feedGlobalKey, lastTimeMs+1, math.MaxInt64, 0, limit)
+		ctx, key, lastTimeMs+1, math.MaxInt64, 0, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	ids := make([]int64, 0, len(pairs))
+	indexes := make([]types.FeedIndex, 0, len(pairs))
 	for _, p := range pairs {
 		id, err := strconv.ParseInt(p.Key, 10, 64)
 		if err != nil {
 			continue
 		}
-		ids = append(ids, id)
+		indexes = append(indexes, types.FeedIndex{VideoID: id, Score: int64(p.Score)})
 	}
-	return ids, nil
+	return indexes, nil
 }
 
 // RemoveFromGlobalPool 从候选池移除视频（下架/删除时调用，当前项目无删除逻辑，预留）。

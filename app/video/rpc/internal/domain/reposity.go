@@ -48,15 +48,22 @@ type StorageProvider interface {
 	UploadFile(reader io.Reader, objectKey string) (string, error)
 }
 
-// IFeedRepo Feed 候选池（feed:global ZSet）访问接口。
-// 候选池只存"有序 video_id 索引"，视频详情以 MySQL 为准（索引+水合模式）。
+// IFeedRepo Feed 索引访问接口：全站候选池（feed:global）+ 关注流收件箱（feed:inbox:{uid}）。
+// 索引只存"有序 video_id 索引"，视频详情以 MySQL 为准（索引+水合模式）。
+// FeedIndex.Score 为发布时间戳(UnixMilli)，用于跨流按时间倒序合并、去重。
 type IFeedRepo interface {
 	// AddToGlobalPool 发布成功后写入候选池，并裁剪窗口外成员。
 	AddToGlobalPool(ctx context.Context, videoID int64, publishAt time.Time) error
-	// GetGlobalPoolIDs 取 (lastTimeMs, +inf] 范围内按 score 倒序的 video_id。
-	GetGlobalPoolIDs(ctx context.Context, lastTimeMs int64, limit int) ([]int64, error)
+	// GetGlobalPool 取候选池 (lastTimeMs, +inf] 范围内按 score 倒序的索引。
+	GetGlobalPool(ctx context.Context, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
 	// RemoveFromGlobalPool 从候选池移除视频（下架/删除时调用）。
 	RemoveFromGlobalPool(ctx context.Context, videoID int64) error
 	// PoolLen 返回候选池当前成员数。
 	PoolLen(ctx context.Context) (int64, error)
+	// AddToUserInbox 关注流扇出：将视频写入单个用户的收件箱 feed:inbox:{uid}。
+	AddToUserInbox(ctx context.Context, uid, videoID int64, publishAt time.Time) error
+	// FanoutInbox 批量扇出：将视频一次性写入多个用户的收件箱（pipeline 合并 RTT）。
+	FanoutInbox(ctx context.Context, videoID int64, userIDs []int64, publishAt time.Time) error
+	// GetUserInbox 取用户收件箱 (lastTimeMs, +inf] 范围内按 score 倒序的索引。
+	GetUserInbox(ctx context.Context, uid, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
 }

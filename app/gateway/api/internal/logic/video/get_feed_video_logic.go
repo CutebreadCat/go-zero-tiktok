@@ -6,6 +6,7 @@ import (
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	videopb "go_zero-tiktok/app/video/rpc/video_pb"
+	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
 	logger "go_zero-tiktok/pkg/logger"
@@ -26,10 +27,15 @@ func NewGetFeedVideoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetF
 }
 
 func (l *GetFeedVideoLogic) GetFeedVideo(req *types.FeedVideoRequest) (resp *types.FeedVideoResponse, err error) {
+	// 从登录态取 viewer_id 透传给 video.rpc，合并 feed:global + feed:inbox:{uid}
+	// 拿不到身份（未登录）时传 0，仅返回全站候选池
+	viewerID, _ := myutils.GetUserIDFromContext(l.ctx)
+
 	rpcResp, err := l.svcCtx.VideoRpc.GetFeedVideo(l.ctx, &videopb.GetFeedVideoRequest{
 		LastTime: req.LastTime,
 		PageNum:  req.PageNum,
 		PageSize: req.PageSize,
+		ViewerId: viewerID,
 	})
 	if err != nil {
 		return nil, xerr.HandleDaoError(err, "GetFeedVideo.GetFeedVideo")

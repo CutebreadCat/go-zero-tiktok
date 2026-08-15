@@ -26,6 +26,7 @@ const (
 	VideoService_GetPopularVideo_FullMethodName         = "/video.VideoService/GetPopularVideo"
 	VideoService_GetVideosByIDs_FullMethodName          = "/video.VideoService/GetVideosByIDs"
 	VideoService_IncreaseVideoVisitCount_FullMethodName = "/video.VideoService/IncreaseVideoVisitCount"
+	VideoService_FeedFanout_FullMethodName              = "/video.VideoService/FeedFanout"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -39,6 +40,7 @@ type VideoServiceClient interface {
 	GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
 	GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error)
 	IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
+	FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error)
 }
 
 type videoServiceClient struct {
@@ -119,6 +121,16 @@ func (c *videoServiceClient) IncreaseVideoVisitCount(ctx context.Context, in *In
 	return out, nil
 }
 
+func (c *videoServiceClient) FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FeedFanoutResponse)
+	err := c.cc.Invoke(ctx, VideoService_FeedFanout_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type VideoServiceServer interface {
 	GetPopularVideo(context.Context, *GetPopularVideoRequest) (*GetPopularVideoResponse, error)
 	GetVideosByIDs(context.Context, *GetVideosByIDsRequest) (*GetVideosByIDsResponse, error)
 	IncreaseVideoVisitCount(context.Context, *IncreaseVideoVisitCountRequest) (*IncreaseVideoVisitCountResponse, error)
+	FeedFanout(context.Context, *FeedFanoutRequest) (*FeedFanoutResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -160,6 +173,9 @@ func (UnimplementedVideoServiceServer) GetVideosByIDs(context.Context, *GetVideo
 }
 func (UnimplementedVideoServiceServer) IncreaseVideoVisitCount(context.Context, *IncreaseVideoVisitCountRequest) (*IncreaseVideoVisitCountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IncreaseVideoVisitCount not implemented")
+}
+func (UnimplementedVideoServiceServer) FeedFanout(context.Context, *FeedFanoutRequest) (*FeedFanoutResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FeedFanout not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -308,6 +324,24 @@ func _VideoService_IncreaseVideoVisitCount_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_FeedFanout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FeedFanoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).FeedFanout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_FeedFanout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).FeedFanout(ctx, req.(*FeedFanoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +376,10 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IncreaseVideoVisitCount",
 			Handler:    _VideoService_IncreaseVideoVisitCount_Handler,
+		},
+		{
+			MethodName: "FeedFanout",
+			Handler:    _VideoService_FeedFanout_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -45,11 +45,13 @@ func (l *PublishVideoLogic) PublishVideo(in *video_pb.PublishVideoRequest) (*vid
 		return nil, xerr.HandleDaoError(err, "PublishVideo.UploadToOSS")
 	}
 
-	if err := l.svcCtx.VideoService.PublishVideo(l.ctx, videoID, in.UserId, videoObjectKey, "", in.Title, in.Description); err != nil {
+	publishAt, err := l.svcCtx.VideoService.PublishVideo(l.ctx, videoID, in.UserId, videoObjectKey, "", in.Title, in.Description)
+	if err != nil {
 		return nil, xerr.HandleDaoError(err, "PublishVideo.CreateVideo")
 	}
 
 	return &video_pb.PublishVideoResponse{
-		VideoId: videoID,
+		VideoId:     videoID,
+		PublishedAt: publishAt.UnixMilli(),
 	}, nil
 }

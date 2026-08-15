@@ -14,6 +14,8 @@ import (
 )
 
 type (
+	FeedFanoutRequest               = video_pb.FeedFanoutRequest
+	FeedFanoutResponse              = video_pb.FeedFanoutResponse
 	GetFeedVideoRequest             = video_pb.GetFeedVideoRequest
 	GetFeedVideoResponse            = video_pb.GetFeedVideoResponse
 	GetPopularVideoRequest          = video_pb.GetPopularVideoRequest
@@ -39,6 +41,7 @@ type (
 		GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
 		GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error)
 		IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
+		FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error)
 	}
 
 	defaultVideoService struct {
@@ -85,4 +88,9 @@ func (m *defaultVideoService) GetVideosByIDs(ctx context.Context, in *GetVideosB
 func (m *defaultVideoService) IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error) {
 	client := video_pb.NewVideoServiceClient(m.cli.Conn())
 	return client.IncreaseVideoVisitCount(ctx, in, opts...)
+}
+
+func (m *defaultVideoService) FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error) {
+	client := video_pb.NewVideoServiceClient(m.cli.Conn())
+	return client.FeedFanout(ctx, in, opts...)
 }

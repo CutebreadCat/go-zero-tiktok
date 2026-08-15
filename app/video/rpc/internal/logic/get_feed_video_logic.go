@@ -29,7 +29,8 @@ func (l *GetFeedVideoLogic) GetFeedVideo(in *video_pb.GetFeedVideoRequest) (*vid
 		return nil, xerr.NewInvalidParam("每页数量必须在1-100之间")
 	}
 
-	videos, total, err := l.svcCtx.VideoService.GetFeedVideos(l.ctx, in.LastTime, in.PageNum, in.PageSize)
+	// viewer_id 由 gateway 从登录态透传（rpc 内部拿不到鉴权信息）
+	videos, total, err := l.svcCtx.VideoService.GetFeedVideos(l.ctx, in.ViewerId, in.LastTime, in.PageNum, in.PageSize)
 	if err != nil {
 		return nil, xerr.Wrap(err, "GetFeedVideo")
 	}
