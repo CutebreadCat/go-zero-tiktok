@@ -13,9 +13,9 @@ import (
 	"go_zero-tiktok/pkg/storage/aliyun"
 	myutils "go_zero-tiktok/pkg/utils"
 
+	pkgerrors "github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/syncx"
-	pkgerrors "github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 

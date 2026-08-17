@@ -6,9 +6,9 @@ import (
 	communicationpb "go_zero-tiktok/app/communication/rpc/communication_pb"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
+	userpb "go_zero-tiktok/app/user/rpc/user_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
-	userpb "go_zero-tiktok/app/user/rpc/user_pb"
 
 	logger "go_zero-tiktok/pkg/logger"
 )

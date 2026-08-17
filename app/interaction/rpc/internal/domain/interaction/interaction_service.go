@@ -3,8 +3,8 @@ package interaction
 import (
 	"context"
 
-	"go_zero-tiktok/app/interaction/rpc/internal/domain/cache"
 	videodomain "go_zero-tiktok/app/interaction/rpc/internal/domain"
+	"go_zero-tiktok/app/interaction/rpc/internal/domain/cache"
 	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/pkg/xerr"
 )
@@ -246,6 +246,69 @@ func (s *InteractionService) GetFavoriteCounts(ctx context.Context, videoIDs []i
 	}
 
 	return cached, nil
+}
+
+// VideoInteractionStat 视频互动统计与当前用户状态（领域层结构，不依赖 pb）。
+type VideoInteractionStat struct {
+	VideoID       int64
+	LikeCount     int64
+	FavoriteCount int64
+	CommentCount  int64
+	Liked         bool
+	Favorited     bool
+}
+
+// BatchGetVideoInteractionStats 批量获取视频互动计数与 viewer 状态。
+// userID <= 0 时表示未登录，liked/favorited 直接返回 false。
+func (s *InteractionService) BatchGetVideoInteractionStats(ctx context.Context, userID int64, videoIDs []int64) (map[int64]*VideoInteractionStat, error) {
+	if len(videoIDs) == 0 {
+		return map[int64]*VideoInteractionStat{}, nil
+	}
+
+	likeCounts, err := s.GetLikeCounts(ctx, videoIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	favoriteCounts, err := s.GetFavoriteCounts(ctx, videoIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	commentCounts, err := s.popularRepo.GetCommentCounts(ctx, videoIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[int64]*VideoInteractionStat, len(videoIDs))
+	for _, id := range videoIDs {
+		result[id] = &VideoInteractionStat{
+			VideoID:       id,
+			LikeCount:     likeCounts[id],
+			FavoriteCount: favoriteCounts[id],
+			CommentCount:  commentCounts[id],
+		}
+	}
+
+	if userID <= 0 || s.likeCache == nil {
+		return result, nil
+	}
+
+	for _, id := range videoIDs {
+		liked, err := s.likeCache.IsLiked(ctx, userID, id)
+		if err != nil {
+			appLogger.Warnf("BatchGetVideoInteractionStats IsLiked failed userID=%d videoID=%d: %v", userID, id, err)
+		}
+		result[id].Liked = liked
+
+		favorited, err := s.likeCache.IsFavorited(ctx, userID, id)
+		if err != nil {
+			appLogger.Warnf("BatchGetVideoInteractionStats IsFavorited failed userID=%d videoID=%d: %v", userID, id, err)
+		}
+		result[id].Favorited = favorited
+	}
+
+	return result, nil
 }
 
 func (s *InteractionService) publishLikeEvent(ctx context.Context, userID, videoID int64, action LikeAction) error {

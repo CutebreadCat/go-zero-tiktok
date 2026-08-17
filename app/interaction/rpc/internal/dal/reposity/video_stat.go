@@ -76,6 +76,14 @@ func (r *VideoStatRepo) GetFavoriteCounts(ctx context.Context, videoIDs []int64)
 	return counts, nil
 }
 
+func (r *VideoStatRepo) GetCommentCounts(ctx context.Context, videoIDs []int64) (map[int64]int64, error) {
+	counts, err := videostattable.GetCommentCounts(ctx, r.db, videoIDs)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "VideoStatRepo.GetCommentCounts")
+	}
+	return counts, nil
+}
+
 func (r *VideoStatRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error) {
 	rows, total, err := videostattable.GetPopularVideoIDsByVisitCount(ctx, r.db, pageNum, pageSize)
 	if err != nil {

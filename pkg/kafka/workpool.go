@@ -32,8 +32,8 @@ var ErrPoolClosed = errors.New("kafka: worker pool is stopped")
 // 不同 key 分散到不同分片，由不同 Worker 并行处理，最大化吞吐。
 // 这是"顺序保证"与"消费并行度"之间业界通用解法（分片/分区内串行、分区间并行）。
 type WorkerPool struct {
-	shards []chan Job // 分片队列，len(shards) == worker 数
-	next   uint64     // 无 key 消息的轮询计数器
+	shards  []chan Job // 分片队列，len(shards) == worker 数
+	next    uint64     // 无 key 消息的轮询计数器
 	handler ConsumerHandler
 
 	wg       sync.WaitGroup

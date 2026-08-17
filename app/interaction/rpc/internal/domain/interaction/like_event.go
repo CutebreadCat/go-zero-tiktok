@@ -19,9 +19,9 @@ const (
 type LikeAction string
 
 const (
-	LikeActionLike          LikeAction = "like"
-	LikeActionCancel        LikeAction = "cancel"
-	LikeActionFavorite      LikeAction = "favorite"
+	LikeActionLike           LikeAction = "like"
+	LikeActionCancel         LikeAction = "cancel"
+	LikeActionFavorite       LikeAction = "favorite"
 	LikeActionCancelFavorite LikeAction = "cancel_favorite"
 )
 

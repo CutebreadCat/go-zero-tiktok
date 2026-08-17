@@ -190,6 +190,8 @@ type GetVideoListResponse struct {
 type Item struct {
 	Videos        VideoBaseinfo `json:"videos"`
 	VideosPopular VideoPopular  `json:"videos_popular"`
+	Liked         bool          `json:"liked"`
+	Favorited     bool          `json:"favorited"`
 }
 
 type LikeCommentRequest struct {

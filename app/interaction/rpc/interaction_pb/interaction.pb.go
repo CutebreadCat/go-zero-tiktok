@@ -1108,6 +1108,7 @@ func (x *GetFavoriteListResponse) GetTotal() int64 {
 type BatchGetVideoInteractionStatsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	VideoIds      []int64                `protobuf:"varint,1,rep,packed,name=video_ids,json=videoIds,proto3" json:"video_ids,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 当前浏览用户，<=0 表示未登录
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1149,11 +1150,21 @@ func (x *BatchGetVideoInteractionStatsRequest) GetVideoIds() []int64 {
 	return nil
 }
 
+func (x *BatchGetVideoInteractionStatsRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
 type VideoInteractionStat struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	VideoId       int64                  `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
 	LikeCount     int64                  `protobuf:"varint,2,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
 	FavoriteCount int64                  `protobuf:"varint,3,opt,name=favorite_count,json=favoriteCount,proto3" json:"favorite_count,omitempty"`
+	CommentCount  int64                  `protobuf:"varint,4,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
+	Liked         bool                   `protobuf:"varint,5,opt,name=liked,proto3" json:"liked,omitempty"`         // user_id 是否点赞该视频
+	Favorited     bool                   `protobuf:"varint,6,opt,name=favorited,proto3" json:"favorited,omitempty"` // user_id 是否收藏该视频
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1207,6 +1218,27 @@ func (x *VideoInteractionStat) GetFavoriteCount() int64 {
 		return x.FavoriteCount
 	}
 	return 0
+}
+
+func (x *VideoInteractionStat) GetCommentCount() int64 {
+	if x != nil {
+		return x.CommentCount
+	}
+	return 0
+}
+
+func (x *VideoInteractionStat) GetLiked() bool {
+	if x != nil {
+		return x.Liked
+	}
+	return false
+}
+
+func (x *VideoInteractionStat) GetFavorited() bool {
+	if x != nil {
+		return x.Favorited
+	}
+	return false
 }
 
 type BatchGetVideoInteractionStatsResponse struct {
@@ -1326,14 +1358,18 @@ const file_app_interaction_rpc_interaction_proto_rawDesc = "" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"L\n" +
 	"\x17GetFavoriteListResponse\x12\x1b\n" +
 	"\tvideo_ids\x18\x01 \x03(\x03R\bvideoIds\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"C\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\\\n" +
 	"$BatchGetVideoInteractionStatsRequest\x12\x1b\n" +
-	"\tvideo_ids\x18\x01 \x03(\x03R\bvideoIds\"w\n" +
+	"\tvideo_ids\x18\x01 \x03(\x03R\bvideoIds\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"\xd0\x01\n" +
 	"\x14VideoInteractionStat\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12\x1d\n" +
 	"\n" +
 	"like_count\x18\x02 \x01(\x03R\tlikeCount\x12%\n" +
-	"\x0efavorite_count\x18\x03 \x01(\x03R\rfavoriteCount\"`\n" +
+	"\x0efavorite_count\x18\x03 \x01(\x03R\rfavoriteCount\x12#\n" +
+	"\rcomment_count\x18\x04 \x01(\x03R\fcommentCount\x12\x14\n" +
+	"\x05liked\x18\x05 \x01(\bR\x05liked\x12\x1c\n" +
+	"\tfavorited\x18\x06 \x01(\bR\tfavorited\"`\n" +
 	"%BatchGetVideoInteractionStatsResponse\x127\n" +
 	"\x05stats\x18\x01 \x03(\v2!.interaction.VideoInteractionStatR\x05stats2\x8a\b\n" +
 	"\x12InteractionService\x12S\n" +

@@ -139,38 +139,40 @@ func (s *VideoService) GetVideosByAuthor(ctx context.Context, authorID int64, pa
 
 // GetFeedVideos 获取 Feed 流。viewerID 为当前浏览用户（<=0 表示无登录态，仅看全站候选池）。
 // 有登录态时合并两条流：feed:global（全站候选池）+ feed:inbox:{viewerID}（关注的人发布的），
-// 按 score(发布时间) 倒序归并、去重，再游标分页。
-func (s *VideoService) GetFeedVideos(ctx context.Context, viewerID int64, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+// 按 score(发布时间) 倒序归并、去重，再分页。
+// 返回视频基础信息、对应的热度统计（含 visit_count）以及 total。
+func (s *VideoService) GetFeedVideos(ctx context.Context, viewerID int64, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, []types.VideoPopular, int64, error) {
 	// 优先走 Redis 索引（ZSet 索引 + MySQL 水合）
 	if s.feedRepo != nil {
-		videos, total, err := s.getFeedFromPools(ctx, viewerID, lastTime, pageSize)
+		videos, populars, total, err := s.getFeedFromPools(ctx, viewerID, lastTime, pageSize)
 		if err != nil {
 			logx.Errorf("get feed from pools failed, fallback to db: %v", err)
 		} else if len(videos) > 0 {
 			s.recordVisits(videos)
-			return videos, total, nil
+			return videos, populars, total, nil
 		}
 	}
 
 	// 兜底：MySQL 直查（现有逻辑）
 	videos, total, err := s.videoRepo.GetVideoByLastTime(ctx, lastTime, pageNum, pageSize)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, 0, err
 	}
 	s.recordVisits(videos)
-	return videos, total, nil
+	populars := s.batchGetPopulars(ctx, videos)
+	return videos, populars, total, nil
 }
 
 // getFeedFromPools 从 Redis 索引取视频：先分别 ZREVRANGEBYSCORE 拿两条流的有序索引，
 // 再按 score 归并去重（同一视频只出现一次），最后 GetVideosByIDs 水合详情。
 // 候选池只保留最近 7 天，因此窗口外视频由 MySQL 兜底补齐，保证不空页。
-func (s *VideoService) getFeedFromPools(ctx context.Context, viewerID int64, lastTime string, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
+func (s *VideoService) getFeedFromPools(ctx context.Context, viewerID int64, lastTime string, pageSize int32) ([]types.VideoBaseinfo, []types.VideoPopular, int64, error) {
 	// lastTime 字符串转毫秒时间戳，作为 ZSet 游标
 	var lastTimeMs int64
 	if lt := strings.TrimSpace(lastTime); lt != "" {
 		t, err := myutils.StrToTime(lt, "")
 		if err != nil {
-			return nil, 0, err
+			return nil, nil, 0, err
 		}
 		lastTimeMs = t.UnixMilli()
 	}
@@ -178,20 +180,20 @@ func (s *VideoService) getFeedFromPools(ctx context.Context, viewerID int64, las
 	// 每条流多取一条判断 hasMore（合并去重后再判断）
 	global, err := s.feedRepo.GetGlobalPool(ctx, lastTimeMs, int(pageSize)+1)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, 0, err
 	}
 	var inbox []types.FeedIndex
 	if viewerID > 0 {
 		inbox, err = s.feedRepo.GetUserInbox(ctx, viewerID, lastTimeMs, int(pageSize)+1)
 		if err != nil {
-			return nil, 0, err
+			return nil, nil, 0, err
 		}
 	}
 
 	merged, hasMore := mergeFeedIndexes(global, inbox, pageSize)
 	if len(merged) == 0 {
 		// 索引为空（冷启动/无视频），交由调用方走 MySQL 兜底
-		return nil, 0, nil
+		return nil, nil, 0, nil
 	}
 
 	videoIDs := make([]int64, 0, len(merged))
@@ -201,14 +203,41 @@ func (s *VideoService) getFeedFromPools(ctx context.Context, viewerID int64, las
 
 	videos, err := s.videoRepo.GetVideosByIDs(ctx, videoIDs)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, 0, err
 	}
 
+	populars := s.batchGetPopulars(ctx, videos)
 	total := int64(len(videos))
 	if hasMore {
 		total = int64(len(videoIDs))
 	}
-	return videos, total, nil
+	return videos, populars, total, nil
+}
+
+// batchGetPopulars 根据视频列表批量查询 visit_count 等热度统计。
+//
+//	video 表与 video_stat 表按 video_id 一一对应，缺失统计视为 0。
+func (s *VideoService) batchGetPopulars(ctx context.Context, videos []types.VideoBaseinfo) []types.VideoPopular {
+	if len(videos) == 0 {
+		return nil
+	}
+
+	videoIDs := make([]int64, 0, len(videos))
+	for _, v := range videos {
+		videoIDs = append(videoIDs, v.VideoID)
+	}
+
+	populars, err := s.popularRepo.GetPopularVideosByIDs(ctx, videoIDs)
+	if err != nil {
+		logx.Errorf("batchGetPopulars failed: %v", err)
+		populars = map[int64]types.VideoPopular{}
+	}
+
+	result := make([]types.VideoPopular, 0, len(videos))
+	for _, v := range videos {
+		result = append(result, populars[v.VideoID])
+	}
+	return result
 }
 
 // mergeFeedIndexes 将两条按 score 倒序的流按 score 归并、去重，截取前 limit 条。

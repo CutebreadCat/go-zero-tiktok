@@ -43,6 +43,7 @@ message VideoInfo {
     string title = 5;
     string description = 6;
     string created_at = 7;
+    int64 visit_count = 8;
 }
 
 message GetFeedVideoResponse {

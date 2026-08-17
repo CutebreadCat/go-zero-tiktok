@@ -30,14 +30,14 @@ func (l *GetFeedVideoLogic) GetFeedVideo(in *video_pb.GetFeedVideoRequest) (*vid
 	}
 
 	// viewer_id 由 gateway 从登录态透传（rpc 内部拿不到鉴权信息）
-	videos, total, err := l.svcCtx.VideoService.GetFeedVideos(l.ctx, in.ViewerId, in.LastTime, in.PageNum, in.PageSize)
+	videos, populars, total, err := l.svcCtx.VideoService.GetFeedVideos(l.ctx, in.ViewerId, in.LastTime, in.PageNum, in.PageSize)
 	if err != nil {
 		return nil, xerr.Wrap(err, "GetFeedVideo")
 	}
 
 	videoInfos := make([]*video_pb.VideoInfo, 0, len(videos))
-	for _, v := range videos {
-		videoInfos = append(videoInfos, &video_pb.VideoInfo{
+	for i, v := range videos {
+		info := &video_pb.VideoInfo{
 			VideoId:     v.VideoID,
 			AuthorId:    v.AuthorID,
 			VideoUrl:    v.VideoURL,
@@ -45,7 +45,11 @@ func (l *GetFeedVideoLogic) GetFeedVideo(in *video_pb.GetFeedVideoRequest) (*vid
 			Title:       v.Title,
 			Description: v.Description,
 			CreatedAt:   v.CreatedAt,
-		})
+		}
+		if i < len(populars) {
+			info.VisitCount = populars[i].VisitCount
+		}
+		videoInfos = append(videoInfos, info)
 	}
 
 	return &video_pb.GetFeedVideoResponse{

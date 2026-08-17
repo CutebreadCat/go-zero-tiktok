@@ -46,4 +46,6 @@ type IPopularRepo interface {
 	GetLikeCounts(ctx context.Context, videoIDs []int64) (map[int64]int64, error)
 	// GetFavoriteCounts 批量查询视频 favorite_count。
 	GetFavoriteCounts(ctx context.Context, videoIDs []int64) (map[int64]int64, error)
+	// GetCommentCounts 批量查询视频 comment_count。
+	GetCommentCounts(ctx context.Context, videoIDs []int64) (map[int64]int64, error)
 }

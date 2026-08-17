@@ -61,6 +61,24 @@ func (r *VideoStatRepo) GetLikeCounts(ctx context.Context, videoIDs []int64) (ma
 	return counts, nil
 }
 
+func (r *VideoStatRepo) GetPopularVideosByIDs(ctx context.Context, videoIDs []int64) (map[int64]types.VideoPopular, error) {
+	rows, err := videostattable.GetPopularVideosByIDs(ctx, r.db, videoIDs)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "VideoStatRepo.GetPopularVideosByIDs")
+	}
+
+	result := make(map[int64]types.VideoPopular, len(videoIDs))
+	for _, p := range rows {
+		result[p.VideoID] = r.VideoStatToResponse(&p)
+	}
+	for _, id := range videoIDs {
+		if _, ok := result[id]; !ok {
+			result[id] = types.VideoPopular{VideoID: id}
+		}
+	}
+	return result, nil
+}
+
 func (r *VideoStatRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error) {
 	rows, total, err := videostattable.GetPopularVideoIDsByVisitCount(ctx, r.db, pageNum, pageSize)
 	if err != nil {

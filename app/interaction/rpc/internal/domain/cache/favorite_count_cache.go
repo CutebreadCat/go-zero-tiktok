@@ -130,6 +130,17 @@ func (c *LikeCountCache) GetFavoritedVideoIDs(ctx context.Context, userID int64,
 	return ids, total, nil
 }
 
+// IsFavorited 查询用户是否收藏某视频。
+func (c *LikeCountCache) IsFavorited(ctx context.Context, userID, videoID int64) (bool, error) {
+	usersKey := fmtVideoFavoriteUsersKey(videoID)
+	member := strconv.FormatInt(userID, 10)
+	ok, err := c.rdb.SismemberCtx(ctx, usersKey, member)
+	if err != nil {
+		return false, xerr.Wrap(err, "LikeCountCache.IsFavorited")
+	}
+	return ok, nil
+}
+
 // GetVideoFavoriteUserIDs 获取收藏某视频的全部用户 ID（供 syncer 同步关系用）。
 func (c *LikeCountCache) GetVideoFavoriteUserIDs(ctx context.Context, videoID int64) ([]int64, error) {
 	usersKey := fmtVideoFavoriteUsersKey(videoID)

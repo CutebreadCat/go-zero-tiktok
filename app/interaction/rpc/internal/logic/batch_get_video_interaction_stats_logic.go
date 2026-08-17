@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go_zero-tiktok/app/interaction/rpc/interaction_pb"
+	interactiondomain "go_zero-tiktok/app/interaction/rpc/internal/domain/interaction"
 	"go_zero-tiktok/app/interaction/rpc/internal/svc"
 	"go_zero-tiktok/pkg/xerr"
 
@@ -29,22 +30,24 @@ func (l *BatchGetVideoInteractionStatsLogic) BatchGetVideoInteractionStats(in *i
 		return &interaction_pb.BatchGetVideoInteractionStatsResponse{Stats: []*interaction_pb.VideoInteractionStat{}}, nil
 	}
 
-	likeCounts, err := l.svcCtx.InteractionService.GetLikeCounts(l.ctx, in.VideoIds)
+	statsMap, err := l.svcCtx.InteractionService.BatchGetVideoInteractionStats(l.ctx, in.UserId, in.VideoIds)
 	if err != nil {
-		return nil, xerr.HandleDaoError(err, "BatchGetVideoInteractionStats.GetLikeCounts")
-	}
-
-	favoriteCounts, err := l.svcCtx.InteractionService.GetFavoriteCounts(l.ctx, in.VideoIds)
-	if err != nil {
-		return nil, xerr.HandleDaoError(err, "BatchGetVideoInteractionStats.GetFavoriteCounts")
+		return nil, xerr.HandleDaoError(err, "BatchGetVideoInteractionStats")
 	}
 
 	stats := make([]*interaction_pb.VideoInteractionStat, 0, len(in.VideoIds))
 	for _, videoID := range in.VideoIds {
+		s := statsMap[videoID]
+		if s == nil {
+			s = &interactiondomain.VideoInteractionStat{VideoID: videoID}
+		}
 		stats = append(stats, &interaction_pb.VideoInteractionStat{
 			VideoId:       videoID,
-			LikeCount:     likeCounts[videoID],
-			FavoriteCount: favoriteCounts[videoID],
+			LikeCount:     s.LikeCount,
+			FavoriteCount: s.FavoriteCount,
+			CommentCount:  s.CommentCount,
+			Liked:         s.Liked,
+			Favorited:     s.Favorited,
 		})
 	}
 

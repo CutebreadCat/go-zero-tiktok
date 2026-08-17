@@ -22,6 +22,8 @@ type IPopularRepo interface {
 	UpdateVideoLikeCount(ctx context.Context, videoID int64, delta int64) error
 	UpdateVideoFavoriteCount(ctx context.Context, videoID int64, delta int64) error
 	GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error)
+	// GetPopularVideosByIDs 批量查询视频热度统计（含 visit_count）。
+	GetPopularVideosByIDs(ctx context.Context, videoIDs []int64) (map[int64]types.VideoPopular, error)
 	// SetLikeCount 直接设置视频 like_count（供 syncer 以 Redis 为基准对齐 MySQL）。
 	SetLikeCount(ctx context.Context, videoID int64, count int64) error
 	// GetLikeCounts 批量查询视频 like_count，用于 Redis 未命中时回源。

@@ -114,12 +114,16 @@ message GetFavoriteListResponse {
 
 message BatchGetVideoInteractionStatsRequest {
     repeated int64 video_ids = 1;
+    int64 user_id = 2; // 当前浏览用户，<=0 表示未登录
 }
 
 message VideoInteractionStat {
     int64 video_id = 1;
     int64 like_count = 2;
     int64 favorite_count = 3;
+    int64 comment_count = 4;
+    bool liked = 5;      // user_id 是否点赞该视频
+    bool favorited = 6;  // user_id 是否收藏该视频
 }
 
 message BatchGetVideoInteractionStatsResponse {

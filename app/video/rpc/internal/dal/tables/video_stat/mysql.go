@@ -137,6 +137,19 @@ func GetLikeCounts(ctx context.Context, db *gorm.DB, videoIDs []int64) (map[int6
 	return result, nil
 }
 
+func GetPopularVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []int64) ([]VideoStat, error) {
+	if len(videoIDs) == 0 {
+		return nil, nil
+	}
+
+	var rows []VideoStat
+	if err := db.WithContext(ctx).Where("video_id IN ?", videoIDs).Find(&rows).Error; err != nil {
+		return nil, xerr.Wrap(err, "get popular videos by ids failed")
+	}
+
+	return rows, nil
+}
+
 func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]VideoStat, int64, error) {
 	dbQuery := db.WithContext(ctx).Model(&VideoStat{})
 

@@ -169,6 +169,30 @@ func GetFavoriteCounts(ctx context.Context, db *gorm.DB, videoIDs []int64) (map[
 	return result, nil
 }
 
+func GetCommentCounts(ctx context.Context, db *gorm.DB, videoIDs []int64) (map[int64]int64, error) {
+	if len(videoIDs) == 0 {
+		return map[int64]int64{}, nil
+	}
+
+	var rows []VideoStat
+	if err := db.WithContext(ctx).Where("video_id IN ?", videoIDs).Find(&rows).Error; err != nil {
+		return nil, xerr.Wrap(err, "get comment counts failed")
+	}
+
+	result := make(map[int64]int64, len(rows))
+	for _, row := range rows {
+		result[row.VideoID] = row.CommentCount
+	}
+
+	for _, id := range videoIDs {
+		if _, ok := result[id]; !ok {
+			result[id] = 0
+		}
+	}
+
+	return result, nil
+}
+
 func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, pageSize int32) ([]VideoStat, int64, error) {
 	dbQuery := db.WithContext(ctx).Model(&VideoStat{})
 

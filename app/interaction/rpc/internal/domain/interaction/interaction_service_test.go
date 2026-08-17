@@ -60,6 +60,34 @@ func TestInteractionService_CancelLikeVideo_SyncPath(t *testing.T) {
 	testhelpers.AssertInvalidParam(t, err)
 }
 
+func TestInteractionService_BatchGetVideoInteractionStats(t *testing.T) {
+	db := testhelpers.NewTestDB(t)
+	ctx := context.Background()
+
+	// 准备两条视频及其统计
+	testhelpers.AssertNoErr(t, video_stat.CreatePopularVideo(ctx, db, 2001))
+	testhelpers.AssertNoErr(t, video_stat.CreatePopularVideo(ctx, db, 2002))
+
+	interactionRepo := reposity.NewVideoInteractionRepo(db)
+	statRepo := reposity.NewVideoStatRepo(db)
+	svc := NewInteractionService(interactionRepo, statRepo, nil, nil)
+
+	// 构造互动数据
+	testhelpers.AssertNoErr(t, svc.LikeVideo(ctx, 1001, 2001))
+	testhelpers.AssertNoErr(t, svc.FavoriteVideo(ctx, 1001, 2001))
+	testhelpers.AssertNoErr(t, svc.LikeVideo(ctx, 1002, 2001))
+
+	// 未登录场景：返回计数，liked/favorited 全 false
+	stats, err := svc.BatchGetVideoInteractionStats(ctx, 0, []int64{2001, 2002, 2003})
+	testhelpers.AssertNoErr(t, err)
+	testhelpers.AssertEqual(t, stats[2001].LikeCount, int64(2))
+	testhelpers.AssertEqual(t, stats[2001].FavoriteCount, int64(1))
+	testhelpers.AssertEqual(t, stats[2001].Liked, false)
+	testhelpers.AssertEqual(t, stats[2001].Favorited, false)
+	testhelpers.AssertEqual(t, stats[2002].LikeCount, int64(0))
+	testhelpers.AssertEqual(t, stats[2003].LikeCount, int64(0))
+}
+
 func TestInteractionService_FavoriteVideo_SyncPath(t *testing.T) {
 	db := testhelpers.NewTestDB(t)
 	ctx := context.Background()

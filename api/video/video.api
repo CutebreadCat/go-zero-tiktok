@@ -72,5 +72,7 @@ type (
   Item {
     Videos        VideoBaseinfo `json:"videos"`
     VideosPopular VideoPopular  `json:"videos_popular"`
+    Liked         bool          `json:"liked"`
+    Favorited     bool          `json:"favorited"`
   }
 )

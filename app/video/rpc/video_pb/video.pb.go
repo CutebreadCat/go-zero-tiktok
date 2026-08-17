@@ -324,6 +324,7 @@ type VideoInfo struct {
 	Title         string                 `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
 	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	VisitCount    int64                  `protobuf:"varint,8,opt,name=visit_count,json=visitCount,proto3" json:"visit_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -405,6 +406,13 @@ func (x *VideoInfo) GetCreatedAt() string {
 		return x.CreatedAt
 	}
 	return ""
+}
+
+func (x *VideoInfo) GetVisitCount() int64 {
+	if x != nil {
+		return x.VisitCount
+	}
+	return 0
 }
 
 type GetFeedVideoResponse struct {
@@ -1064,7 +1072,7 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\buser_ids\x18\x02 \x03(\x03R\auserIds\x12\x1d\n" +
 	"\n" +
 	"publish_at\x18\x03 \x01(\x03R\tpublishAt\"\x14\n" +
-	"\x12FeedFanoutResponse\"\xd4\x01\n" +
+	"\x12FeedFanoutResponse\"\xf5\x01\n" +
 	"\tVideoInfo\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12\x1b\n" +
 	"\tauthor_id\x18\x02 \x01(\x03R\bauthorId\x12\x1b\n" +
@@ -1073,7 +1081,9 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\x05title\x18\x05 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\a \x01(\tR\tcreatedAt\"V\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1f\n" +
+	"\vvisit_count\x18\b \x01(\x03R\n" +
+	"visitCount\"V\n" +
 	"\x14GetFeedVideoResponse\x12(\n" +
 	"\x06videos\x18\x01 \x03(\v2\x10.video.VideoInfoR\x06videos\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\"j\n" +
