@@ -13,10 +13,14 @@ type Repositories struct {
 	Feed      *videorepo.FeedRepo
 }
 
-func NewRepositories(db *gorm.DB, rdb *redis.Redis) *Repositories {
+func NewRepositories(db *gorm.DB, rdb *redis.Redis) (*Repositories, error) {
+	videoRepo, err := videorepo.NewVideoBaseinfoRepo(db)
+	if err != nil {
+		return nil, err
+	}
 	return &Repositories{
-		Video:     videorepo.NewVideoBaseinfoRepo(db),
+		Video:     videoRepo,
 		VideoStat: videorepo.NewVideoStatRepo(db),
 		Feed:      videorepo.NewFeedRepo(rdb),
-	}
+	}, nil
 }

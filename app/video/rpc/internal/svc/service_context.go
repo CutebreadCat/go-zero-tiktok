@@ -33,7 +33,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	aliyun.LoadConfig()
 	aliyun.InitClient()
 
-	dalRepo := NewRepositories(db, rdb)
+	dalRepo, err := NewRepositories(db, rdb)
+	logx.Must(err)
 	storageAdapter := &StorageAdapter{}
 
 	return &ServiceContext{
