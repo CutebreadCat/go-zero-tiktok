@@ -208,6 +208,14 @@ func (r *VideoBaseinfoRepo) GetVideoByLastTime(ctx context.Context, lastTime str
 	return r.VideosToResponse(videos), total, nil
 }
 
+func (r *VideoBaseinfoRepo) GetVideosByCursor(ctx context.Context, publishedAt, videoID int64, limit int32) ([]types.VideoBaseinfo, error) {
+	videos, err := videobasetable.GetVideosByCursor(ctx, r.db, publishedAt, videoID, limit)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideosByCursor")
+	}
+	return r.VideosToResponse(videos), nil
+}
+
 func (r *VideoBaseinfoRepo) VideoToResponse(video *videobasetable.VideoBaseinfo) types.VideoBaseinfo {
 	videoURL := aliyun.BuildURL(video.VideoObjectKey)
 	coverURL := ""

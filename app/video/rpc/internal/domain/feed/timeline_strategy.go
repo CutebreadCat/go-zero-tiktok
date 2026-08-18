@@ -2,11 +2,8 @@ package feed
 
 import (
 	"context"
-	"strings"
-	"time"
 
 	"go_zero-tiktok/pkg/contract"
-	myutils "go_zero-tiktok/pkg/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -22,7 +19,8 @@ type TimelineStrategy struct {
 // domainVideoRepo 是 TimelineStrategy 所需的视频仓储能力子集。
 type domainVideoRepo interface {
 	GetVideosByIDs(ctx context.Context, videoIDs []int64) ([]types.VideoBaseinfo, error)
-	GetVideoByLastTime(ctx context.Context, lastTime string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
+	// GetVideosByCursor 复合游标分页兜底：按 (created_at, video_id) < (publishedAt, videoID) 倒序取 limit 条。
+	GetVideosByCursor(ctx context.Context, publishedAt, videoID int64, limit int32) ([]types.VideoBaseinfo, error)
 }
 
 // domainPopularRepo 是 TimelineStrategy 所需的热度仓储能力子集。
@@ -90,18 +88,17 @@ func (s *TimelineStrategy) GetFeed(ctx context.Context, viewerID int64, cursor s
 	}, nil
 }
 
-// getFeedFromPools 从 Redis 索引取视频，候选池不足时走 MySQL 兜底。
+// getFeedFromPools 从 Redis 索引取视频，候选池不足时走 MySQL 复合游标兜底。
 // 有登录态时合并 feed:global 与 feed:inbox:{viewerID}。
 func (s *TimelineStrategy) getFeedFromPools(ctx context.Context, viewerID int64, cursor *TimelineCursor, pageSize int32) ([]types.VideoBaseinfo, []types.VideoPopular, bool, error) {
-	var lastTimeMs int64
-	var lastTimeStr string
+	var lastTimeMs, lastVideoID int64
 	if cursor != nil {
 		lastTimeMs = cursor.PublishedAt
-		lastTimeStr = myutils.TimeToStr(time.UnixMilli(lastTimeMs), "")
+		lastVideoID = cursor.VideoID
 	}
 
 	if s.feedRepo != nil {
-		videos, populars, hasMore, err := s.getFeedFromRedis(ctx, viewerID, lastTimeMs, lastTimeStr, pageSize)
+		videos, populars, hasMore, err := s.getFeedFromRedis(ctx, viewerID, lastTimeMs, pageSize)
 		if err != nil {
 			logx.Errorf("get feed from redis failed, fallback to db: %v", err)
 		} else if len(videos) > 0 {
@@ -109,17 +106,17 @@ func (s *TimelineStrategy) getFeedFromPools(ctx context.Context, viewerID int64,
 		}
 	}
 
-	// 兜底：MySQL 直查
-	videos, _, err := s.videoRepo.GetVideoByLastTime(ctx, lastTimeStr, 1, pageSize)
+	// 兜底：MySQL 复合游标分页
+	videos, err := s.videoRepo.GetVideosByCursor(ctx, lastTimeMs, lastVideoID, pageSize)
 	if err != nil {
 		return nil, nil, false, err
 	}
-	populars := s.batchGetPopulars(ctx, videos)
+	populars := batchGetPopulars(ctx, videos, s.popularRepo)
 	return videos, populars, false, nil
 }
 
 // getFeedFromRedis 从 Redis 候选池读取并合并。
-func (s *TimelineStrategy) getFeedFromRedis(ctx context.Context, viewerID int64, lastTimeMs int64, lastTimeStr string, pageSize int32) ([]types.VideoBaseinfo, []types.VideoPopular, bool, error) {
+func (s *TimelineStrategy) getFeedFromRedis(ctx context.Context, viewerID int64, lastTimeMs int64, pageSize int32) ([]types.VideoBaseinfo, []types.VideoPopular, bool, error) {
 	global, err := s.feedRepo.GetGlobalPool(ctx, lastTimeMs, int(pageSize)+1)
 	if err != nil {
 		return nil, nil, false, err
@@ -148,7 +145,7 @@ func (s *TimelineStrategy) getFeedFromRedis(ctx context.Context, viewerID int64,
 		return nil, nil, false, err
 	}
 
-	populars := s.batchGetPopulars(ctx, videos)
+	populars := batchGetPopulars(ctx, videos, s.popularRepo)
 	return videos, populars, hasMore, nil
 }
 
@@ -191,39 +188,3 @@ func mergeFeedIndexes(global, inbox []types.FeedIndex, limit int32) ([]types.Fee
 	return merged, false
 }
 
-// batchGetPopulars 根据视频列表批量查询 visit_count 等热度统计。
-func (s *TimelineStrategy) batchGetPopulars(ctx context.Context, videos []types.VideoBaseinfo) []types.VideoPopular {
-	if len(videos) == 0 {
-		return nil
-	}
-
-	videoIDs := make([]int64, 0, len(videos))
-	for _, v := range videos {
-		videoIDs = append(videoIDs, v.VideoID)
-	}
-
-	populars, err := s.popularRepo.GetPopularVideosByIDs(ctx, videoIDs)
-	if err != nil {
-		logx.Errorf("batchGetPopulars failed: %v", err)
-		populars = map[int64]types.VideoPopular{}
-	}
-
-	result := make([]types.VideoPopular, 0, len(videos))
-	for _, v := range videos {
-		result = append(result, populars[v.VideoID])
-	}
-	return result
-}
-
-// lastPublishedAtMs 解析视频创建时间为毫秒时间戳。
-func lastPublishedAtMs(createdAt string) (int64, error) {
-	createdAt = strings.TrimSpace(createdAt)
-	if createdAt == "" {
-		return 0, nil
-	}
-	t, err := myutils.StrToTime(createdAt, "")
-	if err != nil {
-		return 0, err
-	}
-	return t.UnixMilli(), nil
-}

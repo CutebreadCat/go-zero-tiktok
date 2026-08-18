@@ -26,7 +26,10 @@ func NewVideoService(videoRepo IVideoRepo, popularRepo IPopularRepo, storage Sto
 		popularRepo:     popularRepo,
 		storage:         storage,
 		feedRepo:        feedRepo,
-		strategyFactory: feedpkg.NewStrategyFactory(feedpkg.NewTimelineStrategy(videoRepo, popularRepo, feedRepo)),
+		strategyFactory: feedpkg.NewStrategyFactory(
+			feedpkg.NewTimelineStrategy(videoRepo, popularRepo, feedRepo),
+			feedpkg.NewFollowingStrategy(videoRepo, popularRepo, feedRepo),
+		),
 	}
 }
 
