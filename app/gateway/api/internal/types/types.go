@@ -80,15 +80,20 @@ type FavoriteVideoResponse struct {
 }
 
 type FeedVideoRequest struct {
-	LastTime string `form:"last_time"`
-	PageNum  int32  `form:"page_num"`
-	PageSize int32  `form:"page_size"`
+	LastTime string `form:"last_time,optional"`
+	PageNum  int32  `form:"page_num,optional"`
+	PageSize int32  `form:"page_size,optional"`
+	Scene    string `form:"scene,optional"`
+	Cursor   string `form:"cursor,optional"`
+	Limit    int32  `form:"limit,optional"`
 }
 
 type FeedVideoResponse struct {
-	Base  BaseResponse `json:"base"`
-	Total int64        `json:"total"`
-	Items []Item       `json:"items"`
+	Base       BaseResponse `json:"base"`
+	Total      int64        `json:"total"`
+	NextCursor string       `json:"next_cursor"`
+	HasMore    bool         `json:"has_more"`
+	Items      []Item       `json:"items"`
 }
 
 type GetCommentListRequest struct {
@@ -190,6 +195,7 @@ type GetVideoListResponse struct {
 type Item struct {
 	Videos        VideoBaseinfo `json:"videos"`
 	VideosPopular VideoPopular  `json:"videos_popular"`
+	Author        UserBaseinfo  `json:"author"`
 	Liked         bool          `json:"liked"`
 	Favorited     bool          `json:"favorited"`
 }

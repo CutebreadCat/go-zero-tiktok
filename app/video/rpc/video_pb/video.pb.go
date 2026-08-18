@@ -150,11 +150,17 @@ func (x *PublishVideoResponse) GetPublishedAt() int64 {
 }
 
 type GetFeedVideoRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LastTime      string                 `protobuf:"bytes,1,opt,name=last_time,json=lastTime,proto3" json:"last_time,omitempty"`
-	PageNum       int32                  `protobuf:"varint,2,opt,name=page_num,json=pageNum,proto3" json:"page_num,omitempty"`
-	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	ViewerId      int64                  `protobuf:"varint,4,opt,name=viewer_id,json=viewerId,proto3" json:"viewer_id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Deprecated: Marked as deprecated in app/video/rpc/video.proto.
+	LastTime string `protobuf:"bytes,1,opt,name=last_time,json=lastTime,proto3" json:"last_time,omitempty"`
+	// Deprecated: Marked as deprecated in app/video/rpc/video.proto.
+	PageNum int32 `protobuf:"varint,2,opt,name=page_num,json=pageNum,proto3" json:"page_num,omitempty"`
+	// Deprecated: Marked as deprecated in app/video/rpc/video.proto.
+	PageSize      int32  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	ViewerId      int64  `protobuf:"varint,4,opt,name=viewer_id,json=viewerId,proto3" json:"viewer_id,omitempty"`
+	Scene         string `protobuf:"bytes,5,opt,name=scene,proto3" json:"scene,omitempty"`
+	Cursor        string `protobuf:"bytes,6,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	Limit         int32  `protobuf:"varint,7,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -189,6 +195,7 @@ func (*GetFeedVideoRequest) Descriptor() ([]byte, []int) {
 	return file_app_video_rpc_video_proto_rawDescGZIP(), []int{2}
 }
 
+// Deprecated: Marked as deprecated in app/video/rpc/video.proto.
 func (x *GetFeedVideoRequest) GetLastTime() string {
 	if x != nil {
 		return x.LastTime
@@ -196,6 +203,7 @@ func (x *GetFeedVideoRequest) GetLastTime() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in app/video/rpc/video.proto.
 func (x *GetFeedVideoRequest) GetPageNum() int32 {
 	if x != nil {
 		return x.PageNum
@@ -203,6 +211,7 @@ func (x *GetFeedVideoRequest) GetPageNum() int32 {
 	return 0
 }
 
+// Deprecated: Marked as deprecated in app/video/rpc/video.proto.
 func (x *GetFeedVideoRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
@@ -213,6 +222,27 @@ func (x *GetFeedVideoRequest) GetPageSize() int32 {
 func (x *GetFeedVideoRequest) GetViewerId() int64 {
 	if x != nil {
 		return x.ViewerId
+	}
+	return 0
+}
+
+func (x *GetFeedVideoRequest) GetScene() string {
+	if x != nil {
+		return x.Scene
+	}
+	return ""
+}
+
+func (x *GetFeedVideoRequest) GetCursor() string {
+	if x != nil {
+		return x.Cursor
+	}
+	return ""
+}
+
+func (x *GetFeedVideoRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
 	}
 	return 0
 }
@@ -419,6 +449,8 @@ type GetFeedVideoResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Videos        []*VideoInfo           `protobuf:"bytes,1,rep,name=videos,proto3" json:"videos,omitempty"`
 	Total         int64                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	NextCursor    string                 `protobuf:"bytes,3,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	HasMore       bool                   `protobuf:"varint,4,opt,name=has_more,json=hasMore,proto3" json:"has_more,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -465,6 +497,20 @@ func (x *GetFeedVideoResponse) GetTotal() int64 {
 		return x.Total
 	}
 	return 0
+}
+
+func (x *GetFeedVideoResponse) GetNextCursor() string {
+	if x != nil {
+		return x.NextCursor
+	}
+	return ""
+}
+
+func (x *GetFeedVideoResponse) GetHasMore() bool {
+	if x != nil {
+		return x.HasMore
+	}
+	return false
 }
 
 type GetVideoListRequest struct {
@@ -1061,12 +1107,15 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\bfilename\x18\x05 \x01(\tR\bfilename\"T\n" +
 	"\x14PublishVideoResponse\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12!\n" +
-	"\fpublished_at\x18\x02 \x01(\x03R\vpublishedAt\"\x87\x01\n" +
-	"\x13GetFeedVideoRequest\x12\x1b\n" +
-	"\tlast_time\x18\x01 \x01(\tR\blastTime\x12\x19\n" +
-	"\bpage_num\x18\x02 \x01(\x05R\apageNum\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1b\n" +
-	"\tviewer_id\x18\x04 \x01(\x03R\bviewerId\"h\n" +
+	"\fpublished_at\x18\x02 \x01(\x03R\vpublishedAt\"\xd7\x01\n" +
+	"\x13GetFeedVideoRequest\x12\x1f\n" +
+	"\tlast_time\x18\x01 \x01(\tB\x02\x18\x01R\blastTime\x12\x1d\n" +
+	"\bpage_num\x18\x02 \x01(\x05B\x02\x18\x01R\apageNum\x12\x1f\n" +
+	"\tpage_size\x18\x03 \x01(\x05B\x02\x18\x01R\bpageSize\x12\x1b\n" +
+	"\tviewer_id\x18\x04 \x01(\x03R\bviewerId\x12\x14\n" +
+	"\x05scene\x18\x05 \x01(\tR\x05scene\x12\x16\n" +
+	"\x06cursor\x18\x06 \x01(\tR\x06cursor\x12\x14\n" +
+	"\x05limit\x18\a \x01(\x05R\x05limit\"h\n" +
 	"\x11FeedFanoutRequest\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12\x19\n" +
 	"\buser_ids\x18\x02 \x03(\x03R\auserIds\x12\x1d\n" +
@@ -1083,10 +1132,13 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1f\n" +
 	"\vvisit_count\x18\b \x01(\x03R\n" +
-	"visitCount\"V\n" +
+	"visitCount\"\x92\x01\n" +
 	"\x14GetFeedVideoResponse\x12(\n" +
 	"\x06videos\x18\x01 \x03(\v2\x10.video.VideoInfoR\x06videos\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"j\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x1f\n" +
+	"\vnext_cursor\x18\x03 \x01(\tR\n" +
+	"nextCursor\x12\x19\n" +
+	"\bhas_more\x18\x04 \x01(\bR\ahasMore\"j\n" +
 	"\x13GetVideoListRequest\x12\x1b\n" +
 	"\tauthor_id\x18\x01 \x01(\x03R\bauthorId\x12\x19\n" +
 	"\bpage_num\x18\x02 \x01(\x05R\apageNum\x12\x1b\n" +

@@ -18,10 +18,13 @@ message PublishVideoResponse {
 }
 
 message GetFeedVideoRequest {
-    string last_time = 1;
-    int32 page_num = 2;
-    int32 page_size = 3;
+    string last_time = 1 [deprecated = true];
+    int32 page_num = 2 [deprecated = true];
+    int32 page_size = 3 [deprecated = true];
     int64 viewer_id = 4;
+    string scene = 5;
+    string cursor = 6;
+    int32 limit = 7;
 }
 
 // FeedFanoutRequest 关注流扇出：将某条视频写入指定用户的收件箱 feed:inbox:{uid}
@@ -49,6 +52,8 @@ message VideoInfo {
 message GetFeedVideoResponse {
     repeated VideoInfo videos = 1;
     int64 total = 2;
+    string next_cursor = 3;
+    bool has_more = 4;
 }
 
 message GetVideoListRequest {
