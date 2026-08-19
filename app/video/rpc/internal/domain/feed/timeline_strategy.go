@@ -16,24 +16,6 @@ type TimelineStrategy struct {
 	feedRepo    domainFeedRepo
 }
 
-// domainVideoRepo 是 TimelineStrategy 所需的视频仓储能力子集。
-type domainVideoRepo interface {
-	GetVideosByIDs(ctx context.Context, videoIDs []int64) ([]types.VideoBaseinfo, error)
-	// GetVideosByCursor 复合游标分页兜底：按 (created_at, video_id) < (publishedAt, videoID) 倒序取 limit 条。
-	GetVideosByCursor(ctx context.Context, publishedAt, videoID int64, limit int32) ([]types.VideoBaseinfo, error)
-}
-
-// domainPopularRepo 是 TimelineStrategy 所需的热度仓储能力子集。
-type domainPopularRepo interface {
-	GetPopularVideosByIDs(ctx context.Context, videoIDs []int64) (map[int64]types.VideoPopular, error)
-}
-
-// domainFeedRepo 是 TimelineStrategy 所需的 Feed 索引仓储能力子集。
-type domainFeedRepo interface {
-	GetGlobalPool(ctx context.Context, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
-	GetUserInbox(ctx context.Context, uid, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
-}
-
 // NewTimelineStrategy 创建时间线策略。
 func NewTimelineStrategy(videoRepo domainVideoRepo, popularRepo domainPopularRepo, feedRepo domainFeedRepo) *TimelineStrategy {
 	return &TimelineStrategy{

@@ -16,6 +16,10 @@ const (
 	feedGlobalKey = "feed:global"
 	// feedRetention 候选池保留窗口，超出该窗口的视频自动裁剪，退出分发。
 	feedRetention = 7 * 24 * time.Hour
+	// hotVideosKey 全站热门视频有序集合：member=video_id, score=热度分
+	hotVideosKey = "hot:videos"
+	// hotFetchFactor Redis 同分过滤兜底因子，先多取若干条再按 video_id 精断
+	hotFetchFactor = 5
 )
 
 // FeedRepo 全站 Feed 候选池 + 关注流收件箱数据访问层。
@@ -118,4 +122,60 @@ func (r *FeedRepo) RemoveFromGlobalPool(ctx context.Context, videoID int64) erro
 func (r *FeedRepo) PoolLen(ctx context.Context) (int64, error) {
 	n, err := r.rdb.ZcardCtx(ctx, feedGlobalKey)
 	return int64(n), err
+}
+
+// IncreaseHotScore 对 hot:videos 按 delta 累加热度分。
+func (r *FeedRepo) IncreaseHotScore(ctx context.Context, videoID int64, delta int64) error {
+	if delta == 0 {
+		return nil
+	}
+	_, err := r.rdb.ZincrbyCtx(ctx, hotVideosKey, delta, strconv.FormatInt(videoID, 10))
+	return err
+}
+
+// GetHotVideosByCursor 从 hot:videos 取热度分 <= cursorScore 的索引，按热度倒序。
+// Redis ZSet 只能按 score 范围查询，同分场景下多取 hotFetchFactor*limit 条，
+// 由调用方按 (score, video_id) < (cursorScore, cursorVideoID) 精断后截断。
+func (r *FeedRepo) GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error) {
+	// 先取严格小于 cursorScore 的部分
+	pairs, err := r.rdb.ZrevrangebyscoreWithScoresAndLimitCtx(
+		ctx, hotVideosKey, cursorScore-1, math.MinInt64, 0, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	// 如果 cursorScore 为 0 表示首页，直接返回；否则补足同分按 video_id 过滤的部分
+	if cursorScore == 0 {
+		return r.pairsToIndexes(pairs), nil
+	}
+
+	// 取同分部分，客户端过滤
+	tiePairs, err := r.rdb.ZrevrangebyscoreWithScoresAndLimitCtx(
+		ctx, hotVideosKey, cursorScore, cursorScore, 0, limit*hotFetchFactor)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range tiePairs {
+		id, err := strconv.ParseInt(p.Key, 10, 64)
+		if err != nil {
+			continue
+		}
+		if id < cursorVideoID {
+			pairs = append(pairs, p)
+		}
+	}
+
+	return r.pairsToIndexes(pairs), nil
+}
+
+func (r *FeedRepo) pairsToIndexes(pairs []redis.Pair) []types.FeedIndex {
+	indexes := make([]types.FeedIndex, 0, len(pairs))
+	for _, p := range pairs {
+		id, err := strconv.ParseInt(p.Key, 10, 64)
+		if err != nil {
+			continue
+		}
+		indexes = append(indexes, types.FeedIndex{VideoID: id, Score: int64(p.Score)})
+	}
+	return indexes
 }

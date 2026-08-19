@@ -29,6 +29,7 @@ func NewVideoService(videoRepo IVideoRepo, popularRepo IPopularRepo, storage Sto
 		strategyFactory: feedpkg.NewStrategyFactory(
 			feedpkg.NewTimelineStrategy(videoRepo, popularRepo, feedRepo),
 			feedpkg.NewFollowingStrategy(videoRepo, popularRepo, feedRepo),
+			feedpkg.NewHotStrategy(videoRepo, popularRepo, feedRepo),
 		),
 	}
 }
@@ -68,12 +69,21 @@ func (s *VideoService) FanoutToUsers(ctx context.Context, videoID int64, userIDs
 	return nil
 }
 
-// IncreaseVideoVisitCount 同步增加视频访问量（供 interaction 服务跨 RPC 调用）
+// IncreaseVideoVisitCount 同步增加视频访问量，并累加热度分（权重 1）。
+// 热度分写入 Redis 失败不阻断访问计数主流程。
 func (s *VideoService) IncreaseVideoVisitCount(ctx context.Context, videoID int64, delta int64) error {
-	return s.popularRepo.IncreaseVideoVisitCount(ctx, videoID, delta)
+	if err := s.popularRepo.IncreaseVideoVisitCount(ctx, videoID, delta); err != nil {
+		return err
+	}
+	if s.feedRepo != nil {
+		if err := s.feedRepo.IncreaseHotScore(ctx, videoID, delta); err != nil {
+			logx.Errorf("increase hot score failed for video %d: %v", videoID, err)
+		}
+	}
+	return nil
 }
 
-// RecordVisit 异步记录视频访问量
+// RecordVisit 异步记录视频访问量与热度分。
 func (s *VideoService) RecordVisit(videoID int64) {
 	go func() {
 		defer func() {
@@ -83,8 +93,8 @@ func (s *VideoService) RecordVisit(videoID int64) {
 		}()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
-		if err := s.popularRepo.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
-			logx.Errorf("increment visit count failed for video %d: %v", videoID, err)
+		if err := s.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
+			logx.Errorf("record visit failed for video %d: %v", videoID, err)
 		}
 	}()
 }

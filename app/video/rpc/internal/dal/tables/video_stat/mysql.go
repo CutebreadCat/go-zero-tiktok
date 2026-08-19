@@ -166,3 +166,22 @@ func GetPopularVideoIDsByVisitCount(ctx context.Context, db *gorm.DB, pageNum, p
 
 	return rows, total, nil
 }
+
+// GetPopularVideosByCursor 复合游标分页：按 (visit_count, video_id) < (score, videoID) 倒序取 limit 条。
+// score=0 且 videoID=0 表示首页。
+func GetPopularVideosByCursor(ctx context.Context, db *gorm.DB, score, videoID int64, limit int32) ([]VideoStat, error) {
+	dbQuery := db.WithContext(ctx).Model(&VideoStat{})
+
+	if score > 0 || videoID > 0 {
+		dbQuery = dbQuery.Where("(visit_count, video_id) < (?, ?)", score, videoID)
+	}
+
+	var rows []VideoStat
+	if err := dbQuery.
+		Order("visit_count DESC, video_id DESC").
+		Limit(int(limit)).
+		Find(&rows).Error; err != nil {
+		return nil, xerr.Wrap(err, "get popular videos by cursor failed")
+	}
+	return rows, nil
+}

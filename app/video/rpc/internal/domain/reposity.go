@@ -31,6 +31,9 @@ type IPopularRepo interface {
 	SetLikeCount(ctx context.Context, videoID int64, count int64) error
 	// GetLikeCounts 批量查询视频 like_count，用于 Redis 未命中时回源。
 	GetLikeCounts(ctx context.Context, videoIDs []int64) (map[int64]int64, error)
+	// GetPopularVideosByCursor 复合游标分页：按 (visit_count, video_id) < (score, videoID) 倒序取 limit 条。
+	// score=0 且 videoID=0 表示首页。
+	GetPopularVideosByCursor(ctx context.Context, score, videoID int64, limit int32) ([]types.VideoPopular, error)
 }
 
 type IVideoInteractionRepo interface {
@@ -71,4 +74,9 @@ type IFeedRepo interface {
 	FanoutInbox(ctx context.Context, videoID int64, userIDs []int64, publishAt time.Time) error
 	// GetUserInbox 取用户收件箱 (lastTimeMs, +inf] 范围内按 score 倒序的索引。
 	GetUserInbox(ctx context.Context, uid, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
+	// IncreaseHotScore 对 hot:videos 有序集合按 delta 累加热度分。
+	IncreaseHotScore(ctx context.Context, videoID int64, delta int64) error
+	// GetHotVideosByCursor 从 hot:videos 取热度分 <= cursorScore 的索引，按热度倒序。
+	// 返回数量会略多于 limit，供调用方按 video_id 做同分精断。
+	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
 }

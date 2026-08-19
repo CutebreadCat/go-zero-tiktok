@@ -87,6 +87,14 @@ func (r *VideoStatRepo) GetPopularVideoIDsByVisitCount(ctx context.Context, page
 	return r.VideoStatsToResponse(rows), total, nil
 }
 
+func (r *VideoStatRepo) GetPopularVideosByCursor(ctx context.Context, score, videoID int64, limit int32) ([]types.VideoPopular, error) {
+	rows, err := videostattable.GetPopularVideosByCursor(ctx, r.db, score, videoID, limit)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "VideoStatRepo.GetPopularVideosByCursor")
+	}
+	return r.VideoStatsToResponse(rows), nil
+}
+
 func (r *VideoStatRepo) VideoStatToResponse(popular *videostattable.VideoStat) types.VideoPopular {
 	return types.VideoPopular{
 		VideoID:       popular.VideoID,
