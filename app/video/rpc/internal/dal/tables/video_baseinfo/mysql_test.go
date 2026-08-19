@@ -2,6 +2,7 @@ package video_baseinfo
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"go_zero-tiktok/testhelpers"
@@ -9,12 +10,12 @@ import (
 
 func newVideo(videoID, authorID int64, title, desc string) *VideoBaseinfo {
 	return &VideoBaseinfo{
-		VideoID:     videoID,
-		AuthorID:    authorID,
-		VideoURL:    "http://example.com/v.mp4",
-		CoverURL:    "http://example.com/c.jpg",
-		Title:       title,
-		Description: desc,
+		VideoID:        videoID,
+		AuthorID:       authorID,
+		VideoObjectKey: fmt.Sprintf("videos/%d/%d/video.mp4", authorID, videoID),
+		CoverObjectKey: fmt.Sprintf("covers/%d/%d/cover.jpg", authorID, videoID),
+		Title:          title,
+		Description:    desc,
 	}
 }
 

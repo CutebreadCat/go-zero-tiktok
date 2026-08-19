@@ -32,22 +32,13 @@ func (l *GetFriendListLogic) GetFriendList(in *communication_pb.GetFriendListReq
 		return nil, xerr.NewInvalidParam("每页数量必须在1-100之间")
 	}
 
-	users, total, err := l.svcCtx.UserFollowService.GetFriendList(l.ctx, in.UserId, in.PageNum, in.PageSize)
+	userIDs, total, err := l.svcCtx.UserFollowService.GetFriendList(l.ctx, in.UserId, in.PageNum, in.PageSize)
 	if err != nil {
 		return nil, xerr.Wrap(err, "GetFriendList")
 	}
 
-	userInfos := make([]*communication_pb.UserInfo, 0, len(users))
-	for _, u := range users {
-		userInfos = append(userInfos, &communication_pb.UserInfo{
-			UserId:   u.UserID,
-			Username: u.Username,
-			PhotoUrl: u.PhotoURL,
-		})
-	}
-
 	return &communication_pb.GetFriendListResponse{
-		Users: userInfos,
-		Total: total,
+		UserIds: userIDs,
+		Total:   total,
 	}, nil
 }

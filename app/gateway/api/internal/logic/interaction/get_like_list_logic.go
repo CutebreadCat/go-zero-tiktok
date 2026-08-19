@@ -5,6 +5,7 @@ import (
 
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
+	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
 	videopb "go_zero-tiktok/app/video/rpc/video_pb"
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
@@ -32,7 +33,7 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 		return nil, xerr.NewUnauthorized("用户身份信息无效，请重新登录")
 	}
 
-	rpcResp, err := l.svcCtx.VideoRpc.GetLikeList(l.ctx, &videopb.GetLikeListRequest{
+	rpcResp, err := l.svcCtx.InteractionRpc.GetLikeList(l.ctx, &interactionpb.GetLikeListRequest{
 		UserId:   userID,
 		PageNum:  req.PageNum,
 		PageSize: req.PageSize,
@@ -41,17 +42,26 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 		return nil, xerr.HandleDaoError(err, "GetLikeList.GetLikeList")
 	}
 
-	videos := make([]types.VideoBaseinfo, 0, len(rpcResp.Videos))
-	for _, v := range rpcResp.Videos {
-		videos = append(videos, types.VideoBaseinfo{
-			VideoID:     v.VideoId,
-			AuthorID:    v.AuthorId,
-			VideoURL:    v.VideoUrl,
-			CoverURL:    v.CoverUrl,
-			Title:       v.Title,
-			Description: v.Description,
-			CreatedAt:   v.CreatedAt,
+	videos := make([]types.VideoBaseinfo, 0, len(rpcResp.VideoIds))
+	if len(rpcResp.VideoIds) > 0 {
+		videoResp, err := l.svcCtx.VideoRpc.GetVideosByIDs(l.ctx, &videopb.GetVideosByIDsRequest{
+			VideoIds: rpcResp.VideoIds,
 		})
+		if err != nil {
+			return nil, xerr.HandleDaoError(err, "GetLikeList.GetVideosByIDs")
+		}
+
+		for _, v := range videoResp.Videos {
+			videos = append(videos, types.VideoBaseinfo{
+				VideoID:     v.VideoId,
+				AuthorID:    v.AuthorId,
+				VideoURL:    v.VideoUrl,
+				CoverURL:    v.CoverUrl,
+				Title:       v.Title,
+				Description: v.Description,
+				CreatedAt:   v.CreatedAt,
+			})
+		}
 	}
 
 	return &types.GetLikeListResponse{

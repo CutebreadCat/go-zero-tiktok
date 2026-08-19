@@ -4,11 +4,11 @@ import (
 	"flag"
 	"fmt"
 
-	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/app/video/rpc/internal/config"
 	"go_zero-tiktok/app/video/rpc/internal/server"
 	"go_zero-tiktok/app/video/rpc/internal/svc"
 	"go_zero-tiktok/app/video/rpc/video_pb"
+	appLogger "go_zero-tiktok/pkg/logger"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
@@ -32,6 +32,7 @@ func main() {
 	appLogger.RegisterOTelTraceExtractor()
 	defer appLogger.Close()
 	ctx := svc.NewServiceContext(c)
+	defer ctx.Close()
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		video_pb.RegisterVideoServiceServer(grpcServer, server.NewVideoServiceServer(ctx))

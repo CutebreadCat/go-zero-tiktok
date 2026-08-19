@@ -10,31 +10,28 @@ import (
 	logger "go_zero-tiktok/pkg/logger"
 )
 
-type GetLikeListLogic struct {
+type GetVideosByIDsLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	*logger.ContextLogger
 }
 
-func NewGetLikeListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetLikeListLogic {
-	return &GetLikeListLogic{
+func NewGetVideosByIDsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetVideosByIDsLogic {
+	return &GetVideosByIDsLogic{
 		ctx:           ctx,
 		svcCtx:        svcCtx,
 		ContextLogger: logger.WithContext(ctx),
 	}
 }
 
-func (l *GetLikeListLogic) GetLikeList(in *video_pb.GetLikeListRequest) (*video_pb.GetLikeListResponse, error) {
-	if in.UserId == 0 {
-		return nil, xerr.NewInvalidParam("用户ID不能为空")
-	}
-	if in.PageSize <= 0 || in.PageSize > 100 {
-		return nil, xerr.NewInvalidParam("每页数量必须在1-100之间")
+func (l *GetVideosByIDsLogic) GetVideosByIDs(in *video_pb.GetVideosByIDsRequest) (*video_pb.GetVideosByIDsResponse, error) {
+	if len(in.VideoIds) == 0 {
+		return &video_pb.GetVideosByIDsResponse{Videos: []*video_pb.VideoInfo{}}, nil
 	}
 
-	videos, total, err := l.svcCtx.VideoService.GetLikedVideos(l.ctx, in.UserId, in.PageNum, in.PageSize)
+	videos, err := l.svcCtx.VideoService.GetVideosByIDs(l.ctx, in.VideoIds)
 	if err != nil {
-		return nil, xerr.Wrap(err, "GetLikeList")
+		return nil, xerr.HandleDaoError(err, "GetVideosByIDs")
 	}
 
 	videoInfos := make([]*video_pb.VideoInfo, 0, len(videos))
@@ -50,8 +47,5 @@ func (l *GetLikeListLogic) GetLikeList(in *video_pb.GetLikeListRequest) (*video_
 		})
 	}
 
-	return &video_pb.GetLikeListResponse{
-		Videos: videoInfos,
-		Total:  total,
-	}, nil
+	return &video_pb.GetVideosByIDsResponse{Videos: videoInfos}, nil
 }

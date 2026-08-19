@@ -19,6 +19,11 @@ type (
   PublishVideoRequest {
     Title       string `form:"title"`
     Description string `form:"description"`
+    // 文件字段(可选):支持两种传法——
+    // 1. multipart/form-data 真文件上传(handler 用 r.FormFile("file") 读取,优先);
+    // 2. base64 文本(httpx 解析到本字段后 handler 再 base64 解码,兜底)。
+    // 注意:不要声明为 []byte,go-zero 对 []byte+form 只做 base64 解码,非 base64 会报 type mismatch。
+    File string `form:"file,optional"`
   }
   PublishVideoResponse {
     Base    BaseResponse `json:"base"`

@@ -39,18 +39,19 @@ func (l *PublishVideoLogic) PublishVideo(in *video_pb.PublishVideoRequest) (*vid
 	}
 
 	videoID := myutils.GenerateVideoID()
-	objectKey := aliyun.BuildObjectKey(aliyun.ObjectTypeVideo, in.UserId, videoID, in.Filename)
+	videoObjectKey := aliyun.BuildObjectKey(aliyun.ObjectTypeVideo, in.UserId, videoID, in.Filename)
 
-	videoURL, err := l.svcCtx.Storage.UploadFile(bytes.NewReader(in.VideoData), objectKey)
-	if err != nil {
+	if _, err := l.svcCtx.Storage.UploadFile(bytes.NewReader(in.VideoData), videoObjectKey); err != nil {
 		return nil, xerr.HandleDaoError(err, "PublishVideo.UploadToOSS")
 	}
 
-	if err := l.svcCtx.VideoService.PublishVideo(l.ctx, videoID, in.UserId, videoURL, "", in.Title, in.Description); err != nil {
+	publishAt, err := l.svcCtx.VideoService.PublishVideo(l.ctx, videoID, in.UserId, videoObjectKey, "", in.Title, in.Description)
+	if err != nil {
 		return nil, xerr.HandleDaoError(err, "PublishVideo.CreateVideo")
 	}
 
 	return &video_pb.PublishVideoResponse{
-		VideoId: videoID,
+		VideoId:     videoID,
+		PublishedAt: publishAt.UnixMilli(),
 	}, nil
 }

@@ -63,6 +63,10 @@ func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pag
 	return videos, total, nil
 }
 
+// feedQueryColumns 水合查询限定字段：排除 idempotency_key 等列表展示无关列，降低行宽。
+// 注意需与 VideoToResponse 用到的字段保持一致。
+const feedQueryColumns = "video_id, author_id, video_object_key, cover_object_key, title, description, created_at, updated_at, deleted_at"
+
 func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []int64) ([]VideoBaseinfo, error) {
 	if len(videoIDs) == 0 {
 		return []VideoBaseinfo{}, nil
@@ -70,7 +74,9 @@ func GetVideosByIDs(ctx context.Context, db *gorm.DB, videoIDs []int64) ([]Video
 
 	var videos []VideoBaseinfo
 	if err := db.WithContext(ctx).
+		Select(feedQueryColumns).
 		Where("video_id IN ?", videoIDs).
+		Where("deleted_at IS NULL").
 		Find(&videos).Error; err != nil {
 		return nil, xerr.Wrap(err, "get videos by ids failed")
 	}
@@ -105,7 +111,8 @@ func GetVideosByAuthorID(ctx context.Context, db *gorm.DB, authorID int64, pageN
 }
 
 func GetVideoByLastTime(ctx context.Context, db *gorm.DB, lastTime string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
-	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{})
+	// 兜底查询与 Redis 索引路径保持一致的软删过滤，避免已删视频从兜底路径漏出。
+	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{}).Where("deleted_at IS NULL")
 	lastTime = strings.TrimSpace(lastTime)
 	if lastTime != "" {
 		RealTime, err := myutils.StrToTime(lastTime, "")
@@ -126,4 +133,26 @@ func GetVideoByLastTime(ctx context.Context, db *gorm.DB, lastTime string, pageN
 		return nil, 0, xerr.Wrap(err, "get videos by last time failed")
 	}
 	return videos, total, nil
+}
+
+// GetVideosByCursor 复合游标分页：按 (created_at, video_id) < (publishedAt, videoID) 倒序取 limit 条。
+// publishedAt=0 且 videoID=0 表示首页，不附加游标条件。
+func GetVideosByCursor(ctx context.Context, db *gorm.DB, publishedAt, videoID int64, limit int32) ([]VideoBaseinfo, error) {
+	dbQuery := db.WithContext(ctx).
+		Model(&VideoBaseinfo{}).
+		Select(feedQueryColumns).
+		Where("deleted_at IS NULL")
+
+	if publishedAt > 0 || videoID > 0 {
+		dbQuery = dbQuery.Where("(created_at, video_id) < (?, ?)", publishedAt, videoID)
+	}
+
+	var videos []VideoBaseinfo
+	if err := dbQuery.
+		Order("created_at DESC, video_id DESC").
+		Limit(int(limit)).
+		Find(&videos).Error; err != nil {
+		return nil, xerr.Wrap(err, "get videos by cursor failed")
+	}
+	return videos, nil
 }

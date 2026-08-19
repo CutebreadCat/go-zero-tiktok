@@ -8,6 +8,7 @@
 -- 6. 新增 user_relation_stat（communication 服务）
 -- 7. 单库，时间戳统一 datetime(3)
 -- 8. user_mfa 合并入 user_baseinfo（1:1 关系，删除冗余 password_hash）
+-- 9. video_liker + video_favoriter 合并为 video_interaction（action_type 区分点赞/收藏）
 
 CREATE TABLE `user_baseinfo` (
   `user_id`            bigint       NOT NULL COMMENT '雪花ID',
@@ -40,38 +41,42 @@ CREATE TABLE `user_follow` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='关注关系';
 
 CREATE TABLE `video_baseinfo` (
-  `video_id`        bigint       NOT NULL COMMENT '雪花ID',
-  `author_id`       bigint       NOT NULL COMMENT '作者雪花ID',
-  `video_url`       varchar(255) NOT NULL COMMENT '视频URL',
-  `cover_url`       varchar(255) DEFAULT NULL COMMENT '封面URL',
-  `title`           varchar(128) NOT NULL COMMENT '视频标题',
-  `description`     varchar(255) DEFAULT NULL COMMENT '视频描述',
-  `idempotency_key` varchar(64) DEFAULT NULL COMMENT '幂等键(UUID 36字符)',
-  `deleted_at`      datetime(3)  DEFAULT NULL COMMENT '软删时间',
-  `created_at`      datetime(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `updated_at`      datetime(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `video_id`         bigint       NOT NULL COMMENT '雪花ID',
+  `author_id`        bigint       NOT NULL COMMENT '作者雪花ID',
+  `video_object_key` varchar(255) NOT NULL COMMENT '视频 OSS object key',
+  `cover_object_key` varchar(255) DEFAULT NULL COMMENT '封面 OSS object key',
+  `title`            varchar(128) NOT NULL COMMENT '视频标题',
+  `description`      varchar(255) DEFAULT NULL COMMENT '视频描述',
+  `idempotency_key`  varchar(64) DEFAULT NULL COMMENT '幂等键(UUID 36字符)',
+  `deleted_at`       datetime(3)  DEFAULT NULL COMMENT '软删时间',
+  `created_at`       datetime(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updated_at`       datetime(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`video_id`),
   UNIQUE KEY `uk_author_idempotency` (`author_id`, `idempotency_key`),
   KEY `idx_author_id` (`author_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='视频基础信息';
 
 CREATE TABLE `video_stat` (
-  `video_id`      bigint NOT NULL COMMENT '雪花ID',
-  `visit_count`   bigint NOT NULL DEFAULT 0,
-  `like_count`    bigint NOT NULL DEFAULT 0,
-  `comment_count` bigint NOT NULL DEFAULT 0,
+  `video_id`        bigint NOT NULL COMMENT '雪花ID',
+  `visit_count`     bigint NOT NULL DEFAULT 0,
+  `like_count`      bigint NOT NULL DEFAULT 0,
+  `comment_count`   bigint NOT NULL DEFAULT 0,
+  `favorite_count`  bigint NOT NULL DEFAULT 0,
   PRIMARY KEY (`video_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='视频统计(原video_popular)';
 
-CREATE TABLE `video_liker` (
-  `user_id`         bigint       NOT NULL COMMENT '点赞用户雪花ID',
+CREATE TABLE `video_interaction` (
+  `id`              bigint       NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `user_id`         bigint       NOT NULL COMMENT '交互用户雪花ID',
   `video_id`        bigint       NOT NULL COMMENT '视频雪花ID',
+  `action_type`     tinyint      NOT NULL DEFAULT 1 COMMENT '1=点赞 2=收藏',
   `idempotency_key` varchar(64) DEFAULT NULL COMMENT '幂等键(UUID 36字符)',
   `created_at`      datetime(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (`user_id`, `video_id`),
-  UNIQUE KEY `uk_user_idempotency` (`user_id`, `idempotency_key`),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_video_action` (`user_id`, `video_id`, `action_type`),
+  UNIQUE KEY `uk_user_action_idempotency` (`user_id`, `action_type`, `idempotency_key`),
   KEY `idx_video_id` (`video_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='视频点赞';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='视频交互(点赞/收藏)';
 
 CREATE TABLE `comment_baseinfo` (
   `comment_id`      bigint        NOT NULL COMMENT '雪花ID',

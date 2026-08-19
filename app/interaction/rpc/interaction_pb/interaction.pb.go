@@ -609,6 +609,682 @@ func (*LikeCommentResponse) Descriptor() ([]byte, []int) {
 	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{10}
 }
 
+type LikeVideoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	VideoId       int64                  `protobuf:"varint,2,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	ActionType    int32                  `protobuf:"varint,3,opt,name=action_type,json=actionType,proto3" json:"action_type,omitempty"` // 1-点赞 0-取消点赞
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LikeVideoRequest) Reset() {
+	*x = LikeVideoRequest{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LikeVideoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LikeVideoRequest) ProtoMessage() {}
+
+func (x *LikeVideoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LikeVideoRequest.ProtoReflect.Descriptor instead.
+func (*LikeVideoRequest) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *LikeVideoRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *LikeVideoRequest) GetVideoId() int64 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+func (x *LikeVideoRequest) GetActionType() int32 {
+	if x != nil {
+		return x.ActionType
+	}
+	return 0
+}
+
+type LikeVideoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LikeVideoResponse) Reset() {
+	*x = LikeVideoResponse{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LikeVideoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LikeVideoResponse) ProtoMessage() {}
+
+func (x *LikeVideoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LikeVideoResponse.ProtoReflect.Descriptor instead.
+func (*LikeVideoResponse) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{12}
+}
+
+type FavoriteVideoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	VideoId       int64                  `protobuf:"varint,2,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FavoriteVideoRequest) Reset() {
+	*x = FavoriteVideoRequest{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FavoriteVideoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FavoriteVideoRequest) ProtoMessage() {}
+
+func (x *FavoriteVideoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FavoriteVideoRequest.ProtoReflect.Descriptor instead.
+func (*FavoriteVideoRequest) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *FavoriteVideoRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *FavoriteVideoRequest) GetVideoId() int64 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+type FavoriteVideoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FavoriteVideoResponse) Reset() {
+	*x = FavoriteVideoResponse{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FavoriteVideoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FavoriteVideoResponse) ProtoMessage() {}
+
+func (x *FavoriteVideoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FavoriteVideoResponse.ProtoReflect.Descriptor instead.
+func (*FavoriteVideoResponse) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{14}
+}
+
+type CancelFavoriteVideoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	VideoId       int64                  `protobuf:"varint,2,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelFavoriteVideoRequest) Reset() {
+	*x = CancelFavoriteVideoRequest{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelFavoriteVideoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelFavoriteVideoRequest) ProtoMessage() {}
+
+func (x *CancelFavoriteVideoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelFavoriteVideoRequest.ProtoReflect.Descriptor instead.
+func (*CancelFavoriteVideoRequest) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CancelFavoriteVideoRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *CancelFavoriteVideoRequest) GetVideoId() int64 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+type CancelFavoriteVideoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelFavoriteVideoResponse) Reset() {
+	*x = CancelFavoriteVideoResponse{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelFavoriteVideoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelFavoriteVideoResponse) ProtoMessage() {}
+
+func (x *CancelFavoriteVideoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelFavoriteVideoResponse.ProtoReflect.Descriptor instead.
+func (*CancelFavoriteVideoResponse) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{16}
+}
+
+type GetLikeListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	PageNum       int32                  `protobuf:"varint,2,opt,name=page_num,json=pageNum,proto3" json:"page_num,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLikeListRequest) Reset() {
+	*x = GetLikeListRequest{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLikeListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLikeListRequest) ProtoMessage() {}
+
+func (x *GetLikeListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLikeListRequest.ProtoReflect.Descriptor instead.
+func (*GetLikeListRequest) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetLikeListRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetLikeListRequest) GetPageNum() int32 {
+	if x != nil {
+		return x.PageNum
+	}
+	return 0
+}
+
+func (x *GetLikeListRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type GetLikeListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VideoIds      []int64                `protobuf:"varint,1,rep,packed,name=video_ids,json=videoIds,proto3" json:"video_ids,omitempty"`
+	Total         int64                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLikeListResponse) Reset() {
+	*x = GetLikeListResponse{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLikeListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLikeListResponse) ProtoMessage() {}
+
+func (x *GetLikeListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLikeListResponse.ProtoReflect.Descriptor instead.
+func (*GetLikeListResponse) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetLikeListResponse) GetVideoIds() []int64 {
+	if x != nil {
+		return x.VideoIds
+	}
+	return nil
+}
+
+func (x *GetLikeListResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type GetFavoriteListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	PageNum       int32                  `protobuf:"varint,2,opt,name=page_num,json=pageNum,proto3" json:"page_num,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFavoriteListRequest) Reset() {
+	*x = GetFavoriteListRequest{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFavoriteListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFavoriteListRequest) ProtoMessage() {}
+
+func (x *GetFavoriteListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFavoriteListRequest.ProtoReflect.Descriptor instead.
+func (*GetFavoriteListRequest) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetFavoriteListRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetFavoriteListRequest) GetPageNum() int32 {
+	if x != nil {
+		return x.PageNum
+	}
+	return 0
+}
+
+func (x *GetFavoriteListRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type GetFavoriteListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VideoIds      []int64                `protobuf:"varint,1,rep,packed,name=video_ids,json=videoIds,proto3" json:"video_ids,omitempty"`
+	Total         int64                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFavoriteListResponse) Reset() {
+	*x = GetFavoriteListResponse{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFavoriteListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFavoriteListResponse) ProtoMessage() {}
+
+func (x *GetFavoriteListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFavoriteListResponse.ProtoReflect.Descriptor instead.
+func (*GetFavoriteListResponse) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetFavoriteListResponse) GetVideoIds() []int64 {
+	if x != nil {
+		return x.VideoIds
+	}
+	return nil
+}
+
+func (x *GetFavoriteListResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type BatchGetVideoInteractionStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VideoIds      []int64                `protobuf:"varint,1,rep,packed,name=video_ids,json=videoIds,proto3" json:"video_ids,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 当前浏览用户，<=0 表示未登录
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchGetVideoInteractionStatsRequest) Reset() {
+	*x = BatchGetVideoInteractionStatsRequest{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchGetVideoInteractionStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchGetVideoInteractionStatsRequest) ProtoMessage() {}
+
+func (x *BatchGetVideoInteractionStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchGetVideoInteractionStatsRequest.ProtoReflect.Descriptor instead.
+func (*BatchGetVideoInteractionStatsRequest) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *BatchGetVideoInteractionStatsRequest) GetVideoIds() []int64 {
+	if x != nil {
+		return x.VideoIds
+	}
+	return nil
+}
+
+func (x *BatchGetVideoInteractionStatsRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type VideoInteractionStat struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VideoId       int64                  `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	LikeCount     int64                  `protobuf:"varint,2,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	FavoriteCount int64                  `protobuf:"varint,3,opt,name=favorite_count,json=favoriteCount,proto3" json:"favorite_count,omitempty"`
+	CommentCount  int64                  `protobuf:"varint,4,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
+	Liked         bool                   `protobuf:"varint,5,opt,name=liked,proto3" json:"liked,omitempty"`         // user_id 是否点赞该视频
+	Favorited     bool                   `protobuf:"varint,6,opt,name=favorited,proto3" json:"favorited,omitempty"` // user_id 是否收藏该视频
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VideoInteractionStat) Reset() {
+	*x = VideoInteractionStat{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VideoInteractionStat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VideoInteractionStat) ProtoMessage() {}
+
+func (x *VideoInteractionStat) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VideoInteractionStat.ProtoReflect.Descriptor instead.
+func (*VideoInteractionStat) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *VideoInteractionStat) GetVideoId() int64 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+func (x *VideoInteractionStat) GetLikeCount() int64 {
+	if x != nil {
+		return x.LikeCount
+	}
+	return 0
+}
+
+func (x *VideoInteractionStat) GetFavoriteCount() int64 {
+	if x != nil {
+		return x.FavoriteCount
+	}
+	return 0
+}
+
+func (x *VideoInteractionStat) GetCommentCount() int64 {
+	if x != nil {
+		return x.CommentCount
+	}
+	return 0
+}
+
+func (x *VideoInteractionStat) GetLiked() bool {
+	if x != nil {
+		return x.Liked
+	}
+	return false
+}
+
+func (x *VideoInteractionStat) GetFavorited() bool {
+	if x != nil {
+		return x.Favorited
+	}
+	return false
+}
+
+type BatchGetVideoInteractionStatsResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Stats         []*VideoInteractionStat `protobuf:"bytes,1,rep,name=stats,proto3" json:"stats,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchGetVideoInteractionStatsResponse) Reset() {
+	*x = BatchGetVideoInteractionStatsResponse{}
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchGetVideoInteractionStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchGetVideoInteractionStatsResponse) ProtoMessage() {}
+
+func (x *BatchGetVideoInteractionStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_interaction_rpc_interaction_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchGetVideoInteractionStatsResponse.ProtoReflect.Descriptor instead.
+func (*BatchGetVideoInteractionStatsResponse) Descriptor() ([]byte, []int) {
+	return file_app_interaction_rpc_interaction_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *BatchGetVideoInteractionStatsResponse) GetStats() []*VideoInteractionStat {
+	if x != nil {
+		return x.Stats
+	}
+	return nil
+}
+
 var File_app_interaction_rpc_interaction_proto protoreflect.FileDescriptor
 
 const file_app_interaction_rpc_interaction_proto_rawDesc = "" +
@@ -654,13 +1330,60 @@ const file_app_interaction_rpc_interaction_proto_rawDesc = "" +
 	"comment_id\x18\x01 \x01(\x03R\tcommentId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x1b\n" +
 	"\tlike_type\x18\x03 \x01(\x05R\blikeType\"\x15\n" +
-	"\x13LikeCommentResponse2\xc3\x03\n" +
+	"\x13LikeCommentResponse\"g\n" +
+	"\x10LikeVideoRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
+	"\bvideo_id\x18\x02 \x01(\x03R\avideoId\x12\x1f\n" +
+	"\vaction_type\x18\x03 \x01(\x05R\n" +
+	"actionType\"\x13\n" +
+	"\x11LikeVideoResponse\"J\n" +
+	"\x14FavoriteVideoRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
+	"\bvideo_id\x18\x02 \x01(\x03R\avideoId\"\x17\n" +
+	"\x15FavoriteVideoResponse\"P\n" +
+	"\x1aCancelFavoriteVideoRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
+	"\bvideo_id\x18\x02 \x01(\x03R\avideoId\"\x1d\n" +
+	"\x1bCancelFavoriteVideoResponse\"e\n" +
+	"\x12GetLikeListRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
+	"\bpage_num\x18\x02 \x01(\x05R\apageNum\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"H\n" +
+	"\x13GetLikeListResponse\x12\x1b\n" +
+	"\tvideo_ids\x18\x01 \x03(\x03R\bvideoIds\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"i\n" +
+	"\x16GetFavoriteListRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
+	"\bpage_num\x18\x02 \x01(\x05R\apageNum\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"L\n" +
+	"\x17GetFavoriteListResponse\x12\x1b\n" +
+	"\tvideo_ids\x18\x01 \x03(\x03R\bvideoIds\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\\\n" +
+	"$BatchGetVideoInteractionStatsRequest\x12\x1b\n" +
+	"\tvideo_ids\x18\x01 \x03(\x03R\bvideoIds\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"\xd0\x01\n" +
+	"\x14VideoInteractionStat\x12\x19\n" +
+	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12\x1d\n" +
+	"\n" +
+	"like_count\x18\x02 \x01(\x03R\tlikeCount\x12%\n" +
+	"\x0efavorite_count\x18\x03 \x01(\x03R\rfavoriteCount\x12#\n" +
+	"\rcomment_count\x18\x04 \x01(\x03R\fcommentCount\x12\x14\n" +
+	"\x05liked\x18\x05 \x01(\bR\x05liked\x12\x1c\n" +
+	"\tfavorited\x18\x06 \x01(\bR\tfavorited\"`\n" +
+	"%BatchGetVideoInteractionStatsResponse\x127\n" +
+	"\x05stats\x18\x01 \x03(\v2!.interaction.VideoInteractionStatR\x05stats2\x8a\b\n" +
 	"\x12InteractionService\x12S\n" +
 	"\fCommentVideo\x12 .interaction.CommentVideoRequest\x1a!.interaction.CommentVideoResponse\x12S\n" +
 	"\fReplyComment\x12 .interaction.ReplyCommentRequest\x1a!.interaction.ReplyCommentResponse\x12V\n" +
 	"\rDeleteComment\x12!.interaction.DeleteCommentRequest\x1a\".interaction.DeleteCommentResponse\x12Y\n" +
 	"\x0eGetCommentList\x12\".interaction.GetCommentListRequest\x1a#.interaction.GetCommentListResponse\x12P\n" +
-	"\vLikeComment\x12\x1f.interaction.LikeCommentRequest\x1a .interaction.LikeCommentResponseB\x12Z\x10./interaction_pbb\x06proto3"
+	"\vLikeComment\x12\x1f.interaction.LikeCommentRequest\x1a .interaction.LikeCommentResponse\x12J\n" +
+	"\tLikeVideo\x12\x1d.interaction.LikeVideoRequest\x1a\x1e.interaction.LikeVideoResponse\x12V\n" +
+	"\rFavoriteVideo\x12!.interaction.FavoriteVideoRequest\x1a\".interaction.FavoriteVideoResponse\x12h\n" +
+	"\x13CancelFavoriteVideo\x12'.interaction.CancelFavoriteVideoRequest\x1a(.interaction.CancelFavoriteVideoResponse\x12P\n" +
+	"\vGetLikeList\x12\x1f.interaction.GetLikeListRequest\x1a .interaction.GetLikeListResponse\x12\\\n" +
+	"\x0fGetFavoriteList\x12#.interaction.GetFavoriteListRequest\x1a$.interaction.GetFavoriteListResponse\x12\x86\x01\n" +
+	"\x1dBatchGetVideoInteractionStats\x121.interaction.BatchGetVideoInteractionStatsRequest\x1a2.interaction.BatchGetVideoInteractionStatsResponseB\x12Z\x10./interaction_pbb\x06proto3"
 
 var (
 	file_app_interaction_rpc_interaction_proto_rawDescOnce sync.Once
@@ -674,37 +1397,63 @@ func file_app_interaction_rpc_interaction_proto_rawDescGZIP() []byte {
 	return file_app_interaction_rpc_interaction_proto_rawDescData
 }
 
-var file_app_interaction_rpc_interaction_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_app_interaction_rpc_interaction_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_app_interaction_rpc_interaction_proto_goTypes = []any{
-	(*CommentVideoRequest)(nil),    // 0: interaction.CommentVideoRequest
-	(*CommentVideoResponse)(nil),   // 1: interaction.CommentVideoResponse
-	(*ReplyCommentRequest)(nil),    // 2: interaction.ReplyCommentRequest
-	(*ReplyCommentResponse)(nil),   // 3: interaction.ReplyCommentResponse
-	(*DeleteCommentRequest)(nil),   // 4: interaction.DeleteCommentRequest
-	(*DeleteCommentResponse)(nil),  // 5: interaction.DeleteCommentResponse
-	(*GetCommentListRequest)(nil),  // 6: interaction.GetCommentListRequest
-	(*CommentInfo)(nil),            // 7: interaction.CommentInfo
-	(*GetCommentListResponse)(nil), // 8: interaction.GetCommentListResponse
-	(*LikeCommentRequest)(nil),     // 9: interaction.LikeCommentRequest
-	(*LikeCommentResponse)(nil),    // 10: interaction.LikeCommentResponse
+	(*CommentVideoRequest)(nil),                   // 0: interaction.CommentVideoRequest
+	(*CommentVideoResponse)(nil),                  // 1: interaction.CommentVideoResponse
+	(*ReplyCommentRequest)(nil),                   // 2: interaction.ReplyCommentRequest
+	(*ReplyCommentResponse)(nil),                  // 3: interaction.ReplyCommentResponse
+	(*DeleteCommentRequest)(nil),                  // 4: interaction.DeleteCommentRequest
+	(*DeleteCommentResponse)(nil),                 // 5: interaction.DeleteCommentResponse
+	(*GetCommentListRequest)(nil),                 // 6: interaction.GetCommentListRequest
+	(*CommentInfo)(nil),                           // 7: interaction.CommentInfo
+	(*GetCommentListResponse)(nil),                // 8: interaction.GetCommentListResponse
+	(*LikeCommentRequest)(nil),                    // 9: interaction.LikeCommentRequest
+	(*LikeCommentResponse)(nil),                   // 10: interaction.LikeCommentResponse
+	(*LikeVideoRequest)(nil),                      // 11: interaction.LikeVideoRequest
+	(*LikeVideoResponse)(nil),                     // 12: interaction.LikeVideoResponse
+	(*FavoriteVideoRequest)(nil),                  // 13: interaction.FavoriteVideoRequest
+	(*FavoriteVideoResponse)(nil),                 // 14: interaction.FavoriteVideoResponse
+	(*CancelFavoriteVideoRequest)(nil),            // 15: interaction.CancelFavoriteVideoRequest
+	(*CancelFavoriteVideoResponse)(nil),           // 16: interaction.CancelFavoriteVideoResponse
+	(*GetLikeListRequest)(nil),                    // 17: interaction.GetLikeListRequest
+	(*GetLikeListResponse)(nil),                   // 18: interaction.GetLikeListResponse
+	(*GetFavoriteListRequest)(nil),                // 19: interaction.GetFavoriteListRequest
+	(*GetFavoriteListResponse)(nil),               // 20: interaction.GetFavoriteListResponse
+	(*BatchGetVideoInteractionStatsRequest)(nil),  // 21: interaction.BatchGetVideoInteractionStatsRequest
+	(*VideoInteractionStat)(nil),                  // 22: interaction.VideoInteractionStat
+	(*BatchGetVideoInteractionStatsResponse)(nil), // 23: interaction.BatchGetVideoInteractionStatsResponse
 }
 var file_app_interaction_rpc_interaction_proto_depIdxs = []int32{
 	7,  // 0: interaction.GetCommentListResponse.comments:type_name -> interaction.CommentInfo
-	0,  // 1: interaction.InteractionService.CommentVideo:input_type -> interaction.CommentVideoRequest
-	2,  // 2: interaction.InteractionService.ReplyComment:input_type -> interaction.ReplyCommentRequest
-	4,  // 3: interaction.InteractionService.DeleteComment:input_type -> interaction.DeleteCommentRequest
-	6,  // 4: interaction.InteractionService.GetCommentList:input_type -> interaction.GetCommentListRequest
-	9,  // 5: interaction.InteractionService.LikeComment:input_type -> interaction.LikeCommentRequest
-	1,  // 6: interaction.InteractionService.CommentVideo:output_type -> interaction.CommentVideoResponse
-	3,  // 7: interaction.InteractionService.ReplyComment:output_type -> interaction.ReplyCommentResponse
-	5,  // 8: interaction.InteractionService.DeleteComment:output_type -> interaction.DeleteCommentResponse
-	8,  // 9: interaction.InteractionService.GetCommentList:output_type -> interaction.GetCommentListResponse
-	10, // 10: interaction.InteractionService.LikeComment:output_type -> interaction.LikeCommentResponse
-	6,  // [6:11] is the sub-list for method output_type
-	1,  // [1:6] is the sub-list for method input_type
-	1,  // [1:1] is the sub-list for extension type_name
-	1,  // [1:1] is the sub-list for extension extendee
-	0,  // [0:1] is the sub-list for field type_name
+	22, // 1: interaction.BatchGetVideoInteractionStatsResponse.stats:type_name -> interaction.VideoInteractionStat
+	0,  // 2: interaction.InteractionService.CommentVideo:input_type -> interaction.CommentVideoRequest
+	2,  // 3: interaction.InteractionService.ReplyComment:input_type -> interaction.ReplyCommentRequest
+	4,  // 4: interaction.InteractionService.DeleteComment:input_type -> interaction.DeleteCommentRequest
+	6,  // 5: interaction.InteractionService.GetCommentList:input_type -> interaction.GetCommentListRequest
+	9,  // 6: interaction.InteractionService.LikeComment:input_type -> interaction.LikeCommentRequest
+	11, // 7: interaction.InteractionService.LikeVideo:input_type -> interaction.LikeVideoRequest
+	13, // 8: interaction.InteractionService.FavoriteVideo:input_type -> interaction.FavoriteVideoRequest
+	15, // 9: interaction.InteractionService.CancelFavoriteVideo:input_type -> interaction.CancelFavoriteVideoRequest
+	17, // 10: interaction.InteractionService.GetLikeList:input_type -> interaction.GetLikeListRequest
+	19, // 11: interaction.InteractionService.GetFavoriteList:input_type -> interaction.GetFavoriteListRequest
+	21, // 12: interaction.InteractionService.BatchGetVideoInteractionStats:input_type -> interaction.BatchGetVideoInteractionStatsRequest
+	1,  // 13: interaction.InteractionService.CommentVideo:output_type -> interaction.CommentVideoResponse
+	3,  // 14: interaction.InteractionService.ReplyComment:output_type -> interaction.ReplyCommentResponse
+	5,  // 15: interaction.InteractionService.DeleteComment:output_type -> interaction.DeleteCommentResponse
+	8,  // 16: interaction.InteractionService.GetCommentList:output_type -> interaction.GetCommentListResponse
+	10, // 17: interaction.InteractionService.LikeComment:output_type -> interaction.LikeCommentResponse
+	12, // 18: interaction.InteractionService.LikeVideo:output_type -> interaction.LikeVideoResponse
+	14, // 19: interaction.InteractionService.FavoriteVideo:output_type -> interaction.FavoriteVideoResponse
+	16, // 20: interaction.InteractionService.CancelFavoriteVideo:output_type -> interaction.CancelFavoriteVideoResponse
+	18, // 21: interaction.InteractionService.GetLikeList:output_type -> interaction.GetLikeListResponse
+	20, // 22: interaction.InteractionService.GetFavoriteList:output_type -> interaction.GetFavoriteListResponse
+	23, // 23: interaction.InteractionService.BatchGetVideoInteractionStats:output_type -> interaction.BatchGetVideoInteractionStatsResponse
+	13, // [13:24] is the sub-list for method output_type
+	2,  // [2:13] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_app_interaction_rpc_interaction_proto_init() }
@@ -718,7 +1467,7 @@ func file_app_interaction_rpc_interaction_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_app_interaction_rpc_interaction_proto_rawDesc), len(file_app_interaction_rpc_interaction_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

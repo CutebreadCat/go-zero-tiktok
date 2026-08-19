@@ -1,6 +1,7 @@
 
 oss_access:
-   id: 
-   secret: 
-   bucket_name: 
-   endpoint: 
+   id:
+   secret:
+   bucket_name:
+   endpoint:
+   cdn_domain:   # 可选，未配置时回退到 {bucket}.{endpoint}

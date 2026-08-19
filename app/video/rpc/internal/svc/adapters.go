@@ -8,6 +8,10 @@ import (
 
 type StorageAdapter struct{}
 
+// UploadFile 上传文件到 OSS，返回 object key（不是完整 URL）。
 func (a *StorageAdapter) UploadFile(reader io.Reader, objectKey string) (string, error) {
-	return aliyun.UploadBytes(reader, objectKey)
+	if _, err := aliyun.UploadBytes(reader, objectKey); err != nil {
+		return "", err
+	}
+	return objectKey, nil
 }

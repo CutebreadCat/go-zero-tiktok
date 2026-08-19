@@ -41,17 +41,17 @@ type (
   LoginResponse {
     Base         BaseResponse `json:"base"`
     UserID       int64        `json:"user_id,string"`
-    AccessToken  string       `json:"access_token"`
-    RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+    AccessToken  string       `json:"-"`
+    RefreshToken string       `json:"-"`
   }
 
   RefreshTokenRequest {
-    RefreshToken string `cookie:"refresh_token"`
+    RefreshToken string `json:"-"`
   }
   RefreshTokenResponse {
     Base         BaseResponse `json:"base"`
-    AccessToken  string       `json:"access_token"`
-    RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+    AccessToken  string       `json:"-"`
+    RefreshToken string       `json:"-"`
   }
 
   GetUserInfoRequest {
@@ -61,11 +61,16 @@ type (
     User UserBaseinfo `json:"user"`
   }
 
+  // 文件字段(可选):支持两种传法——
+  // 1. multipart/form-data 真文件上传(handler 用 r.FormFile("file") 读取,优先);
+  // 2. base64 文本(httpx 解析到本字段后 handler 再 base64 解码,兜底)。
+  // 注意:不要声明为 []byte,go-zero 对 []byte+form 只做 base64 解码,非 base64 会报 type mismatch。
   UpdateUserPhotoRequest {
-    PhotoURL string `form:"photo_url"`
+    File string `form:"file,optional"`
   }
   UpdateUserPhotoResponse {
-    Base BaseResponse `json:"base"`
+    Base     BaseResponse `json:"base"`
+    PhotoURL string       `json:"photo_url"`
   }
 
   GetMfaQRCodeRequest {

@@ -2,45 +2,23 @@ package domain
 
 import (
 	"context"
-	"time"
 
 	"go_zero-tiktok/pkg/contract"
-
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type CommentService struct {
-	commentRepo        ICommentRepo
-	videoVisitRecorder IVideoVisitRecorder
+	commentRepo ICommentRepo
 }
 
-func NewCommentService(commentRepo ICommentRepo, videoVisitRecorder IVideoVisitRecorder) *CommentService {
+func NewCommentService(commentRepo ICommentRepo) *CommentService {
 	return &CommentService{
-		commentRepo:        commentRepo,
-		videoVisitRecorder: videoVisitRecorder,
+		commentRepo: commentRepo,
 	}
 }
 
-// CreateComment 创建评论并异步记录访问量
+// CreateComment 创建评论。
 func (s *CommentService) CreateComment(ctx context.Context, commentID, userID, videoID int64, content string, parentCommentID int64) error {
-	if err := s.commentRepo.CreateCommentFromParams(ctx, commentID, userID, videoID, content, parentCommentID); err != nil {
-		return err
-	}
-
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				logx.Errorf("panic in CreateComment visit recorder videoID=%d: %v", videoID, r)
-			}
-		}()
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-		if err := s.videoVisitRecorder.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
-			logx.Errorf("increment visit count failed for video %d: %v", videoID, err)
-		}
-	}()
-
-	return nil
+	return s.commentRepo.CreateCommentFromParams(ctx, commentID, userID, videoID, content, parentCommentID)
 }
 
 // ReplyParentComment 回复父评论

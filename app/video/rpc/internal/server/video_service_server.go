@@ -48,17 +48,17 @@ func (s *VideoServiceServer) GetPopularVideo(ctx context.Context, in *video_pb.G
 	return l.GetPopularVideo(in)
 }
 
-func (s *VideoServiceServer) LikeVideo(ctx context.Context, in *video_pb.LikeVideoRequest) (*video_pb.LikeVideoResponse, error) {
-	l := logic.NewLikeVideoLogic(ctx, s.svcCtx)
-	return l.LikeVideo(in)
-}
-
-func (s *VideoServiceServer) GetLikeList(ctx context.Context, in *video_pb.GetLikeListRequest) (*video_pb.GetLikeListResponse, error) {
-	l := logic.NewGetLikeListLogic(ctx, s.svcCtx)
-	return l.GetLikeList(in)
+func (s *VideoServiceServer) GetVideosByIDs(ctx context.Context, in *video_pb.GetVideosByIDsRequest) (*video_pb.GetVideosByIDsResponse, error) {
+	l := logic.NewGetVideosByIDsLogic(ctx, s.svcCtx)
+	return l.GetVideosByIDs(in)
 }
 
 func (s *VideoServiceServer) IncreaseVideoVisitCount(ctx context.Context, in *video_pb.IncreaseVideoVisitCountRequest) (*video_pb.IncreaseVideoVisitCountResponse, error) {
 	l := logic.NewIncreaseVideoVisitCountLogic(ctx, s.svcCtx)
 	return l.IncreaseVideoVisitCount(in)
+}
+
+func (s *VideoServiceServer) FeedFanout(ctx context.Context, in *video_pb.FeedFanoutRequest) (*video_pb.FeedFanoutResponse, error) {
+	l := logic.NewFeedFanoutLogic(ctx, s.svcCtx)
+	return l.FeedFanout(in)
 }

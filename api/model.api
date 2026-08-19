@@ -40,6 +40,7 @@ type (
     VisitCount     int64  `json:"visit_count"`
     LikeCount      int64  `json:"like_count"`
     CommentCount   int64  `json:"comment_count"`
+    FavoriteCount  int64  `json:"favorite_count"`
   }
 
   CommentBaseinfo {

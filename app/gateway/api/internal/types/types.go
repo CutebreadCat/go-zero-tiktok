@@ -17,6 +17,14 @@ type BindMfaResponse struct {
 	Base BaseResponse `json:"base"`
 }
 
+type CancelFavoriteVideoRequest struct {
+	VideoId int64 `path:"id"`
+}
+
+type CancelFavoriteVideoResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
 type CancelLikeCommentRequest struct {
 	CommentId int64 `path:"id"`
 }
@@ -63,16 +71,29 @@ type DeleteCommentResponse struct {
 	Base BaseResponse `json:"base"`
 }
 
+type FavoriteVideoRequest struct {
+	VideoId int64 `path:"id"`
+}
+
+type FavoriteVideoResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
 type FeedVideoRequest struct {
-	LastTime string `form:"last_time"`
-	PageNum  int32  `form:"page_num"`
-	PageSize int32  `form:"page_size"`
+	LastTime string `form:"last_time,optional"`
+	PageNum  int32  `form:"page_num,optional"`
+	PageSize int32  `form:"page_size,optional"`
+	Scene    string `form:"scene,optional"`
+	Cursor   string `form:"cursor,optional"`
+	Limit    int32  `form:"limit,optional"`
 }
 
 type FeedVideoResponse struct {
-	Base  BaseResponse `json:"base"`
-	Total int64        `json:"total"`
-	Items []Item       `json:"items"`
+	Base       BaseResponse `json:"base"`
+	Total      int64        `json:"total"`
+	NextCursor string       `json:"next_cursor"`
+	HasMore    bool         `json:"has_more"`
+	Items      []Item       `json:"items"`
 }
 
 type GetCommentListRequest struct {
@@ -96,6 +117,17 @@ type GetFansListResponse struct {
 	Base      BaseResponse   `json:"base"`
 	FansList  []UserBaseinfo `json:"fans_list"`
 	FansCount int64          `json:"fans_count"`
+}
+
+type GetFavoriteListRequest struct {
+	PageNum  int32 `form:"page_num"`
+	PageSize int32 `form:"page_size"`
+}
+
+type GetFavoriteListResponse struct {
+	Base          BaseResponse    `json:"base"`
+	VideoList     []VideoBaseinfo `json:"video_list"`
+	FavoriteCount int64           `json:"favorite_count"`
 }
 
 type GetFriendListRequest struct {
@@ -163,6 +195,9 @@ type GetVideoListResponse struct {
 type Item struct {
 	Videos        VideoBaseinfo `json:"videos"`
 	VideosPopular VideoPopular  `json:"videos_popular"`
+	Author        UserBaseinfo  `json:"author"`
+	Liked         bool          `json:"liked"`
+	Favorited     bool          `json:"favorited"`
 }
 
 type LikeCommentRequest struct {
@@ -190,13 +225,14 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Base         BaseResponse `json:"base"`
 	UserID       int64        `json:"user_id,string"`
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+	AccessToken  string       `json:"-"`
+	RefreshToken string       `json:"-"`
 }
 
 type PublishVideoRequest struct {
 	Title       string `form:"title"`
 	Description string `form:"description"`
+	File        string `form:"file,optional"`
 }
 
 type PublishVideoResponse struct {
@@ -205,13 +241,13 @@ type PublishVideoResponse struct {
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string `cookie:"refresh_token"`
+	RefreshToken string `json:"-"`
 }
 
 type RefreshTokenResponse struct {
 	Base         BaseResponse `json:"base"`
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token" cookie:"refresh_token"`
+	AccessToken  string       `json:"-"`
+	RefreshToken string       `json:"-"`
 }
 
 type RegisterRequest struct {
@@ -251,11 +287,12 @@ type UnsubscribeResponse struct {
 }
 
 type UpdateUserPhotoRequest struct {
-	PhotoURL string `form:"photo_url"`
+	File string `form:"file,optional"`
 }
 
 type UpdateUserPhotoResponse struct {
-	Base BaseResponse `json:"base"`
+	Base     BaseResponse `json:"base"`
+	PhotoURL string       `json:"photo_url"`
 }
 
 type UserBaseinfo struct {
@@ -287,10 +324,11 @@ type VideoBaseinfo struct {
 }
 
 type VideoPopular struct {
-	VideoID      int64 `json:"video_id,string"`
-	VisitCount   int64 `json:"visit_count"`
-	LikeCount    int64 `json:"like_count"`
-	CommentCount int64 `json:"comment_count"`
+	VideoID       int64 `json:"video_id,string"`
+	VisitCount    int64 `json:"visit_count"`
+	LikeCount     int64 `json:"like_count"`
+	CommentCount  int64 `json:"comment_count"`
+	FavoriteCount int64 `json:"favorite_count"`
 }
 
 type VideoPopularRequest struct {

@@ -75,6 +75,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				},
 				{
 					Method:  http.MethodGet,
+					Path:    "/users/me/favorites",
+					Handler: interaction.GetFavoriteListHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
 					Path:    "/users/me/likes",
 					Handler: interaction.GetLikeListHandler(serverCtx),
 				},
@@ -87,6 +92,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodGet,
 					Path:    "/videos/:id/comments",
 					Handler: interaction.GetCommentListHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPut,
+					Path:    "/videos/:id/favorite",
+					Handler: interaction.FavoriteVideoHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodDelete,
+					Path:    "/videos/:id/favorite",
+					Handler: interaction.CancelFavoriteVideoHandler(serverCtx),
 				},
 				{
 					Method:  http.MethodPut,

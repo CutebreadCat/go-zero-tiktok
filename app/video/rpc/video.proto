@@ -14,12 +14,28 @@ message PublishVideoRequest {
 
 message PublishVideoResponse {
     int64 video_id = 1;
+    int64 published_at = 2;
 }
 
 message GetFeedVideoRequest {
-    string last_time = 1;
-    int32 page_num = 2;
-    int32 page_size = 3;
+    string last_time = 1 [deprecated = true];
+    int32 page_num = 2 [deprecated = true];
+    int32 page_size = 3 [deprecated = true];
+    int64 viewer_id = 4;
+    string scene = 5;
+    string cursor = 6;
+    int32 limit = 7;
+}
+
+// FeedFanoutRequest 关注流扇出：将某条视频写入指定用户的收件箱 feed:inbox:{uid}
+// 由 gateway 编排层调用（拿粉丝列表后一次性扇出），video.rpc 内部只写自己的 Redis 索引。
+message FeedFanoutRequest {
+    int64 video_id = 1;
+    repeated int64 user_ids = 2;
+    int64 publish_at = 3;
+}
+
+message FeedFanoutResponse {
 }
 
 message VideoInfo {
@@ -30,11 +46,14 @@ message VideoInfo {
     string title = 5;
     string description = 6;
     string created_at = 7;
+    int64 visit_count = 8;
 }
 
 message GetFeedVideoResponse {
     repeated VideoInfo videos = 1;
     int64 total = 2;
+    string next_cursor = 3;
+    bool has_more = 4;
 }
 
 message GetVideoListRequest {
@@ -59,6 +78,14 @@ message SearchVideoResponse {
     int64 total = 2;
 }
 
+message GetVideosByIDsRequest {
+    repeated int64 video_ids = 1;
+}
+
+message GetVideosByIDsResponse {
+    repeated VideoInfo videos = 1;
+}
+
 message GetPopularVideoRequest {
     int32 page_num = 1;
     int32 page_size = 2;
@@ -68,31 +95,13 @@ message VideoPopularInfo {
     int64 video_id = 1;
     int64 visit_count = 2;
     int64 like_count = 3;
+    int64 comment_count = 4;
+    int64 favorite_count = 5;
 }
 
 message GetPopularVideoResponse {
     repeated VideoInfo videos = 1;
     repeated VideoPopularInfo populars = 2;
-}
-
-message LikeVideoRequest {
-    int64 user_id = 1;
-    int64 video_id = 2;
-    int32 action_type = 3;  // 1-点赞 0-取消点赞
-}
-
-message LikeVideoResponse {
-}
-
-message GetLikeListRequest {
-    int64 user_id = 1;
-    int32 page_num = 2;
-    int32 page_size = 3;
-}
-
-message GetLikeListResponse {
-    repeated VideoInfo videos = 1;
-    int64 total = 2;
 }
 
 message IncreaseVideoVisitCountRequest {
@@ -109,7 +118,7 @@ service VideoService {
     rpc GetVideoList(GetVideoListRequest) returns (GetVideoListResponse);
     rpc SearchVideo(SearchVideoRequest) returns (SearchVideoResponse);
     rpc GetPopularVideo(GetPopularVideoRequest) returns (GetPopularVideoResponse);
-    rpc LikeVideo(LikeVideoRequest) returns (LikeVideoResponse);
-    rpc GetLikeList(GetLikeListRequest) returns (GetLikeListResponse);
+    rpc GetVideosByIDs(GetVideosByIDsRequest) returns (GetVideosByIDsResponse);
     rpc IncreaseVideoVisitCount(IncreaseVideoVisitCountRequest) returns (IncreaseVideoVisitCountResponse);
+    rpc FeedFanout(FeedFanoutRequest) returns (FeedFanoutResponse);
 }

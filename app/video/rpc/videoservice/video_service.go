@@ -14,18 +14,18 @@ import (
 )
 
 type (
+	FeedFanoutRequest               = video_pb.FeedFanoutRequest
+	FeedFanoutResponse              = video_pb.FeedFanoutResponse
 	GetFeedVideoRequest             = video_pb.GetFeedVideoRequest
 	GetFeedVideoResponse            = video_pb.GetFeedVideoResponse
-	GetLikeListRequest              = video_pb.GetLikeListRequest
-	GetLikeListResponse             = video_pb.GetLikeListResponse
 	GetPopularVideoRequest          = video_pb.GetPopularVideoRequest
 	GetPopularVideoResponse         = video_pb.GetPopularVideoResponse
 	GetVideoListRequest             = video_pb.GetVideoListRequest
 	GetVideoListResponse            = video_pb.GetVideoListResponse
+	GetVideosByIDsRequest           = video_pb.GetVideosByIDsRequest
+	GetVideosByIDsResponse          = video_pb.GetVideosByIDsResponse
 	IncreaseVideoVisitCountRequest  = video_pb.IncreaseVideoVisitCountRequest
 	IncreaseVideoVisitCountResponse = video_pb.IncreaseVideoVisitCountResponse
-	LikeVideoRequest                = video_pb.LikeVideoRequest
-	LikeVideoResponse               = video_pb.LikeVideoResponse
 	PublishVideoRequest             = video_pb.PublishVideoRequest
 	PublishVideoResponse            = video_pb.PublishVideoResponse
 	SearchVideoRequest              = video_pb.SearchVideoRequest
@@ -39,9 +39,9 @@ type (
 		GetVideoList(ctx context.Context, in *GetVideoListRequest, opts ...grpc.CallOption) (*GetVideoListResponse, error)
 		SearchVideo(ctx context.Context, in *SearchVideoRequest, opts ...grpc.CallOption) (*SearchVideoResponse, error)
 		GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
-		LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error)
-		GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error)
+		GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error)
 		IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
+		FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error)
 	}
 
 	defaultVideoService struct {
@@ -80,17 +80,17 @@ func (m *defaultVideoService) GetPopularVideo(ctx context.Context, in *GetPopula
 	return client.GetPopularVideo(ctx, in, opts...)
 }
 
-func (m *defaultVideoService) LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error) {
+func (m *defaultVideoService) GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error) {
 	client := video_pb.NewVideoServiceClient(m.cli.Conn())
-	return client.LikeVideo(ctx, in, opts...)
-}
-
-func (m *defaultVideoService) GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error) {
-	client := video_pb.NewVideoServiceClient(m.cli.Conn())
-	return client.GetLikeList(ctx, in, opts...)
+	return client.GetVideosByIDs(ctx, in, opts...)
 }
 
 func (m *defaultVideoService) IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error) {
 	client := video_pb.NewVideoServiceClient(m.cli.Conn())
 	return client.IncreaseVideoVisitCount(ctx, in, opts...)
+}
+
+func (m *defaultVideoService) FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error) {
+	client := video_pb.NewVideoServiceClient(m.cli.Conn())
+	return client.FeedFanout(ctx, in, opts...)
 }

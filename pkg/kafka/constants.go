@@ -3,8 +3,6 @@ package kafka
 import "time"
 
 const (
-	defaultPartition = 0
-
 	producerWriteTimeout = 10 * time.Second
 	producerReadTimeout  = 10 * time.Second
 	producerBatchSize    = 10
@@ -18,7 +16,5 @@ const (
 	DefaultConsumerWorkerCount = 10
 	DefaultConsumerQueueSize   = 1000
 
-	consumerGroupStabilizeWait = 3 * time.Second
-	fetcherStartInterval       = 500 * time.Millisecond
-	partitionFetchRetryWait    = 2 * time.Second
+	partitionFetchRetryWait = 2 * time.Second
 )

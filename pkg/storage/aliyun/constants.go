@@ -11,6 +11,7 @@ const (
 	ossAccessSecretKey     = "oss_access.secret"
 	ossAccessEndpointKey   = "oss_access.endpoint"
 	ossAccessBucketNameKey = "oss_access.bucket_name"
+	ossAccessCDNDomainKey  = "oss_access.cdn_domain"
 
 	// ObjectType 系列：OSS 对象存储路径的首段类型前缀，用于区分不同资源。
 	ObjectTypeVideo  = "videos"

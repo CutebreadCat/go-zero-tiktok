@@ -24,9 +24,9 @@ const (
 	VideoService_GetVideoList_FullMethodName            = "/video.VideoService/GetVideoList"
 	VideoService_SearchVideo_FullMethodName             = "/video.VideoService/SearchVideo"
 	VideoService_GetPopularVideo_FullMethodName         = "/video.VideoService/GetPopularVideo"
-	VideoService_LikeVideo_FullMethodName               = "/video.VideoService/LikeVideo"
-	VideoService_GetLikeList_FullMethodName             = "/video.VideoService/GetLikeList"
+	VideoService_GetVideosByIDs_FullMethodName          = "/video.VideoService/GetVideosByIDs"
 	VideoService_IncreaseVideoVisitCount_FullMethodName = "/video.VideoService/IncreaseVideoVisitCount"
+	VideoService_FeedFanout_FullMethodName              = "/video.VideoService/FeedFanout"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -38,9 +38,9 @@ type VideoServiceClient interface {
 	GetVideoList(ctx context.Context, in *GetVideoListRequest, opts ...grpc.CallOption) (*GetVideoListResponse, error)
 	SearchVideo(ctx context.Context, in *SearchVideoRequest, opts ...grpc.CallOption) (*SearchVideoResponse, error)
 	GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
-	LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error)
-	GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error)
+	GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error)
 	IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
+	FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error)
 }
 
 type videoServiceClient struct {
@@ -101,20 +101,10 @@ func (c *videoServiceClient) GetPopularVideo(ctx context.Context, in *GetPopular
 	return out, nil
 }
 
-func (c *videoServiceClient) LikeVideo(ctx context.Context, in *LikeVideoRequest, opts ...grpc.CallOption) (*LikeVideoResponse, error) {
+func (c *videoServiceClient) GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LikeVideoResponse)
-	err := c.cc.Invoke(ctx, VideoService_LikeVideo_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *videoServiceClient) GetLikeList(ctx context.Context, in *GetLikeListRequest, opts ...grpc.CallOption) (*GetLikeListResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetLikeListResponse)
-	err := c.cc.Invoke(ctx, VideoService_GetLikeList_FullMethodName, in, out, cOpts...)
+	out := new(GetVideosByIDsResponse)
+	err := c.cc.Invoke(ctx, VideoService_GetVideosByIDs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +121,16 @@ func (c *videoServiceClient) IncreaseVideoVisitCount(ctx context.Context, in *In
 	return out, nil
 }
 
+func (c *videoServiceClient) FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FeedFanoutResponse)
+	err := c.cc.Invoke(ctx, VideoService_FeedFanout_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -140,9 +140,9 @@ type VideoServiceServer interface {
 	GetVideoList(context.Context, *GetVideoListRequest) (*GetVideoListResponse, error)
 	SearchVideo(context.Context, *SearchVideoRequest) (*SearchVideoResponse, error)
 	GetPopularVideo(context.Context, *GetPopularVideoRequest) (*GetPopularVideoResponse, error)
-	LikeVideo(context.Context, *LikeVideoRequest) (*LikeVideoResponse, error)
-	GetLikeList(context.Context, *GetLikeListRequest) (*GetLikeListResponse, error)
+	GetVideosByIDs(context.Context, *GetVideosByIDsRequest) (*GetVideosByIDsResponse, error)
 	IncreaseVideoVisitCount(context.Context, *IncreaseVideoVisitCountRequest) (*IncreaseVideoVisitCountResponse, error)
+	FeedFanout(context.Context, *FeedFanoutRequest) (*FeedFanoutResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -168,14 +168,14 @@ func (UnimplementedVideoServiceServer) SearchVideo(context.Context, *SearchVideo
 func (UnimplementedVideoServiceServer) GetPopularVideo(context.Context, *GetPopularVideoRequest) (*GetPopularVideoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPopularVideo not implemented")
 }
-func (UnimplementedVideoServiceServer) LikeVideo(context.Context, *LikeVideoRequest) (*LikeVideoResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method LikeVideo not implemented")
-}
-func (UnimplementedVideoServiceServer) GetLikeList(context.Context, *GetLikeListRequest) (*GetLikeListResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetLikeList not implemented")
+func (UnimplementedVideoServiceServer) GetVideosByIDs(context.Context, *GetVideosByIDsRequest) (*GetVideosByIDsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetVideosByIDs not implemented")
 }
 func (UnimplementedVideoServiceServer) IncreaseVideoVisitCount(context.Context, *IncreaseVideoVisitCountRequest) (*IncreaseVideoVisitCountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IncreaseVideoVisitCount not implemented")
+}
+func (UnimplementedVideoServiceServer) FeedFanout(context.Context, *FeedFanoutRequest) (*FeedFanoutResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FeedFanout not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -288,38 +288,20 @@ func _VideoService_GetPopularVideo_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _VideoService_LikeVideo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LikeVideoRequest)
+func _VideoService_GetVideosByIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVideosByIDsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(VideoServiceServer).LikeVideo(ctx, in)
+		return srv.(VideoServiceServer).GetVideosByIDs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: VideoService_LikeVideo_FullMethodName,
+		FullMethod: VideoService_GetVideosByIDs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VideoServiceServer).LikeVideo(ctx, req.(*LikeVideoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _VideoService_GetLikeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetLikeListRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(VideoServiceServer).GetLikeList(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: VideoService_GetLikeList_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VideoServiceServer).GetLikeList(ctx, req.(*GetLikeListRequest))
+		return srv.(VideoServiceServer).GetVideosByIDs(ctx, req.(*GetVideosByIDsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -338,6 +320,24 @@ func _VideoService_IncreaseVideoVisitCount_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(VideoServiceServer).IncreaseVideoVisitCount(ctx, req.(*IncreaseVideoVisitCountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VideoService_FeedFanout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FeedFanoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).FeedFanout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_FeedFanout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).FeedFanout(ctx, req.(*FeedFanoutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -370,16 +370,16 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _VideoService_GetPopularVideo_Handler,
 		},
 		{
-			MethodName: "LikeVideo",
-			Handler:    _VideoService_LikeVideo_Handler,
-		},
-		{
-			MethodName: "GetLikeList",
-			Handler:    _VideoService_GetLikeList_Handler,
+			MethodName: "GetVideosByIDs",
+			Handler:    _VideoService_GetVideosByIDs_Handler,
 		},
 		{
 			MethodName: "IncreaseVideoVisitCount",
 			Handler:    _VideoService_IncreaseVideoVisitCount_Handler,
+		},
+		{
+			MethodName: "FeedFanout",
+			Handler:    _VideoService_FeedFanout_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
