@@ -39,6 +39,7 @@ func main() {
 	defer server.Stop()
 
 	ctx := svc.NewServiceContext(c)
+	defer ctx.Close()
 	handler.RegisterHandlers(server, ctx)
 	httpx.SetErrorHandler(func(err error) (int, interface{}) {
 		return 200, xerr.HandleError(err)

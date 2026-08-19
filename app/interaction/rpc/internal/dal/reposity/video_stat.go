@@ -46,6 +46,13 @@ func (r *VideoStatRepo) UpdateVideoFavoriteCount(ctx context.Context, videoID in
 	return nil
 }
 
+func (r *VideoStatRepo) UpdateVideoCommentCount(ctx context.Context, videoID int64, delta int64) error {
+	if err := videostattable.UpdateVideoCommentCount(ctx, r.db, videoID, delta); err != nil {
+		return pkgerrors.WithMessage(err, "VideoStatRepo.UpdateVideoCommentCount")
+	}
+	return nil
+}
+
 func (r *VideoStatRepo) SetLikeCount(ctx context.Context, videoID int64, count int64) error {
 	if err := videostattable.SetLikeCount(ctx, r.db, videoID, count); err != nil {
 		return pkgerrors.WithMessage(err, "VideoStatRepo.SetLikeCount")

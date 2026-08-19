@@ -216,6 +216,27 @@ func (r *VideoBaseinfoRepo) GetVideosByCursor(ctx context.Context, publishedAt, 
 	return r.VideosToResponse(videos), nil
 }
 
+// GetVideoPublishAt 获取视频发布时间，优先读本地缓存，未命中则只查 created_at 字段。
+func (r *VideoBaseinfoRepo) GetVideoPublishAt(ctx context.Context, videoID int64) (time.Time, error) {
+	if v, ok := r.getFromCache(videoID); ok {
+		if v == nil {
+			return time.Time{}, gorm.ErrRecordNotFound
+		}
+		return v.CreatedAt, nil
+	}
+
+	var video videobasetable.VideoBaseinfo
+	if err := r.db.WithContext(ctx).
+		Select("video_id, created_at").
+		Where("video_id = ? AND deleted_at IS NULL", videoID).
+		First(&video).Error; err != nil {
+		return time.Time{}, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideoPublishAt")
+	}
+
+	r.setCache(video.VideoID, &video)
+	return video.CreatedAt, nil
+}
+
 func (r *VideoBaseinfoRepo) VideoToResponse(video *videobasetable.VideoBaseinfo) types.VideoBaseinfo {
 	videoURL := aliyun.BuildURL(video.VideoObjectKey)
 	coverURL := ""

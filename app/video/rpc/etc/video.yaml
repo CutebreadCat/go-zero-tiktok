@@ -19,6 +19,28 @@ Telemetry:
   Sampler: 1.0
   Batcher: otlpgrpc
 
+# Kafka: 热度分重算事件（Gateway 发送）与访问事件（本服务自产自消）
+Kafka:
+  Brokers:
+  - "${KAFKA_BROKERS}"
+  HotScoreTopic: "video-hot-score-recalc"
+  VisitTopic: "video-visit-events"
+  GroupID: "video-hot-score-consumer-group"
+  Enable: true
+  WorkerCount: 10
+  QueueSize: 1000
+
+# 热度分计算与清理配置
+Hot:
+  BaseScore: 100          # 基础分，让新视频有初始竞争力
+  LikeWeight: 5           # 点赞权重
+  CommentWeight: 10       # 评论权重
+  FavoriteWeight: 3       # 收藏权重
+  Gravity: 1.5            # HN 时间衰减指数
+  CleanupInterval: 24h    # 清理任务间隔
+  Window: 24h             # 滑动窗口：超过该时长未活跃则清理
+  KeepTopN: 10000         # 保留热度榜 Top N
+
 # 监控指标:go-zero 内置 Prometheus,暴露 /metrics 供 Prometheus 抓取
 Prometheus:
   Host: 0.0.0.0

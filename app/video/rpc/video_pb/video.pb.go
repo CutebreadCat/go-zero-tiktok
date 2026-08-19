@@ -1093,6 +1093,88 @@ func (*IncreaseVideoVisitCountResponse) Descriptor() ([]byte, []int) {
 	return file_app_video_rpc_video_proto_rawDescGZIP(), []int{17}
 }
 
+// RecalculateHotScoreRequest 触发指定视频的热度分重算（仅写 Redis hot:videos，不落库）。
+// 由 gateway 在点赞/收藏/评论等互动事件后异步调用。
+type RecalculateHotScoreRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	VideoId       int64                  `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecalculateHotScoreRequest) Reset() {
+	*x = RecalculateHotScoreRequest{}
+	mi := &file_app_video_rpc_video_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecalculateHotScoreRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecalculateHotScoreRequest) ProtoMessage() {}
+
+func (x *RecalculateHotScoreRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_video_rpc_video_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecalculateHotScoreRequest.ProtoReflect.Descriptor instead.
+func (*RecalculateHotScoreRequest) Descriptor() ([]byte, []int) {
+	return file_app_video_rpc_video_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *RecalculateHotScoreRequest) GetVideoId() int64 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+type RecalculateHotScoreResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RecalculateHotScoreResponse) Reset() {
+	*x = RecalculateHotScoreResponse{}
+	mi := &file_app_video_rpc_video_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RecalculateHotScoreResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RecalculateHotScoreResponse) ProtoMessage() {}
+
+func (x *RecalculateHotScoreResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_video_rpc_video_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RecalculateHotScoreResponse.ProtoReflect.Descriptor instead.
+func (*RecalculateHotScoreResponse) Descriptor() ([]byte, []int) {
+	return file_app_video_rpc_video_proto_rawDescGZIP(), []int{19}
+}
+
 var File_app_video_rpc_video_proto protoreflect.FileDescriptor
 
 const file_app_video_rpc_video_proto_rawDesc = "" +
@@ -1174,7 +1256,10 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\x1eIncreaseVideoVisitCountRequest\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12\x14\n" +
 	"\x05delta\x18\x02 \x01(\x03R\x05delta\"!\n" +
-	"\x1fIncreaseVideoVisitCountResponse2\xfd\x04\n" +
+	"\x1fIncreaseVideoVisitCountResponse\"7\n" +
+	"\x1aRecalculateHotScoreRequest\x12\x19\n" +
+	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\"\x1d\n" +
+	"\x1bRecalculateHotScoreResponse2\xdb\x05\n" +
 	"\fVideoService\x12G\n" +
 	"\fPublishVideo\x12\x1a.video.PublishVideoRequest\x1a\x1b.video.PublishVideoResponse\x12G\n" +
 	"\fGetFeedVideo\x12\x1a.video.GetFeedVideoRequest\x1a\x1b.video.GetFeedVideoResponse\x12G\n" +
@@ -1182,7 +1267,8 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\vSearchVideo\x12\x19.video.SearchVideoRequest\x1a\x1a.video.SearchVideoResponse\x12P\n" +
 	"\x0fGetPopularVideo\x12\x1d.video.GetPopularVideoRequest\x1a\x1e.video.GetPopularVideoResponse\x12M\n" +
 	"\x0eGetVideosByIDs\x12\x1c.video.GetVideosByIDsRequest\x1a\x1d.video.GetVideosByIDsResponse\x12h\n" +
-	"\x17IncreaseVideoVisitCount\x12%.video.IncreaseVideoVisitCountRequest\x1a&.video.IncreaseVideoVisitCountResponse\x12A\n" +
+	"\x17IncreaseVideoVisitCount\x12%.video.IncreaseVideoVisitCountRequest\x1a&.video.IncreaseVideoVisitCountResponse\x12\\\n" +
+	"\x13RecalculateHotScore\x12!.video.RecalculateHotScoreRequest\x1a\".video.RecalculateHotScoreResponse\x12A\n" +
 	"\n" +
 	"FeedFanout\x12\x18.video.FeedFanoutRequest\x1a\x19.video.FeedFanoutResponseB\fZ\n" +
 	"./video_pbb\x06proto3"
@@ -1199,7 +1285,7 @@ func file_app_video_rpc_video_proto_rawDescGZIP() []byte {
 	return file_app_video_rpc_video_proto_rawDescData
 }
 
-var file_app_video_rpc_video_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_app_video_rpc_video_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_app_video_rpc_video_proto_goTypes = []any{
 	(*PublishVideoRequest)(nil),             // 0: video.PublishVideoRequest
 	(*PublishVideoResponse)(nil),            // 1: video.PublishVideoResponse
@@ -1219,6 +1305,8 @@ var file_app_video_rpc_video_proto_goTypes = []any{
 	(*GetPopularVideoResponse)(nil),         // 15: video.GetPopularVideoResponse
 	(*IncreaseVideoVisitCountRequest)(nil),  // 16: video.IncreaseVideoVisitCountRequest
 	(*IncreaseVideoVisitCountResponse)(nil), // 17: video.IncreaseVideoVisitCountResponse
+	(*RecalculateHotScoreRequest)(nil),      // 18: video.RecalculateHotScoreRequest
+	(*RecalculateHotScoreResponse)(nil),     // 19: video.RecalculateHotScoreResponse
 }
 var file_app_video_rpc_video_proto_depIdxs = []int32{
 	5,  // 0: video.GetFeedVideoResponse.videos:type_name -> video.VideoInfo
@@ -1234,17 +1322,19 @@ var file_app_video_rpc_video_proto_depIdxs = []int32{
 	13, // 10: video.VideoService.GetPopularVideo:input_type -> video.GetPopularVideoRequest
 	11, // 11: video.VideoService.GetVideosByIDs:input_type -> video.GetVideosByIDsRequest
 	16, // 12: video.VideoService.IncreaseVideoVisitCount:input_type -> video.IncreaseVideoVisitCountRequest
-	3,  // 13: video.VideoService.FeedFanout:input_type -> video.FeedFanoutRequest
-	1,  // 14: video.VideoService.PublishVideo:output_type -> video.PublishVideoResponse
-	6,  // 15: video.VideoService.GetFeedVideo:output_type -> video.GetFeedVideoResponse
-	8,  // 16: video.VideoService.GetVideoList:output_type -> video.GetVideoListResponse
-	10, // 17: video.VideoService.SearchVideo:output_type -> video.SearchVideoResponse
-	15, // 18: video.VideoService.GetPopularVideo:output_type -> video.GetPopularVideoResponse
-	12, // 19: video.VideoService.GetVideosByIDs:output_type -> video.GetVideosByIDsResponse
-	17, // 20: video.VideoService.IncreaseVideoVisitCount:output_type -> video.IncreaseVideoVisitCountResponse
-	4,  // 21: video.VideoService.FeedFanout:output_type -> video.FeedFanoutResponse
-	14, // [14:22] is the sub-list for method output_type
-	6,  // [6:14] is the sub-list for method input_type
+	18, // 13: video.VideoService.RecalculateHotScore:input_type -> video.RecalculateHotScoreRequest
+	3,  // 14: video.VideoService.FeedFanout:input_type -> video.FeedFanoutRequest
+	1,  // 15: video.VideoService.PublishVideo:output_type -> video.PublishVideoResponse
+	6,  // 16: video.VideoService.GetFeedVideo:output_type -> video.GetFeedVideoResponse
+	8,  // 17: video.VideoService.GetVideoList:output_type -> video.GetVideoListResponse
+	10, // 18: video.VideoService.SearchVideo:output_type -> video.SearchVideoResponse
+	15, // 19: video.VideoService.GetPopularVideo:output_type -> video.GetPopularVideoResponse
+	12, // 20: video.VideoService.GetVideosByIDs:output_type -> video.GetVideosByIDsResponse
+	17, // 21: video.VideoService.IncreaseVideoVisitCount:output_type -> video.IncreaseVideoVisitCountResponse
+	19, // 22: video.VideoService.RecalculateHotScore:output_type -> video.RecalculateHotScoreResponse
+	4,  // 23: video.VideoService.FeedFanout:output_type -> video.FeedFanoutResponse
+	15, // [15:24] is the sub-list for method output_type
+	6,  // [6:15] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
@@ -1261,7 +1351,7 @@ func file_app_video_rpc_video_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_app_video_rpc_video_proto_rawDesc), len(file_app_video_rpc_video_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

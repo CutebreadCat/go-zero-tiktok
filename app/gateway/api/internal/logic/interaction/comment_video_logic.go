@@ -49,6 +49,9 @@ func (l *CommentVideoLogic) CommentVideo(req *types.CommentVideoRequest) (resp *
 		return nil, xerr.HandleDaoError(err, "CommentVideo.CreateComment")
 	}
 
+	// 评论成功后触发热度分重算（Kafka 事件解耦）。
+	l.svcCtx.TriggerHotScoreRecalc(l.ctx, req.VideoId)
+
 	return &types.CommentVideoResponse{
 		Base:      types.BaseResponse{StatusCode: 0, StatusMsg: "评论发布成功"},
 		CommentID: rpcResp.CommentId,

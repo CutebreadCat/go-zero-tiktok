@@ -7,7 +7,8 @@ import (
 
 type ICommentRepo interface {
 	CreateCommentFromParams(ctx context.Context, commentID, userID, videoID int64, content string, parentCommentID int64) error
-	DeleteCommentByID(ctx context.Context, commentID int64, userID int64) error
+	// DeleteCommentByID 删除评论，返回该评论所属 video_id。
+	DeleteCommentByID(ctx context.Context, commentID int64, userID int64) (int64, error)
 	GetCommentsByVideoID(ctx context.Context, videoID int64, pageNumber, pageSize int32) ([]types.CommentBaseinfo, int64, error)
 	LikeComment(ctx context.Context, commentID int64, userID int64, likeType int32) error
 	CommentParentComment(ctx context.Context, userID int64, commentText string, parentCommentID int64) (int64, error)
@@ -37,6 +38,7 @@ type IPopularRepo interface {
 	IncreaseVideoVisitCount(ctx context.Context, videoID int64, delta int64) error
 	UpdateVideoLikeCount(ctx context.Context, videoID int64, delta int64) error
 	UpdateVideoFavoriteCount(ctx context.Context, videoID int64, delta int64) error
+	UpdateVideoCommentCount(ctx context.Context, videoID int64, delta int64) error
 	GetPopularVideoIDsByVisitCount(ctx context.Context, pageNum, pageSize int32) ([]types.VideoPopular, int64, error)
 	// SetLikeCount 直接设置视频 like_count（供 syncer 以 Redis 为基准对齐 MySQL）。
 	SetLikeCount(ctx context.Context, videoID int64, count int64) error

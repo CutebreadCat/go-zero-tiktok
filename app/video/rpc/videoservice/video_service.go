@@ -28,6 +28,8 @@ type (
 	IncreaseVideoVisitCountResponse = video_pb.IncreaseVideoVisitCountResponse
 	PublishVideoRequest             = video_pb.PublishVideoRequest
 	PublishVideoResponse            = video_pb.PublishVideoResponse
+	RecalculateHotScoreRequest      = video_pb.RecalculateHotScoreRequest
+	RecalculateHotScoreResponse     = video_pb.RecalculateHotScoreResponse
 	SearchVideoRequest              = video_pb.SearchVideoRequest
 	SearchVideoResponse             = video_pb.SearchVideoResponse
 	VideoInfo                       = video_pb.VideoInfo
@@ -41,6 +43,7 @@ type (
 		GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
 		GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error)
 		IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
+		RecalculateHotScore(ctx context.Context, in *RecalculateHotScoreRequest, opts ...grpc.CallOption) (*RecalculateHotScoreResponse, error)
 		FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error)
 	}
 
@@ -88,6 +91,11 @@ func (m *defaultVideoService) GetVideosByIDs(ctx context.Context, in *GetVideosB
 func (m *defaultVideoService) IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error) {
 	client := video_pb.NewVideoServiceClient(m.cli.Conn())
 	return client.IncreaseVideoVisitCount(ctx, in, opts...)
+}
+
+func (m *defaultVideoService) RecalculateHotScore(ctx context.Context, in *RecalculateHotScoreRequest, opts ...grpc.CallOption) (*RecalculateHotScoreResponse, error) {
+	client := video_pb.NewVideoServiceClient(m.cli.Conn())
+	return client.RecalculateHotScore(ctx, in, opts...)
 }
 
 func (m *defaultVideoService) FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error) {

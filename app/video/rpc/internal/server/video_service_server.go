@@ -58,6 +58,11 @@ func (s *VideoServiceServer) IncreaseVideoVisitCount(ctx context.Context, in *vi
 	return l.IncreaseVideoVisitCount(in)
 }
 
+func (s *VideoServiceServer) RecalculateHotScore(ctx context.Context, in *video_pb.RecalculateHotScoreRequest) (*video_pb.RecalculateHotScoreResponse, error) {
+	l := logic.NewRecalculateHotScoreLogic(ctx, s.svcCtx)
+	return l.RecalculateHotScore(in)
+}
+
 func (s *VideoServiceServer) FeedFanout(ctx context.Context, in *video_pb.FeedFanoutRequest) (*video_pb.FeedFanoutResponse, error) {
 	l := logic.NewFeedFanoutLogic(ctx, s.svcCtx)
 	return l.FeedFanout(in)

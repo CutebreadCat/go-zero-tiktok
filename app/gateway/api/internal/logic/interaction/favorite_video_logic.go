@@ -43,6 +43,9 @@ func (l *FavoriteVideoLogic) FavoriteVideo(req *types.FavoriteVideoRequest) (res
 		return nil, xerr.HandleDaoError(err, "FavoriteVideo.FavoriteVideo")
 	}
 
+	// 互动成功后触发热度分重算（Kafka 事件解耦）。
+	l.svcCtx.TriggerHotScoreRecalc(l.ctx, req.VideoId)
+
 	return &types.FavoriteVideoResponse{
 		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "收藏成功"},
 	}, nil

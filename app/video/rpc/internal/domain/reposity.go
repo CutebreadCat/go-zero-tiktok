@@ -8,6 +8,7 @@ import (
 	"go_zero-tiktok/pkg/contract"
 )
 
+
 type IVideoRepo interface {
 	CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoURL, coverURL, title, description string) error
 	SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
@@ -17,6 +18,8 @@ type IVideoRepo interface {
 	// GetVideosByCursor 复合游标分页兜底：按 (created_at, video_id) < (publishedAt, videoID) 倒序取 limit 条。
 	// publishedAt=0 且 videoID=0 表示首页。
 	GetVideosByCursor(ctx context.Context, publishedAt, videoID int64, limit int32) ([]types.VideoBaseinfo, error)
+	// GetVideoPublishAt 获取视频发布时间，优先读缓存，未命中回源 MySQL。
+	GetVideoPublishAt(ctx context.Context, videoID int64) (time.Time, error)
 }
 
 type IPopularRepo interface {
@@ -74,9 +77,11 @@ type IFeedRepo interface {
 	FanoutInbox(ctx context.Context, videoID int64, userIDs []int64, publishAt time.Time) error
 	// GetUserInbox 取用户收件箱 (lastTimeMs, +inf] 范围内按 score 倒序的索引。
 	GetUserInbox(ctx context.Context, uid, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
-	// IncreaseHotScore 对 hot:videos 有序集合按 delta 累加热度分。
-	IncreaseHotScore(ctx context.Context, videoID int64, delta int64) error
+	// RefreshHotScore 覆盖更新视频热度分与最后活跃时间。
+	RefreshHotScore(ctx context.Context, videoID int64, score int64, activeAt time.Time) error
 	// GetHotVideosByCursor 从 hot:videos 取热度分 <= cursorScore 的索引，按热度倒序。
 	// 返回数量会略多于 limit，供调用方按 video_id 做同分精断。
 	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
+	// CleanupExpiredHotVideos 清理超过 cutoffMs 未活跃的成员，并只保留 Top keepTopN。
+	CleanupExpiredHotVideos(ctx context.Context, cutoffMs int64, keepTopN int) error
 }

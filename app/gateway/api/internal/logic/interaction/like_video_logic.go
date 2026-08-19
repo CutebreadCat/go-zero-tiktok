@@ -44,6 +44,9 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 		return nil, xerr.HandleDaoError(err, "LikeVideo.LikeVideo")
 	}
 
+	// 互动成功后触发热度分重算（Kafka 事件解耦）。
+	l.svcCtx.TriggerHotScoreRecalc(l.ctx, req.VideoId)
+
 	return &types.LikeVideoResponse{
 		Base: types.BaseResponse{StatusCode: 0, StatusMsg: "点赞成功"},
 	}, nil

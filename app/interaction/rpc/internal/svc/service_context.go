@@ -62,7 +62,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		DB:                 db,
 		Rdb:                rdb,
 		Dal:                dalRepo,
-		CommentService:     commentdomain.NewCommentService(dalRepo.Comment),
+		CommentService:     commentdomain.NewCommentService(dalRepo.Comment, dalRepo.VideoStat),
 		InteractionService: interactionService,
 		likeCache:          likeCache,
 		likeEventProducer:  producer,

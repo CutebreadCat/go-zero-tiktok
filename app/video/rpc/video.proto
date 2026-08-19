@@ -112,6 +112,15 @@ message IncreaseVideoVisitCountRequest {
 message IncreaseVideoVisitCountResponse {
 }
 
+// RecalculateHotScoreRequest 触发指定视频的热度分重算（仅写 Redis hot:videos，不落库）。
+// 由 gateway 在点赞/收藏/评论等互动事件后异步调用。
+message RecalculateHotScoreRequest {
+    int64 video_id = 1;
+}
+
+message RecalculateHotScoreResponse {
+}
+
 service VideoService {
     rpc PublishVideo(PublishVideoRequest) returns (PublishVideoResponse);
     rpc GetFeedVideo(GetFeedVideoRequest) returns (GetFeedVideoResponse);
@@ -120,5 +129,6 @@ service VideoService {
     rpc GetPopularVideo(GetPopularVideoRequest) returns (GetPopularVideoResponse);
     rpc GetVideosByIDs(GetVideosByIDsRequest) returns (GetVideosByIDsResponse);
     rpc IncreaseVideoVisitCount(IncreaseVideoVisitCountRequest) returns (IncreaseVideoVisitCountResponse);
+    rpc RecalculateHotScore(RecalculateHotScoreRequest) returns (RecalculateHotScoreResponse);
     rpc FeedFanout(FeedFanoutRequest) returns (FeedFanoutResponse);
 }
