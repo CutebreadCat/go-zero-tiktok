@@ -25,6 +25,7 @@ type ServiceContext struct {
 	CommentService     *commentdomain.CommentService
 	InteractionService *interaction.InteractionService
 
+	likeCache         *cache.LikeCountCache
 	likeCountSyncer   *worker.LikeCountSyncer
 	consumerUnit      *appkafka.MultiTopicConsumerUnit
 	likeEventProducer interaction.LikeEventProducer
@@ -63,6 +64,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Dal:                dalRepo,
 		CommentService:     commentdomain.NewCommentService(dalRepo.Comment),
 		InteractionService: interactionService,
+		likeCache:          likeCache,
 		likeEventProducer:  producer,
 	}
 
@@ -87,9 +89,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return ctx
 }
 
-// startKafkaConsumer 启动 Kafka 消费者：消费点赞/收藏事件并持久化到 MySQL。
+// startKafkaConsumer 启动 Kafka 消费者：消费点赞/收藏事件并标记脏集合，
+// 由 LikeCountSyncer 统一批量 flush 到 MySQL，避免单条消息触发一次 DB 写。
 func (ctx *ServiceContext) startKafkaConsumer(c config.Config) {
-	handler := interaction.NewLikeEventHandler(ctx.Dal.VideoInteraction)
+	handler := interaction.NewLikeEventHandler(ctx.likeCache)
 
 	workerCount := c.Kafka.WorkerCount
 	if workerCount <= 0 {

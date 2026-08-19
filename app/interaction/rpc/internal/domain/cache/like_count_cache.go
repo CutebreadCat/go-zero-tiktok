@@ -246,6 +246,26 @@ func (c *LikeCountCache) SetLikeCount(ctx context.Context, videoID int64, count 
 	return nil
 }
 
+// MarkVideoLikeDirty 把视频加入 like 脏集合，供 syncer 后续批量 flush。
+func (c *LikeCountCache) MarkVideoLikeDirty(ctx context.Context, videoID int64) error {
+	return c.markDirty(ctx, LikeDirtyKey, videoID)
+}
+
+// markDirty 把 video_id 加入指定脏集合并续期。
+func (c *LikeCountCache) markDirty(ctx context.Context, key string, videoID int64) error {
+	field := strconv.FormatInt(videoID, 10)
+	script := `
+		redis.call('SADD', KEYS[1], ARGV[1])
+		redis.call('EXPIRE', KEYS[1], ARGV[2])
+		return 1
+	`
+	_, err := c.rdb.EvalCtx(ctx, script, []string{key}, []any{field, likeKeyTTLSeconds})
+	if err != nil {
+		return xerr.Wrap(err, "LikeCountCache.markDirty")
+	}
+	return nil
+}
+
 // PopDirtyVideos 从脏集合中随机取出 batch 个待同步视频 ID（非阻塞）。
 func (c *LikeCountCache) PopDirtyVideos(ctx context.Context, batch int) ([]int64, error) {
 	if batch <= 0 {
