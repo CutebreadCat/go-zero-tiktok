@@ -55,6 +55,7 @@ func (l *GetPopularVideoLogic) GetPopularVideo(in *video_pb.GetPopularVideoReque
 			LikeCount:     p.LikeCount,
 			CommentCount:  p.CommentCount,
 			FavoriteCount: p.FavoriteCount,
+			HotScore:      p.HotScore,
 		})
 	}
 

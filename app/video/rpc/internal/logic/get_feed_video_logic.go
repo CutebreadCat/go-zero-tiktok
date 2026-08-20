@@ -52,6 +52,7 @@ func (l *GetFeedVideoLogic) GetFeedVideo(in *video_pb.GetFeedVideoRequest) (*vid
 		}
 		if i < len(result.Populars) {
 			info.VisitCount = result.Populars[i].VisitCount
+			info.HotScore = result.Populars[i].HotScore
 		}
 		videoInfos = append(videoInfos, info)
 	}

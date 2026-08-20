@@ -355,6 +355,7 @@ type VideoInfo struct {
 	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	VisitCount    int64                  `protobuf:"varint,8,opt,name=visit_count,json=visitCount,proto3" json:"visit_count,omitempty"`
+	HotScore      int64                  `protobuf:"varint,9,opt,name=hot_score,json=hotScore,proto3" json:"hot_score,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -441,6 +442,13 @@ func (x *VideoInfo) GetCreatedAt() string {
 func (x *VideoInfo) GetVisitCount() int64 {
 	if x != nil {
 		return x.VisitCount
+	}
+	return 0
+}
+
+func (x *VideoInfo) GetHotScore() int64 {
+	if x != nil {
+		return x.HotScore
 	}
 	return 0
 }
@@ -884,6 +892,7 @@ type VideoPopularInfo struct {
 	LikeCount     int64                  `protobuf:"varint,3,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
 	CommentCount  int64                  `protobuf:"varint,4,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
 	FavoriteCount int64                  `protobuf:"varint,5,opt,name=favorite_count,json=favoriteCount,proto3" json:"favorite_count,omitempty"`
+	HotScore      int64                  `protobuf:"varint,6,opt,name=hot_score,json=hotScore,proto3" json:"hot_score,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -949,6 +958,13 @@ func (x *VideoPopularInfo) GetCommentCount() int64 {
 func (x *VideoPopularInfo) GetFavoriteCount() int64 {
 	if x != nil {
 		return x.FavoriteCount
+	}
+	return 0
+}
+
+func (x *VideoPopularInfo) GetHotScore() int64 {
+	if x != nil {
+		return x.HotScore
 	}
 	return 0
 }
@@ -1175,6 +1191,206 @@ func (*RecalculateHotScoreResponse) Descriptor() ([]byte, []int) {
 	return file_app_video_rpc_video_proto_rawDescGZIP(), []int{19}
 }
 
+type PlaybackQoSReportRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UserId         int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	VideoId        int64                  `protobuf:"varint,2,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	IdempotencyKey string                 `protobuf:"bytes,3,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	EventType      string                 `protobuf:"bytes,4,opt,name=event_type,json=eventType,proto3" json:"event_type,omitempty"`
+	DurationMs     int64                  `protobuf:"varint,5,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
+	PlayedMs       int64                  `protobuf:"varint,6,opt,name=played_ms,json=playedMs,proto3" json:"played_ms,omitempty"`
+	BufferedMs     int64                  `protobuf:"varint,7,opt,name=buffered_ms,json=bufferedMs,proto3" json:"buffered_ms,omitempty"`
+	StallCount     int32                  `protobuf:"varint,8,opt,name=stall_count,json=stallCount,proto3" json:"stall_count,omitempty"`
+	StallTotalMs   int64                  `protobuf:"varint,9,opt,name=stall_total_ms,json=stallTotalMs,proto3" json:"stall_total_ms,omitempty"`
+	Resolution     string                 `protobuf:"bytes,10,opt,name=resolution,proto3" json:"resolution,omitempty"`
+	BitrateKbps    int32                  `protobuf:"varint,11,opt,name=bitrate_kbps,json=bitrateKbps,proto3" json:"bitrate_kbps,omitempty"`
+	Fps            int32                  `protobuf:"varint,12,opt,name=fps,proto3" json:"fps,omitempty"`
+	ErrorCode      int32                  `protobuf:"varint,13,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
+	ErrorMsg       string                 `protobuf:"bytes,14,opt,name=error_msg,json=errorMsg,proto3" json:"error_msg,omitempty"`
+	NetworkType    string                 `protobuf:"bytes,15,opt,name=network_type,json=networkType,proto3" json:"network_type,omitempty"`
+	DeviceInfo     string                 `protobuf:"bytes,16,opt,name=device_info,json=deviceInfo,proto3" json:"device_info,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *PlaybackQoSReportRequest) Reset() {
+	*x = PlaybackQoSReportRequest{}
+	mi := &file_app_video_rpc_video_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlaybackQoSReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlaybackQoSReportRequest) ProtoMessage() {}
+
+func (x *PlaybackQoSReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_video_rpc_video_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlaybackQoSReportRequest.ProtoReflect.Descriptor instead.
+func (*PlaybackQoSReportRequest) Descriptor() ([]byte, []int) {
+	return file_app_video_rpc_video_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *PlaybackQoSReportRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetVideoId() int64 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *PlaybackQoSReportRequest) GetEventType() string {
+	if x != nil {
+		return x.EventType
+	}
+	return ""
+}
+
+func (x *PlaybackQoSReportRequest) GetDurationMs() int64 {
+	if x != nil {
+		return x.DurationMs
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetPlayedMs() int64 {
+	if x != nil {
+		return x.PlayedMs
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetBufferedMs() int64 {
+	if x != nil {
+		return x.BufferedMs
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetStallCount() int32 {
+	if x != nil {
+		return x.StallCount
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetStallTotalMs() int64 {
+	if x != nil {
+		return x.StallTotalMs
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetResolution() string {
+	if x != nil {
+		return x.Resolution
+	}
+	return ""
+}
+
+func (x *PlaybackQoSReportRequest) GetBitrateKbps() int32 {
+	if x != nil {
+		return x.BitrateKbps
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetFps() int32 {
+	if x != nil {
+		return x.Fps
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetErrorCode() int32 {
+	if x != nil {
+		return x.ErrorCode
+	}
+	return 0
+}
+
+func (x *PlaybackQoSReportRequest) GetErrorMsg() string {
+	if x != nil {
+		return x.ErrorMsg
+	}
+	return ""
+}
+
+func (x *PlaybackQoSReportRequest) GetNetworkType() string {
+	if x != nil {
+		return x.NetworkType
+	}
+	return ""
+}
+
+func (x *PlaybackQoSReportRequest) GetDeviceInfo() string {
+	if x != nil {
+		return x.DeviceInfo
+	}
+	return ""
+}
+
+type PlaybackQoSReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlaybackQoSReportResponse) Reset() {
+	*x = PlaybackQoSReportResponse{}
+	mi := &file_app_video_rpc_video_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlaybackQoSReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlaybackQoSReportResponse) ProtoMessage() {}
+
+func (x *PlaybackQoSReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_video_rpc_video_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlaybackQoSReportResponse.ProtoReflect.Descriptor instead.
+func (*PlaybackQoSReportResponse) Descriptor() ([]byte, []int) {
+	return file_app_video_rpc_video_proto_rawDescGZIP(), []int{21}
+}
+
 var File_app_video_rpc_video_proto protoreflect.FileDescriptor
 
 const file_app_video_rpc_video_proto_rawDesc = "" +
@@ -1203,7 +1419,7 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\buser_ids\x18\x02 \x03(\x03R\auserIds\x12\x1d\n" +
 	"\n" +
 	"publish_at\x18\x03 \x01(\x03R\tpublishAt\"\x14\n" +
-	"\x12FeedFanoutResponse\"\xf5\x01\n" +
+	"\x12FeedFanoutResponse\"\x92\x02\n" +
 	"\tVideoInfo\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12\x1b\n" +
 	"\tauthor_id\x18\x02 \x01(\x03R\bauthorId\x12\x1b\n" +
@@ -1214,7 +1430,8 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1f\n" +
 	"\vvisit_count\x18\b \x01(\x03R\n" +
-	"visitCount\"\x92\x01\n" +
+	"visitCount\x12\x1b\n" +
+	"\thot_score\x18\t \x01(\x03R\bhotScore\"\x92\x01\n" +
 	"\x14GetFeedVideoResponse\x12(\n" +
 	"\x06videos\x18\x01 \x03(\v2\x10.video.VideoInfoR\x06videos\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x1f\n" +
@@ -1241,7 +1458,7 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\x06videos\x18\x01 \x03(\v2\x10.video.VideoInfoR\x06videos\"P\n" +
 	"\x16GetPopularVideoRequest\x12\x19\n" +
 	"\bpage_num\x18\x01 \x01(\x05R\apageNum\x12\x1b\n" +
-	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xb9\x01\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xd6\x01\n" +
 	"\x10VideoPopularInfo\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12\x1f\n" +
 	"\vvisit_count\x18\x02 \x01(\x03R\n" +
@@ -1249,7 +1466,8 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\n" +
 	"like_count\x18\x03 \x01(\x03R\tlikeCount\x12#\n" +
 	"\rcomment_count\x18\x04 \x01(\x03R\fcommentCount\x12%\n" +
-	"\x0efavorite_count\x18\x05 \x01(\x03R\rfavoriteCount\"x\n" +
+	"\x0efavorite_count\x18\x05 \x01(\x03R\rfavoriteCount\x12\x1b\n" +
+	"\thot_score\x18\x06 \x01(\x03R\bhotScore\"x\n" +
 	"\x17GetPopularVideoResponse\x12(\n" +
 	"\x06videos\x18\x01 \x03(\v2\x10.video.VideoInfoR\x06videos\x123\n" +
 	"\bpopulars\x18\x02 \x03(\v2\x17.video.VideoPopularInfoR\bpopulars\"Q\n" +
@@ -1259,7 +1477,34 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\x1fIncreaseVideoVisitCountResponse\"7\n" +
 	"\x1aRecalculateHotScoreRequest\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\"\x1d\n" +
-	"\x1bRecalculateHotScoreResponse2\xdb\x05\n" +
+	"\x1bRecalculateHotScoreResponse\"\x91\x04\n" +
+	"\x18PlaybackQoSReportRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x19\n" +
+	"\bvideo_id\x18\x02 \x01(\x03R\avideoId\x12'\n" +
+	"\x0fidempotency_key\x18\x03 \x01(\tR\x0eidempotencyKey\x12\x1d\n" +
+	"\n" +
+	"event_type\x18\x04 \x01(\tR\teventType\x12\x1f\n" +
+	"\vduration_ms\x18\x05 \x01(\x03R\n" +
+	"durationMs\x12\x1b\n" +
+	"\tplayed_ms\x18\x06 \x01(\x03R\bplayedMs\x12\x1f\n" +
+	"\vbuffered_ms\x18\a \x01(\x03R\n" +
+	"bufferedMs\x12\x1f\n" +
+	"\vstall_count\x18\b \x01(\x05R\n" +
+	"stallCount\x12$\n" +
+	"\x0estall_total_ms\x18\t \x01(\x03R\fstallTotalMs\x12\x1e\n" +
+	"\n" +
+	"resolution\x18\n" +
+	" \x01(\tR\n" +
+	"resolution\x12!\n" +
+	"\fbitrate_kbps\x18\v \x01(\x05R\vbitrateKbps\x12\x10\n" +
+	"\x03fps\x18\f \x01(\x05R\x03fps\x12\x1d\n" +
+	"\n" +
+	"error_code\x18\r \x01(\x05R\terrorCode\x12\x1b\n" +
+	"\terror_msg\x18\x0e \x01(\tR\berrorMsg\x12!\n" +
+	"\fnetwork_type\x18\x0f \x01(\tR\vnetworkType\x12\x1f\n" +
+	"\vdevice_info\x18\x10 \x01(\tR\n" +
+	"deviceInfo\"\x1b\n" +
+	"\x19PlaybackQoSReportResponse2\xb3\x06\n" +
 	"\fVideoService\x12G\n" +
 	"\fPublishVideo\x12\x1a.video.PublishVideoRequest\x1a\x1b.video.PublishVideoResponse\x12G\n" +
 	"\fGetFeedVideo\x12\x1a.video.GetFeedVideoRequest\x1a\x1b.video.GetFeedVideoResponse\x12G\n" +
@@ -1270,7 +1515,8 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\x17IncreaseVideoVisitCount\x12%.video.IncreaseVideoVisitCountRequest\x1a&.video.IncreaseVideoVisitCountResponse\x12\\\n" +
 	"\x13RecalculateHotScore\x12!.video.RecalculateHotScoreRequest\x1a\".video.RecalculateHotScoreResponse\x12A\n" +
 	"\n" +
-	"FeedFanout\x12\x18.video.FeedFanoutRequest\x1a\x19.video.FeedFanoutResponseB\fZ\n" +
+	"FeedFanout\x12\x18.video.FeedFanoutRequest\x1a\x19.video.FeedFanoutResponse\x12V\n" +
+	"\x11ReportPlaybackQoS\x12\x1f.video.PlaybackQoSReportRequest\x1a .video.PlaybackQoSReportResponseB\fZ\n" +
 	"./video_pbb\x06proto3"
 
 var (
@@ -1285,7 +1531,7 @@ func file_app_video_rpc_video_proto_rawDescGZIP() []byte {
 	return file_app_video_rpc_video_proto_rawDescData
 }
 
-var file_app_video_rpc_video_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_app_video_rpc_video_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_app_video_rpc_video_proto_goTypes = []any{
 	(*PublishVideoRequest)(nil),             // 0: video.PublishVideoRequest
 	(*PublishVideoResponse)(nil),            // 1: video.PublishVideoResponse
@@ -1307,6 +1553,8 @@ var file_app_video_rpc_video_proto_goTypes = []any{
 	(*IncreaseVideoVisitCountResponse)(nil), // 17: video.IncreaseVideoVisitCountResponse
 	(*RecalculateHotScoreRequest)(nil),      // 18: video.RecalculateHotScoreRequest
 	(*RecalculateHotScoreResponse)(nil),     // 19: video.RecalculateHotScoreResponse
+	(*PlaybackQoSReportRequest)(nil),        // 20: video.PlaybackQoSReportRequest
+	(*PlaybackQoSReportResponse)(nil),       // 21: video.PlaybackQoSReportResponse
 }
 var file_app_video_rpc_video_proto_depIdxs = []int32{
 	5,  // 0: video.GetFeedVideoResponse.videos:type_name -> video.VideoInfo
@@ -1324,17 +1572,19 @@ var file_app_video_rpc_video_proto_depIdxs = []int32{
 	16, // 12: video.VideoService.IncreaseVideoVisitCount:input_type -> video.IncreaseVideoVisitCountRequest
 	18, // 13: video.VideoService.RecalculateHotScore:input_type -> video.RecalculateHotScoreRequest
 	3,  // 14: video.VideoService.FeedFanout:input_type -> video.FeedFanoutRequest
-	1,  // 15: video.VideoService.PublishVideo:output_type -> video.PublishVideoResponse
-	6,  // 16: video.VideoService.GetFeedVideo:output_type -> video.GetFeedVideoResponse
-	8,  // 17: video.VideoService.GetVideoList:output_type -> video.GetVideoListResponse
-	10, // 18: video.VideoService.SearchVideo:output_type -> video.SearchVideoResponse
-	15, // 19: video.VideoService.GetPopularVideo:output_type -> video.GetPopularVideoResponse
-	12, // 20: video.VideoService.GetVideosByIDs:output_type -> video.GetVideosByIDsResponse
-	17, // 21: video.VideoService.IncreaseVideoVisitCount:output_type -> video.IncreaseVideoVisitCountResponse
-	19, // 22: video.VideoService.RecalculateHotScore:output_type -> video.RecalculateHotScoreResponse
-	4,  // 23: video.VideoService.FeedFanout:output_type -> video.FeedFanoutResponse
-	15, // [15:24] is the sub-list for method output_type
-	6,  // [6:15] is the sub-list for method input_type
+	20, // 15: video.VideoService.ReportPlaybackQoS:input_type -> video.PlaybackQoSReportRequest
+	1,  // 16: video.VideoService.PublishVideo:output_type -> video.PublishVideoResponse
+	6,  // 17: video.VideoService.GetFeedVideo:output_type -> video.GetFeedVideoResponse
+	8,  // 18: video.VideoService.GetVideoList:output_type -> video.GetVideoListResponse
+	10, // 19: video.VideoService.SearchVideo:output_type -> video.SearchVideoResponse
+	15, // 20: video.VideoService.GetPopularVideo:output_type -> video.GetPopularVideoResponse
+	12, // 21: video.VideoService.GetVideosByIDs:output_type -> video.GetVideosByIDsResponse
+	17, // 22: video.VideoService.IncreaseVideoVisitCount:output_type -> video.IncreaseVideoVisitCountResponse
+	19, // 23: video.VideoService.RecalculateHotScore:output_type -> video.RecalculateHotScoreResponse
+	4,  // 24: video.VideoService.FeedFanout:output_type -> video.FeedFanoutResponse
+	21, // 25: video.VideoService.ReportPlaybackQoS:output_type -> video.PlaybackQoSReportResponse
+	16, // [16:26] is the sub-list for method output_type
+	6,  // [6:16] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
@@ -1351,7 +1601,7 @@ func file_app_video_rpc_video_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_app_video_rpc_video_proto_rawDesc), len(file_app_video_rpc_video_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -55,6 +55,10 @@ type IVideoInteractionRepo interface {
 	ApplyLikeEvent(ctx context.Context, action string, userID, videoID int64) error
 }
 
+type IPlaybackQoSRepo interface {
+	CreateReport(ctx context.Context, report *types.PlaybackQoSReport) error
+}
+
 type StorageProvider interface {
 	UploadFile(reader io.Reader, objectKey string) (string, error)
 }

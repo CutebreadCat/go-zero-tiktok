@@ -50,6 +50,27 @@ type VideoPopular struct {
 	LikeCount     int64 `json:"like_count"`
 	CommentCount  int64 `json:"comment_count"`
 	FavoriteCount int64 `json:"favorite_count"`
+	HotScore      int64 `json:"hot_score"`
+}
+
+// PlaybackQoSReport 播放质量上报领域模型（video RPC 使用）
+type PlaybackQoSReport struct {
+	UserID         int64
+	VideoID        int64
+	IdempotencyKey string
+	EventType      string
+	DurationMs     int64
+	PlayedMs       int64
+	BufferedMs     int64
+	StallCount     int32
+	StallTotalMs   int64
+	Resolution     string
+	BitrateKbps    int32
+	Fps            int32
+	ErrorCode      int32
+	ErrorMsg       string
+	NetworkType    string
+	DeviceInfo     string
 }
 
 // CommentBaseinfo 评论基础信息（interaction RPC 使用）

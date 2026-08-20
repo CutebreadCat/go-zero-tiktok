@@ -200,6 +200,28 @@ type Item struct {
 	Favorited     bool          `json:"favorited"`
 }
 
+type PlaybackQoSReportRequest struct {
+	VideoID        int64  `json:"video_id,string" form:"video_id"`
+	IdempotencyKey string `json:"idempotency_key" form:"idempotency_key"`
+	EventType      string `json:"event_type" form:"event_type"`
+	DurationMs     int64  `json:"duration_ms" form:"duration_ms,optional"`
+	PlayedMs       int64  `json:"played_ms" form:"played_ms,optional"`
+	BufferedMs     int64  `json:"buffered_ms" form:"buffered_ms,optional"`
+	StallCount     int32  `json:"stall_count" form:"stall_count,optional"`
+	StallTotalMs   int64  `json:"stall_total_ms" form:"stall_total_ms,optional"`
+	Resolution     string `json:"resolution" form:"resolution,optional"`
+	BitrateKbps    int32  `json:"bitrate_kbps" form:"bitrate_kbps,optional"`
+	Fps            int32  `json:"fps" form:"fps,optional"`
+	ErrorCode      int32  `json:"error_code" form:"error_code,optional"`
+	ErrorMsg       string `json:"error_msg" form:"error_msg,optional"`
+	NetworkType    string `json:"network_type" form:"network_type,optional"`
+	DeviceInfo     string `json:"device_info" form:"device_info,optional"`
+}
+
+type PlaybackQoSReportResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
 type LikeCommentRequest struct {
 	CommentId int64 `path:"id"`
 }
@@ -329,6 +351,7 @@ type VideoPopular struct {
 	LikeCount     int64 `json:"like_count"`
 	CommentCount  int64 `json:"comment_count"`
 	FavoriteCount int64 `json:"favorite_count"`
+	HotScore      int64 `json:"hot_score"`
 }
 
 type VideoPopularRequest struct {

@@ -67,3 +67,8 @@ func (s *VideoServiceServer) FeedFanout(ctx context.Context, in *video_pb.FeedFa
 	l := logic.NewFeedFanoutLogic(ctx, s.svcCtx)
 	return l.FeedFanout(in)
 }
+
+func (s *VideoServiceServer) ReportPlaybackQoS(ctx context.Context, in *video_pb.PlaybackQoSReportRequest) (*video_pb.PlaybackQoSReportResponse, error) {
+	l := logic.NewReportPlaybackQoSLogic(ctx, s.svcCtx)
+	return l.ReportPlaybackQoS(in)
+}

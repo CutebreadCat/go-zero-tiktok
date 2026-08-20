@@ -192,6 +192,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/videos/search",
 					Handler: video.VideoSearchHandler(serverCtx),
 				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/playback-qos-reports",
+					Handler: video.ReportPlaybackQoSHandler(serverCtx),
+				},
 			}...,
 		),
 	)

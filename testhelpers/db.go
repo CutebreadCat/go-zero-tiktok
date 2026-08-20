@@ -138,7 +138,7 @@ func schemaDDL() []string {
 		)`,
 		`CREATE INDEX idx_comment_id ON comment_liker(comment_id)`,
 		`CREATE TABLE playback_qos_reports (
-			id              bigint   NOT NULL PRIMARY KEY,
+			id              INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
 			user_id         bigint   NOT NULL,
 			video_id        bigint   NOT NULL,
 			report_data     text     DEFAULT NULL,

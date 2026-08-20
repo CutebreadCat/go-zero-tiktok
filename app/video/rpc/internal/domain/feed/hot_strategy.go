@@ -14,7 +14,7 @@ import (
 const hotFetchLimit = 5
 
 // HotStrategy 热门策略：按热度分倒序返回热门视频。
-// 热度分主存储在 Redis hot:videos ZSet，MySQL visit_count 兜底。
+// 热度分主存储在 Redis hot:videos ZSet；Redis 不可用时降级到 MySQL visit_count 兜底。
 type HotStrategy struct {
 	videoRepo   domainVideoRepo
 	popularRepo domainPopularRepo
@@ -85,7 +85,7 @@ func (s *HotStrategy) GetFeed(ctx context.Context, viewerID int64, cursor string
 	if len(populars) > 0 {
 		last := populars[len(populars)-1]
 		nextCursor = EncodeHotCursor(&HotCursor{
-			Score:   last.VisitCount,
+			Score:   last.HotScore,
 			VideoID: last.VideoID,
 		})
 	}
@@ -113,6 +113,12 @@ func (s *HotStrategy) fetchPopulars(ctx context.Context, cursorScore, cursorVide
 	populars, err := s.popularRepo.GetPopularVideosByCursor(ctx, cursorScore, cursorVideoID, limit+1)
 	if err != nil {
 		return nil, err
+	}
+	// 兜底没有独立热度分字段，用 visit_count 作为排序/游标依据。
+	for i := range populars {
+		if populars[i].HotScore == 0 {
+			populars[i].HotScore = populars[i].VisitCount
+		}
 	}
 	return populars, nil
 }
@@ -144,8 +150,8 @@ func (s *HotStrategy) indexesToPopulars(indexes []types.FeedIndex) []types.Video
 	result := make([]types.VideoPopular, 0, len(indexes))
 	for _, idx := range indexes {
 		result = append(result, types.VideoPopular{
-			VideoID:    idx.VideoID,
-			VisitCount: idx.Score,
+			VideoID:  idx.VideoID,
+			HotScore: idx.Score,
 		})
 	}
 	return result

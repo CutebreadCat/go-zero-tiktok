@@ -28,6 +28,7 @@ const (
 	VideoService_IncreaseVideoVisitCount_FullMethodName = "/video.VideoService/IncreaseVideoVisitCount"
 	VideoService_RecalculateHotScore_FullMethodName     = "/video.VideoService/RecalculateHotScore"
 	VideoService_FeedFanout_FullMethodName              = "/video.VideoService/FeedFanout"
+	VideoService_ReportPlaybackQoS_FullMethodName       = "/video.VideoService/ReportPlaybackQoS"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -43,6 +44,7 @@ type VideoServiceClient interface {
 	IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
 	RecalculateHotScore(ctx context.Context, in *RecalculateHotScoreRequest, opts ...grpc.CallOption) (*RecalculateHotScoreResponse, error)
 	FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error)
+	ReportPlaybackQoS(ctx context.Context, in *PlaybackQoSReportRequest, opts ...grpc.CallOption) (*PlaybackQoSReportResponse, error)
 }
 
 type videoServiceClient struct {
@@ -143,6 +145,16 @@ func (c *videoServiceClient) FeedFanout(ctx context.Context, in *FeedFanoutReque
 	return out, nil
 }
 
+func (c *videoServiceClient) ReportPlaybackQoS(ctx context.Context, in *PlaybackQoSReportRequest, opts ...grpc.CallOption) (*PlaybackQoSReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PlaybackQoSReportResponse)
+	err := c.cc.Invoke(ctx, VideoService_ReportPlaybackQoS_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -156,6 +168,7 @@ type VideoServiceServer interface {
 	IncreaseVideoVisitCount(context.Context, *IncreaseVideoVisitCountRequest) (*IncreaseVideoVisitCountResponse, error)
 	RecalculateHotScore(context.Context, *RecalculateHotScoreRequest) (*RecalculateHotScoreResponse, error)
 	FeedFanout(context.Context, *FeedFanoutRequest) (*FeedFanoutResponse, error)
+	ReportPlaybackQoS(context.Context, *PlaybackQoSReportRequest) (*PlaybackQoSReportResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -192,6 +205,9 @@ func (UnimplementedVideoServiceServer) RecalculateHotScore(context.Context, *Rec
 }
 func (UnimplementedVideoServiceServer) FeedFanout(context.Context, *FeedFanoutRequest) (*FeedFanoutResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FeedFanout not implemented")
+}
+func (UnimplementedVideoServiceServer) ReportPlaybackQoS(context.Context, *PlaybackQoSReportRequest) (*PlaybackQoSReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportPlaybackQoS not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -376,6 +392,24 @@ func _VideoService_FeedFanout_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_ReportPlaybackQoS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlaybackQoSReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).ReportPlaybackQoS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_ReportPlaybackQoS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).ReportPlaybackQoS(ctx, req.(*PlaybackQoSReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -418,6 +452,10 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FeedFanout",
 			Handler:    _VideoService_FeedFanout_Handler,
+		},
+		{
+			MethodName: "ReportPlaybackQoS",
+			Handler:    _VideoService_ReportPlaybackQoS_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

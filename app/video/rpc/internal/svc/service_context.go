@@ -22,12 +22,13 @@ type ServiceContext struct {
 	Config            config.Config
 	DB                *gorm.DB
 	Redis             *redis.Redis
-	Dal               *Repositories
-	VideoService      *videodomain.VideoService
-	Storage           *StorageAdapter
-	HotScoreCleaner   *worker.HotScoreCleaner
-	consumerUnit      *appkafka.MultiTopicConsumerUnit
-	visitProducer     videodomain.VisitEventProducer
+	Dal                *Repositories
+	VideoService       *videodomain.VideoService
+	PlaybackQoSService *videodomain.PlaybackQoSService
+	Storage            *StorageAdapter
+	HotScoreCleaner    *worker.HotScoreCleaner
+	consumerUnit       *appkafka.MultiTopicConsumerUnit
+	visitProducer      videodomain.VisitEventProducer
 }
 
 // NewServiceContext 初始化 video RPC 服务上下文。
@@ -56,15 +57,17 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	hotCalculator := newHotScoreCalculator(c.Hot)
 	videoService := videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, storageAdapter, dalRepo.Feed, hotCalculator, visitProducer)
+	playbackQoSService := videodomain.NewPlaybackQoSService(dalRepo.PlaybackQoS)
 
 	ctx := &ServiceContext{
-		Config:        c,
-		DB:            db,
-		Redis:         rdb,
-		Dal:           dalRepo,
-		VideoService:  videoService,
-		Storage:       storageAdapter,
-		visitProducer: visitProducer,
+		Config:             c,
+		DB:                 db,
+		Redis:              rdb,
+		Dal:                dalRepo,
+		VideoService:       videoService,
+		PlaybackQoSService: playbackQoSService,
+		Storage:            storageAdapter,
+		visitProducer:      visitProducer,
 	}
 
 	// 启动热度分清理 worker（定时删除过期成员并裁剪规模）。

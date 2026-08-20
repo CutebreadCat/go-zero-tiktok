@@ -74,6 +74,7 @@ func (l *GetFeedVideoLogic) GetFeedVideo(req *types.FeedVideoRequest) (resp *typ
 				LikeCount:     stat.LikeCount,
 				CommentCount:  stat.CommentCount,
 				FavoriteCount: stat.FavoriteCount,
+				HotScore:      v.HotScore,
 			},
 			Author:    authors[v.AuthorId],
 			Liked:     stat.Liked,
