@@ -99,6 +99,13 @@ message VideoPopularInfo {
     int64 comment_count = 4;
     int64 favorite_count = 5;
     int64 hot_score = 6;
+    int32 completion_rate = 7;
+    int32 stall_rate = 8;
+    int32 error_rate = 9;
+    int32 avg_bitrate_kbps = 10;
+    int64 avg_buffered_ms = 11;
+    int32 avg_stall_count = 12;
+    int64 report_count = 13;
 }
 
 message GetPopularVideoResponse {

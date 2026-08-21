@@ -146,6 +146,17 @@ func schemaDDL() []string {
 			created_at      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			UNIQUE (user_id, idempotency_key)
 		)`,
+		`CREATE TABLE video_qos_stat (
+			video_id         bigint   NOT NULL PRIMARY KEY,
+			completion_rate  int      NOT NULL DEFAULT 0,
+			stall_rate       int      NOT NULL DEFAULT 0,
+			error_rate       int      NOT NULL DEFAULT 0,
+			avg_bitrate_kbps int      NOT NULL DEFAULT 0,
+			avg_buffered_ms  bigint   NOT NULL DEFAULT 0,
+			avg_stall_count  int      NOT NULL DEFAULT 0,
+			report_count     bigint   NOT NULL DEFAULT 0,
+			updated_at       datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+		)`,
 		`CREATE TABLE user_relation_stat (
 			user_id         bigint   NOT NULL,
 			follower_count  bigint   NOT NULL DEFAULT 0,

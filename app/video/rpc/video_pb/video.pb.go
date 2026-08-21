@@ -886,15 +886,22 @@ func (x *GetPopularVideoRequest) GetPageSize() int32 {
 }
 
 type VideoPopularInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	VideoId       int64                  `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
-	VisitCount    int64                  `protobuf:"varint,2,opt,name=visit_count,json=visitCount,proto3" json:"visit_count,omitempty"`
-	LikeCount     int64                  `protobuf:"varint,3,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
-	CommentCount  int64                  `protobuf:"varint,4,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
-	FavoriteCount int64                  `protobuf:"varint,5,opt,name=favorite_count,json=favoriteCount,proto3" json:"favorite_count,omitempty"`
-	HotScore      int64                  `protobuf:"varint,6,opt,name=hot_score,json=hotScore,proto3" json:"hot_score,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	VideoId        int64                  `protobuf:"varint,1,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	VisitCount     int64                  `protobuf:"varint,2,opt,name=visit_count,json=visitCount,proto3" json:"visit_count,omitempty"`
+	LikeCount      int64                  `protobuf:"varint,3,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	CommentCount   int64                  `protobuf:"varint,4,opt,name=comment_count,json=commentCount,proto3" json:"comment_count,omitempty"`
+	FavoriteCount  int64                  `protobuf:"varint,5,opt,name=favorite_count,json=favoriteCount,proto3" json:"favorite_count,omitempty"`
+	HotScore       int64                  `protobuf:"varint,6,opt,name=hot_score,json=hotScore,proto3" json:"hot_score,omitempty"`
+	CompletionRate int32                  `protobuf:"varint,7,opt,name=completion_rate,json=completionRate,proto3" json:"completion_rate,omitempty"`
+	StallRate      int32                  `protobuf:"varint,8,opt,name=stall_rate,json=stallRate,proto3" json:"stall_rate,omitempty"`
+	ErrorRate      int32                  `protobuf:"varint,9,opt,name=error_rate,json=errorRate,proto3" json:"error_rate,omitempty"`
+	AvgBitrateKbps int32                  `protobuf:"varint,10,opt,name=avg_bitrate_kbps,json=avgBitrateKbps,proto3" json:"avg_bitrate_kbps,omitempty"`
+	AvgBufferedMs  int64                  `protobuf:"varint,11,opt,name=avg_buffered_ms,json=avgBufferedMs,proto3" json:"avg_buffered_ms,omitempty"`
+	AvgStallCount  int32                  `protobuf:"varint,12,opt,name=avg_stall_count,json=avgStallCount,proto3" json:"avg_stall_count,omitempty"`
+	ReportCount    int64                  `protobuf:"varint,13,opt,name=report_count,json=reportCount,proto3" json:"report_count,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *VideoPopularInfo) Reset() {
@@ -965,6 +972,55 @@ func (x *VideoPopularInfo) GetFavoriteCount() int64 {
 func (x *VideoPopularInfo) GetHotScore() int64 {
 	if x != nil {
 		return x.HotScore
+	}
+	return 0
+}
+
+func (x *VideoPopularInfo) GetCompletionRate() int32 {
+	if x != nil {
+		return x.CompletionRate
+	}
+	return 0
+}
+
+func (x *VideoPopularInfo) GetStallRate() int32 {
+	if x != nil {
+		return x.StallRate
+	}
+	return 0
+}
+
+func (x *VideoPopularInfo) GetErrorRate() int32 {
+	if x != nil {
+		return x.ErrorRate
+	}
+	return 0
+}
+
+func (x *VideoPopularInfo) GetAvgBitrateKbps() int32 {
+	if x != nil {
+		return x.AvgBitrateKbps
+	}
+	return 0
+}
+
+func (x *VideoPopularInfo) GetAvgBufferedMs() int64 {
+	if x != nil {
+		return x.AvgBufferedMs
+	}
+	return 0
+}
+
+func (x *VideoPopularInfo) GetAvgStallCount() int32 {
+	if x != nil {
+		return x.AvgStallCount
+	}
+	return 0
+}
+
+func (x *VideoPopularInfo) GetReportCount() int64 {
+	if x != nil {
+		return x.ReportCount
 	}
 	return 0
 }
@@ -1458,7 +1514,7 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"\x06videos\x18\x01 \x03(\v2\x10.video.VideoInfoR\x06videos\"P\n" +
 	"\x16GetPopularVideoRequest\x12\x19\n" +
 	"\bpage_num\x18\x01 \x01(\x05R\apageNum\x12\x1b\n" +
-	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xd6\x01\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xda\x03\n" +
 	"\x10VideoPopularInfo\x12\x19\n" +
 	"\bvideo_id\x18\x01 \x01(\x03R\avideoId\x12\x1f\n" +
 	"\vvisit_count\x18\x02 \x01(\x03R\n" +
@@ -1467,7 +1523,17 @@ const file_app_video_rpc_video_proto_rawDesc = "" +
 	"like_count\x18\x03 \x01(\x03R\tlikeCount\x12#\n" +
 	"\rcomment_count\x18\x04 \x01(\x03R\fcommentCount\x12%\n" +
 	"\x0efavorite_count\x18\x05 \x01(\x03R\rfavoriteCount\x12\x1b\n" +
-	"\thot_score\x18\x06 \x01(\x03R\bhotScore\"x\n" +
+	"\thot_score\x18\x06 \x01(\x03R\bhotScore\x12'\n" +
+	"\x0fcompletion_rate\x18\a \x01(\x05R\x0ecompletionRate\x12\x1d\n" +
+	"\n" +
+	"stall_rate\x18\b \x01(\x05R\tstallRate\x12\x1d\n" +
+	"\n" +
+	"error_rate\x18\t \x01(\x05R\terrorRate\x12(\n" +
+	"\x10avg_bitrate_kbps\x18\n" +
+	" \x01(\x05R\x0eavgBitrateKbps\x12&\n" +
+	"\x0favg_buffered_ms\x18\v \x01(\x03R\ravgBufferedMs\x12&\n" +
+	"\x0favg_stall_count\x18\f \x01(\x05R\ravgStallCount\x12!\n" +
+	"\freport_count\x18\r \x01(\x03R\vreportCount\"x\n" +
 	"\x17GetPopularVideoResponse\x12(\n" +
 	"\x06videos\x18\x01 \x03(\v2\x10.video.VideoInfoR\x06videos\x123\n" +
 	"\bpopulars\x18\x02 \x03(\v2\x17.video.VideoPopularInfoR\bpopulars\"Q\n" +

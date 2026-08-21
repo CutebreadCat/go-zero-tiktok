@@ -21,6 +21,7 @@ type VisitEventProducer interface {
 type VideoService struct {
 	videoRepo          IVideoRepo
 	popularRepo        IPopularRepo
+	qosRepo            IVideoQoSRepo
 	storage            StorageProvider
 	feedRepo           IFeedRepo
 	hotScoreCalculator *feedpkg.HotScoreCalculator
@@ -31,6 +32,7 @@ type VideoService struct {
 func NewVideoService(
 	videoRepo IVideoRepo,
 	popularRepo IPopularRepo,
+	qosRepo IVideoQoSRepo,
 	storage StorageProvider,
 	feedRepo IFeedRepo,
 	hotScoreCalculator *feedpkg.HotScoreCalculator,
@@ -39,6 +41,7 @@ func NewVideoService(
 	return &VideoService{
 		videoRepo:          videoRepo,
 		popularRepo:        popularRepo,
+		qosRepo:            qosRepo,
 		storage:            storage,
 		feedRepo:           feedRepo,
 		hotScoreCalculator: hotScoreCalculator,
@@ -158,7 +161,7 @@ func (s *VideoService) GetVideosByIDs(ctx context.Context, videoIDs []int64) ([]
 	return s.videoRepo.GetVideosByIDs(ctx, videoIDs)
 }
 
-// GetPopularVideos 获取热门视频列表（ID 水合为完整视频信息）
+// GetPopularVideos 获取热门视频列表（ID 水合为完整视频信息），并拼接 QoS 聚合指标。
 func (s *VideoService) GetPopularVideos(ctx context.Context, pageNum, pageSize int32) ([]types.VideoBaseinfo, []types.VideoPopular, error) {
 	videoPopulars, _, err := s.popularRepo.GetPopularVideoIDsByVisitCount(ctx, pageNum, pageSize)
 	if err != nil {
@@ -175,7 +178,35 @@ func (s *VideoService) GetPopularVideos(ctx context.Context, pageNum, pageSize i
 		return nil, nil, err
 	}
 
+	// 合并 QoS 指标（失败仅记日志，不影响 popular 主链路）。
+	if s.qosRepo != nil {
+		if err := s.mergeQoSMetrics(ctx, videoPopulars); err != nil {
+			logx.Errorf("merge qos metrics failed: %v", err)
+		}
+	}
+
 	return videos, videoPopulars, nil
+}
+
+// mergeQoSMetrics 把 video_qos_stat 指标合并到 VideoPopular 列表。
+func (s *VideoService) mergeQoSMetrics(ctx context.Context, populars []types.VideoPopular) error {
+	if len(populars) == 0 {
+		return nil
+	}
+	videoIDs := make([]int64, 0, len(populars))
+	for _, p := range populars {
+		videoIDs = append(videoIDs, p.VideoID)
+	}
+
+	metrics, err := s.qosRepo.GetQoSMetricsByVideoIDs(ctx, videoIDs)
+	if err != nil {
+		return err
+	}
+
+	for i := range populars {
+		populars[i].VideoQoSMetrics = metrics[populars[i].VideoID]
+	}
+	return nil
 }
 
 // SearchVideos 搜索视频并记录访问量

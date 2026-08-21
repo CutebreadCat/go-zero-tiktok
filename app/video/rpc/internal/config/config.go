@@ -17,8 +17,20 @@ type Config struct {
 	// Hot 热度分计算与清理配置。
 	Hot HotConfig `json:"Hot"`
 
+	// QoS 播放质量聚合配置。
+	QoS QoSConfig `json:"QoS"`
+
 	// Kafka 配置，用于消费热度分重算事件与访问事件。
 	Kafka KafkaConfig `json:"Kafka"`
+}
+
+type QoSConfig struct {
+	// AggregateInterval 聚合任务执行间隔，0 表示不启动。
+	AggregateInterval time.Duration `json:"AggregateInterval"`
+	// AggregateBatchSize 每次聚合读取的最大上报条数。
+	AggregateBatchSize int32 `json:"AggregateBatchSize"`
+	// LastIDRedisKey 记录上次处理到的上报 id 的 Redis key。
+	LastIDRedisKey string `json:"LastIDRedisKey"`
 }
 
 // KafkaConfig Kafka 配置。

@@ -10,6 +10,7 @@ import (
 type Repositories struct {
 	Video        *videorepo.VideoBaseinfoRepo
 	VideoStat    *videorepo.VideoStatRepo
+	VideoQoS     *videorepo.VideoQoSRepo
 	Feed         *videorepo.FeedRepo
 	PlaybackQoS  *videorepo.PlaybackQoSRepo
 }
@@ -22,6 +23,7 @@ func NewRepositories(db *gorm.DB, rdb *redis.Redis) (*Repositories, error) {
 	return &Repositories{
 		Video:       videoRepo,
 		VideoStat:   videorepo.NewVideoStatRepo(db),
+		VideoQoS:    videorepo.NewVideoQoSRepo(db),
 		Feed:        videorepo.NewFeedRepo(rdb),
 		PlaybackQoS: videorepo.NewPlaybackQoSRepo(db),
 	}, nil

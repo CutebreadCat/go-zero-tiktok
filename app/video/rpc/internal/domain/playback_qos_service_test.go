@@ -15,6 +15,14 @@ func (f *fakePlaybackQoSRepo) CreateReport(ctx context.Context, report *types.Pl
 	return nil
 }
 
+func (f *fakePlaybackQoSRepo) GetReportsAfterID(ctx context.Context, lastID int64, limit int32) ([]*types.PlaybackQoSReport, error) {
+	return nil, nil
+}
+
+func (f *fakePlaybackQoSRepo) GetReportsByVideoIDs(ctx context.Context, videoIDs []int64) ([]*types.PlaybackQoSReport, error) {
+	return nil, nil
+}
+
 func TestPlaybackQoSService_ReportPlaybackQoS_Validation(t *testing.T) {
 	svc := NewPlaybackQoSService(&fakePlaybackQoSRepo{})
 	ctx := context.Background()

@@ -57,6 +57,17 @@ type IVideoInteractionRepo interface {
 
 type IPlaybackQoSRepo interface {
 	CreateReport(ctx context.Context, report *types.PlaybackQoSReport) error
+	// GetReportsAfterID 按 id 游标读取待聚合的上报记录。
+	GetReportsAfterID(ctx context.Context, lastID int64, limit int32) ([]*types.PlaybackQoSReport, error)
+	// GetReportsByVideoIDs 批量读取指定视频的全部上报记录（用于重算指标）。
+	GetReportsByVideoIDs(ctx context.Context, videoIDs []int64) ([]*types.PlaybackQoSReport, error)
+}
+
+type IVideoQoSRepo interface {
+	// UpdateQoSAggregates 更新视频 QoS 聚合指标（不存在则创建）。
+	UpdateQoSAggregates(ctx context.Context, videoID int64, metrics types.VideoQoSMetrics) error
+	// GetQoSMetricsByVideoIDs 批量查询视频 QoS 聚合指标。
+	GetQoSMetricsByVideoIDs(ctx context.Context, videoIDs []int64) (map[int64]types.VideoQoSMetrics, error)
 }
 
 type StorageProvider interface {

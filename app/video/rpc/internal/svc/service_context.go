@@ -27,6 +27,7 @@ type ServiceContext struct {
 	PlaybackQoSService *videodomain.PlaybackQoSService
 	Storage            *StorageAdapter
 	HotScoreCleaner    *worker.HotScoreCleaner
+	QoSAggregator      *worker.QoSAggregator
 	consumerUnit       *appkafka.MultiTopicConsumerUnit
 	visitProducer      videodomain.VisitEventProducer
 }
@@ -56,7 +57,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	hotCalculator := newHotScoreCalculator(c.Hot)
-	videoService := videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, storageAdapter, dalRepo.Feed, hotCalculator, visitProducer)
+	videoService := videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, dalRepo.VideoQoS, storageAdapter, dalRepo.Feed, hotCalculator, visitProducer)
 	playbackQoSService := videodomain.NewPlaybackQoSService(dalRepo.PlaybackQoS)
 
 	ctx := &ServiceContext{
@@ -81,6 +82,19 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		}
 		ctx.HotScoreCleaner = worker.NewHotScoreCleaner(dalRepo.Feed, cleanerOpts...)
 		ctx.HotScoreCleaner.Start(context.Background())
+	}
+
+	// 启动 QoS 聚合 worker（按 video_id 聚合 playback_qos_reports 写入 video_qos_stat）。
+	if c.QoS.AggregateInterval > 0 && c.QoS.AggregateBatchSize > 0 {
+		aggOpts := []worker.AggregatorOption{
+			worker.WithAggregateInterval(c.QoS.AggregateInterval),
+			worker.WithAggregateBatchSize(c.QoS.AggregateBatchSize),
+		}
+		if c.QoS.LastIDRedisKey != "" {
+			aggOpts = append(aggOpts, worker.WithLastIDRedisKey(c.QoS.LastIDRedisKey))
+		}
+		ctx.QoSAggregator = worker.NewQoSAggregator(dalRepo.PlaybackQoS, dalRepo.VideoQoS, rdb, aggOpts...)
+		ctx.QoSAggregator.Start(context.Background())
 	}
 
 	// Kafka 热度事件消费者：消费热度分重算事件与访问事件。
@@ -175,6 +189,9 @@ func newHotScoreCalculator(c config.HotConfig) *feedpkg.HotScoreCalculator {
 func (ctx *ServiceContext) Close() {
 	if ctx.HotScoreCleaner != nil {
 		ctx.HotScoreCleaner.Stop()
+	}
+	if ctx.QoSAggregator != nil {
+		ctx.QoSAggregator.Stop()
 	}
 	if ctx.consumerUnit != nil {
 		ctx.consumerUnit.Stop()

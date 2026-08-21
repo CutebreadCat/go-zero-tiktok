@@ -48,10 +48,21 @@ func (l *VideoPopularLogic) VideoPopular(req *types.VideoPopularRequest) (resp *
 			},
 		}
 		if i < len(rpcResp.Populars) {
+			p := rpcResp.Populars[i]
 			item.VideosPopular = types.VideoPopular{
-				VideoID:    rpcResp.Populars[i].VideoId,
-				VisitCount: rpcResp.Populars[i].VisitCount,
-				LikeCount:  rpcResp.Populars[i].LikeCount,
+				VideoID:        p.VideoId,
+				VisitCount:     p.VisitCount,
+				LikeCount:      p.LikeCount,
+				CommentCount:   p.CommentCount,
+				FavoriteCount:  p.FavoriteCount,
+				HotScore:       p.HotScore,
+				CompletionRate: p.CompletionRate,
+				StallRate:      p.StallRate,
+				ErrorRate:      p.ErrorRate,
+				AvgBitrateKbps: p.AvgBitrateKbps,
+				AvgBufferedMs:  p.AvgBufferedMs,
+				AvgStallCount:  p.AvgStallCount,
+				ReportCount:    p.ReportCount,
 			}
 		}
 		items = append(items, item)

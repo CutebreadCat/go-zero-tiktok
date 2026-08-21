@@ -43,6 +43,17 @@ type FeedIndex struct {
 	Score   int64 `json:"score"`
 }
 
+// VideoQoSMetrics 视频播放质量聚合指标（video RPC 使用）
+type VideoQoSMetrics struct {
+	CompletionRate int32 `json:"completion_rate"`
+	StallRate      int32 `json:"stall_rate"`
+	ErrorRate      int32 `json:"error_rate"`
+	AvgBitrateKbps int32 `json:"avg_bitrate_kbps"`
+	AvgBufferedMs  int64 `json:"avg_buffered_ms"`
+	AvgStallCount  int32 `json:"avg_stall_count"`
+	ReportCount    int64 `json:"report_count"`
+}
+
 // VideoPopular 视频热度统计（video RPC 使用）
 type VideoPopular struct {
 	VideoID       int64 `json:"video_id,string"`
@@ -51,10 +62,12 @@ type VideoPopular struct {
 	CommentCount  int64 `json:"comment_count"`
 	FavoriteCount int64 `json:"favorite_count"`
 	HotScore      int64 `json:"hot_score"`
+	VideoQoSMetrics
 }
 
 // PlaybackQoSReport 播放质量上报领域模型（video RPC 使用）
 type PlaybackQoSReport struct {
+	ID             int64
 	UserID         int64
 	VideoID        int64
 	IdempotencyKey string

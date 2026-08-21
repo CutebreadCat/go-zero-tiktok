@@ -55,3 +55,31 @@ func TestGetReportsByVideoID(t *testing.T) {
 	testhelpers.AssertNoErr(t, err)
 	testhelpers.AssertEqual(t, int64(len(reports)), int64(2))
 }
+
+// TestGetReportsAfterID 按 id 游标读取
+func TestGetReportsAfterID(t *testing.T) {
+	db := testhelpers.NewTestDB(t)
+	ctx := context.Background()
+
+	for i := int64(1); i <= 3; i++ {
+		testhelpers.AssertNoErr(t, CreateReport(ctx, db, newReport(i, 100, "key-"+string(rune('0'+i)))))
+	}
+
+	reports, err := GetReportsAfterID(ctx, db, 1, 10)
+	testhelpers.AssertNoErr(t, err)
+	testhelpers.AssertEqual(t, int64(len(reports)), int64(2))
+}
+
+// TestGetReportsByVideoIDs 批量按视频读取
+func TestGetReportsByVideoIDs(t *testing.T) {
+	db := testhelpers.NewTestDB(t)
+	ctx := context.Background()
+
+	testhelpers.AssertNoErr(t, CreateReport(ctx, db, newReport(1, 100, "key-1")))
+	testhelpers.AssertNoErr(t, CreateReport(ctx, db, newReport(2, 200, "key-2")))
+
+	reports, err := GetReportsByVideoIDs(ctx, db, []int64{100})
+	testhelpers.AssertNoErr(t, err)
+	testhelpers.AssertEqual(t, int64(len(reports)), int64(1))
+	testhelpers.AssertEqual(t, reports[0].VideoID, int64(100))
+}

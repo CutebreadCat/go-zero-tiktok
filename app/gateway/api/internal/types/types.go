@@ -346,12 +346,19 @@ type VideoBaseinfo struct {
 }
 
 type VideoPopular struct {
-	VideoID       int64 `json:"video_id,string"`
-	VisitCount    int64 `json:"visit_count"`
-	LikeCount     int64 `json:"like_count"`
-	CommentCount  int64 `json:"comment_count"`
-	FavoriteCount int64 `json:"favorite_count"`
-	HotScore      int64 `json:"hot_score"`
+	VideoID        int64 `json:"video_id,string"`
+	VisitCount     int64 `json:"visit_count"`
+	LikeCount      int64 `json:"like_count"`
+	CommentCount   int64 `json:"comment_count"`
+	FavoriteCount  int64 `json:"favorite_count"`
+	HotScore       int64 `json:"hot_score"`
+	CompletionRate int32 `json:"completion_rate"`
+	StallRate      int32 `json:"stall_rate"`
+	ErrorRate      int32 `json:"error_rate"`
+	AvgBitrateKbps int32 `json:"avg_bitrate_kbps"`
+	AvgBufferedMs  int64 `json:"avg_buffered_ms"`
+	AvgStallCount  int32 `json:"avg_stall_count"`
+	ReportCount    int64 `json:"report_count"`
 }
 
 type VideoPopularRequest struct {

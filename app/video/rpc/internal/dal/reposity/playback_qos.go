@@ -66,26 +66,101 @@ func isDuplicateKeyError(err error) bool {
 	return strings.Contains(err.Error(), "UNIQUE constraint failed")
 }
 
+// GetReportsAfterID 按 id 游标读取待聚合的上报记录。
+func (r *PlaybackQoSRepo) GetReportsAfterID(ctx context.Context, lastID int64, limit int32) ([]*types.PlaybackQoSReport, error) {
+	rows, err := qosreporttable.GetReportsAfterID(ctx, r.db, lastID, limit)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "PlaybackQoSRepo.GetReportsAfterID")
+	}
+	return r.rowsToReports(rows)
+}
+
+// GetReportsByVideoIDs 批量读取指定视频的全部上报记录（用于重算指标）。
+func (r *PlaybackQoSRepo) GetReportsByVideoIDs(ctx context.Context, videoIDs []int64) ([]*types.PlaybackQoSReport, error) {
+	rows, err := qosreporttable.GetReportsByVideoIDs(ctx, r.db, videoIDs)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "PlaybackQoSRepo.GetReportsByVideoIDs")
+	}
+	return r.rowsToReports(rows)
+}
+
+func (r *PlaybackQoSRepo) rowsToReports(rows []qosreporttable.PlaybackQoSReport) ([]*types.PlaybackQoSReport, error) {
+	result := make([]*types.PlaybackQoSReport, 0, len(rows))
+	for i := range rows {
+		report, err := parseReportDataJSON(&rows[i])
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, report)
+	}
+	return result, nil
+}
+
 // buildReportDataJSON 将上报指标序列化为 JSON，存入 report_data 字段。
 func buildReportDataJSON(report *types.PlaybackQoSReport) (string, error) {
 	data := map[string]any{
-		"event_type":       report.EventType,
-		"duration_ms":      report.DurationMs,
-		"played_ms":        report.PlayedMs,
-		"buffered_ms":      report.BufferedMs,
-		"stall_count":      report.StallCount,
-		"stall_total_ms":   report.StallTotalMs,
-		"resolution":       report.Resolution,
-		"bitrate_kbps":     report.BitrateKbps,
-		"fps":              report.Fps,
-		"error_code":       report.ErrorCode,
-		"error_msg":        report.ErrorMsg,
-		"network_type":     report.NetworkType,
-		"device_info":      report.DeviceInfo,
+		"event_type":     report.EventType,
+		"duration_ms":    report.DurationMs,
+		"played_ms":      report.PlayedMs,
+		"buffered_ms":    report.BufferedMs,
+		"stall_count":    report.StallCount,
+		"stall_total_ms": report.StallTotalMs,
+		"resolution":     report.Resolution,
+		"bitrate_kbps":   report.BitrateKbps,
+		"fps":            report.Fps,
+		"error_code":     report.ErrorCode,
+		"error_msg":      report.ErrorMsg,
+		"network_type":   report.NetworkType,
+		"device_info":    report.DeviceInfo,
 	}
 	b, err := json.Marshal(data)
 	if err != nil {
 		return "", err
 	}
 	return string(b), nil
+}
+
+// parseReportDataJSON 从数据库行解析上报指标。
+func parseReportDataJSON(row *qosreporttable.PlaybackQoSReport) (*types.PlaybackQoSReport, error) {
+	report := &types.PlaybackQoSReport{
+		ID:             row.ID,
+		UserID:         row.UserID,
+		VideoID:        row.VideoID,
+		IdempotencyKey: row.IdempotencyKey,
+	}
+	if row.ReportData == "" {
+		return report, nil
+	}
+	var data struct {
+		EventType    string `json:"event_type"`
+		DurationMs   int64  `json:"duration_ms"`
+		PlayedMs     int64  `json:"played_ms"`
+		BufferedMs   int64  `json:"buffered_ms"`
+		StallCount   int32  `json:"stall_count"`
+		StallTotalMs int64  `json:"stall_total_ms"`
+		Resolution   string `json:"resolution"`
+		BitrateKbps  int32  `json:"bitrate_kbps"`
+		Fps          int32  `json:"fps"`
+		ErrorCode    int32  `json:"error_code"`
+		ErrorMsg     string `json:"error_msg"`
+		NetworkType  string `json:"network_type"`
+		DeviceInfo   string `json:"device_info"`
+	}
+	if err := json.Unmarshal([]byte(row.ReportData), &data); err != nil {
+		return nil, pkgerrors.WithMessage(err, "parse playback qos report data failed")
+	}
+	report.EventType = data.EventType
+	report.DurationMs = data.DurationMs
+	report.PlayedMs = data.PlayedMs
+	report.BufferedMs = data.BufferedMs
+	report.StallCount = data.StallCount
+	report.StallTotalMs = data.StallTotalMs
+	report.Resolution = data.Resolution
+	report.BitrateKbps = data.BitrateKbps
+	report.Fps = data.Fps
+	report.ErrorCode = data.ErrorCode
+	report.ErrorMsg = data.ErrorMsg
+	report.NetworkType = data.NetworkType
+	report.DeviceInfo = data.DeviceInfo
+	return report, nil
 }
