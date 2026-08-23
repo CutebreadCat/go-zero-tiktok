@@ -22,6 +22,29 @@ type Config struct {
 
 	// Kafka 配置，用于消费热度分重算事件与访问事件。
 	Kafka KafkaConfig `json:"Kafka"`
+
+	// Recommend 推荐策略配置。
+	Recommend RecommendConfig `json:"Recommend"`
+}
+
+// RecommendConfig 推荐策略配置。
+type RecommendConfig struct {
+	// FetchFactor 召回倍数，每路召回 limit * FetchFactor 条候选。
+	FetchFactor int `json:"FetchFactor"`
+	// MaxAuthorRepeat 单作者每页最大重复次数。
+	MaxAuthorRepeat int `json:"MaxAuthorRepeat"`
+	// SeenTTL 曝光记录保留时长，0 表示使用默认值 7 天。
+	SeenTTL time.Duration `json:"SeenTTL"`
+	// SeenMaxSize 单个用户曝光记录最大容量，0 表示使用默认值 5000。
+	SeenMaxSize int `json:"SeenMaxSize"`
+	// HotWeight 热度分权重。
+	HotWeight float64 `json:"HotWeight"`
+	// RecencyWeight 时效性权重。
+	RecencyWeight float64 `json:"RecencyWeight"`
+	// FollowWeight 关注加权。
+	FollowWeight float64 `json:"FollowWeight"`
+	// QoSWeight QoS 权重。
+	QoSWeight float64 `json:"QoSWeight"`
 }
 
 type QoSConfig struct {

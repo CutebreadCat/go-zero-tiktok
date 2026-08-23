@@ -12,6 +12,7 @@ type Repositories struct {
 	VideoStat    *videorepo.VideoStatRepo
 	VideoQoS     *videorepo.VideoQoSRepo
 	Feed         *videorepo.FeedRepo
+	FeedSeen     *videorepo.FeedSeenRepo
 	PlaybackQoS  *videorepo.PlaybackQoSRepo
 }
 
@@ -25,6 +26,7 @@ func NewRepositories(db *gorm.DB, rdb *redis.Redis) (*Repositories, error) {
 		VideoStat:   videorepo.NewVideoStatRepo(db),
 		VideoQoS:    videorepo.NewVideoQoSRepo(db),
 		Feed:        videorepo.NewFeedRepo(rdb),
+		FeedSeen:    videorepo.NewFeedSeenRepo(rdb),
 		PlaybackQoS: videorepo.NewPlaybackQoSRepo(db),
 	}, nil
 }

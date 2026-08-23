@@ -35,8 +35,10 @@ func NewVideoService(
 	qosRepo IVideoQoSRepo,
 	storage StorageProvider,
 	feedRepo IFeedRepo,
+	seenRepo ISeenRepo,
 	hotScoreCalculator *feedpkg.HotScoreCalculator,
 	visitProducer VisitEventProducer,
+	recommendConfig feedpkg.RecommendConfig,
 ) *VideoService {
 	return &VideoService{
 		videoRepo:          videoRepo,
@@ -44,12 +46,13 @@ func NewVideoService(
 		qosRepo:            qosRepo,
 		storage:            storage,
 		feedRepo:           feedRepo,
-		hotScoreCalculator: hotScoreCalculator,
 		visitProducer:      visitProducer,
+		hotScoreCalculator: hotScoreCalculator,
 		strategyFactory: feedpkg.NewStrategyFactory(
 			feedpkg.NewTimelineStrategy(videoRepo, popularRepo, feedRepo),
 			feedpkg.NewFollowingStrategy(videoRepo, popularRepo, feedRepo),
 			feedpkg.NewHotStrategy(videoRepo, popularRepo, feedRepo),
+			feedpkg.NewRecommendStrategy(videoRepo, popularRepo, feedRepo, qosRepo, seenRepo, recommendConfig),
 		),
 	}
 }

@@ -41,6 +41,17 @@ Hot:
   Window: 24h             # 滑动窗口：超过该时长未活跃则清理
   KeepTopN: 10000         # 保留热度榜 Top N
 
+# 推荐策略配置
+Recommend:
+  FetchFactor: 3          # 召回倍数：每路召回 limit * FetchFactor 条候选
+  MaxAuthorRepeat: 2      # 单作者每页最大重复次数
+  SeenTTL: 168h           # 曝光记录保留 7 天
+  SeenMaxSize: 5000       # 单个用户曝光记录最大容量
+  HotWeight: 0.50         # 热度分权重
+  RecencyWeight: 0.20     # 时效性权重
+  FollowWeight: 0.20      # 关注加权
+  QoSWeight: 0.10         # QoS 权重
+
 # 监控指标:go-zero 内置 Prometheus,暴露 /metrics 供 Prometheus 抓取
 Prometheus:
   Host: 0.0.0.0

@@ -74,6 +74,17 @@ type StorageProvider interface {
 	UploadFile(reader io.Reader, objectKey string) (string, error)
 }
 
+// ISeenRepo 用户曝光记录访问接口：记录用户已刷到的视频，用于推荐去重。
+// 使用 Redis ZSet 存储，member=video_id，score=曝光时间戳，支持按时间 TTL 淘汰和容量控制。
+type ISeenRepo interface {
+	// IsSeen 判断指定视频是否已被用户曝光。
+	IsSeen(ctx context.Context, userID, videoID int64) (bool, error)
+	// MarkSeen 批量标记视频为用户已曝光。
+	MarkSeen(ctx context.Context, userID int64, videoIDs []int64) error
+	// Cleanup 清理过期和超出容量限制的曝光记录。
+	Cleanup(ctx context.Context, userID int64, ttl time.Duration, maxSize int) error
+}
+
 // IFeedRepo Feed 索引访问接口：全站候选池（feed:global）+ 关注流收件箱（feed:inbox:{uid}）。
 // 索引只存"有序 video_id 索引"，视频详情以 MySQL 为准（索引+水合模式）。
 // FeedIndex.Score 为发布时间戳(UnixMilli)，用于跨流按时间倒序合并、去重。

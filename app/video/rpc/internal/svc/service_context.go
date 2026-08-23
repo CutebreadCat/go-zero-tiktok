@@ -57,7 +57,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	hotCalculator := newHotScoreCalculator(c.Hot)
-	videoService := videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, dalRepo.VideoQoS, storageAdapter, dalRepo.Feed, hotCalculator, visitProducer)
+	recommendConfig := newRecommendConfig(c.Recommend)
+	videoService := videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, dalRepo.VideoQoS, storageAdapter, dalRepo.Feed, dalRepo.FeedSeen, hotCalculator, visitProducer, recommendConfig)
 	playbackQoSService := videodomain.NewPlaybackQoSService(dalRepo.PlaybackQoS)
 
 	ctx := &ServiceContext{
@@ -157,6 +158,40 @@ const (
 	defaultHotFavoriteWeight = 3
 	defaultHotGravity        = 1.5
 )
+
+// newRecommendConfig 根据配置创建推荐策略配置，未配置时使用默认值。
+func newRecommendConfig(c config.RecommendConfig) feedpkg.RecommendConfig {
+	cfg := feedpkg.DefaultRecommendConfig()
+	if c.FetchFactor > 0 {
+		cfg.FetchFactor = c.FetchFactor
+	}
+	if c.MaxAuthorRepeat > 0 {
+		cfg.MaxAuthorRepeat = c.MaxAuthorRepeat
+	}
+	if c.SeenTTL > 0 {
+		cfg.SeenTTL = c.SeenTTL
+	}
+	if c.SeenMaxSize > 0 {
+		cfg.SeenMaxSize = c.SeenMaxSize
+	}
+
+	weights := cfg.Weights
+	if c.HotWeight != 0 {
+		weights.HotWeight = c.HotWeight
+	}
+	if c.RecencyWeight != 0 {
+		weights.RecencyWeight = c.RecencyWeight
+	}
+	if c.FollowWeight != 0 {
+		weights.FollowWeight = c.FollowWeight
+	}
+	if c.QoSWeight != 0 {
+		weights.QoSWeight = c.QoSWeight
+	}
+	cfg.Weights = weights
+
+	return cfg
+}
 
 // newHotScoreCalculator 根据配置创建热度分计算器，未配置时使用默认值。
 func newHotScoreCalculator(c config.HotConfig) *feedpkg.HotScoreCalculator {
