@@ -26,10 +26,11 @@ type ServiceContext struct {
 	VideoService       *videodomain.VideoService
 	PlaybackQoSService *videodomain.PlaybackQoSService
 	Storage            *StorageAdapter
-	HotScoreCleaner    *worker.HotScoreCleaner
-	QoSAggregator      *worker.QoSAggregator
-	consumerUnit       *appkafka.MultiTopicConsumerUnit
-	visitProducer      videodomain.VisitEventProducer
+	HotScoreCleaner        *worker.HotScoreCleaner
+	QoSAggregator          *worker.QoSAggregator
+	consumerUnit           *appkafka.MultiTopicConsumerUnit
+	trackingConsumerUnit   *appkafka.MultiTopicConsumerUnit
+	visitProducer          videodomain.VisitEventProducer
 }
 
 // NewServiceContext 初始化 video RPC 服务上下文。
@@ -101,6 +102,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	// Kafka 热度事件消费者：消费热度分重算事件与访问事件。
 	if c.Kafka.Enable && len(c.Kafka.Brokers) > 0 && c.Kafka.Brokers[0] != "" {
 		ctx.startKafkaConsumer(c, videoService)
+		ctx.startTrackingKafkaConsumer(c, videoService)
 	}
 
 	return ctx
@@ -109,6 +111,13 @@ func NewServiceContext(c config.Config) *ServiceContext {
 // startKafkaConsumer 启动 Kafka 消费：热度分重算事件 + 访问事件。
 func (ctx *ServiceContext) startKafkaConsumer(c config.Config, videoService *videodomain.VideoService) {
 	handler := videodomain.NewHotScoreEventHandler(videoService)
+	ctx.consumerUnit = newKafkaConsumerUnit(c, handler, "kafka hot-score event consume failed after retries: %v")
+	ctx.consumerUnit.Start(context.Background())
+}
+
+// startTrackingKafkaConsumer 启动 Kafka 消费：埋点事件。
+func (ctx *ServiceContext) startTrackingKafkaConsumer(c config.Config, videoService *videodomain.VideoService) {
+	handler := videodomain.NewTrackingEventHandler(ctx.Dal.FeedSeen, ctx.Dal.VideoViewEvent, videoService)
 
 	workerCount := c.Kafka.WorkerCount
 	if workerCount <= 0 {
@@ -119,6 +128,57 @@ func (ctx *ServiceContext) startKafkaConsumer(c config.Config, videoService *vid
 		queueSize = appkafka.DefaultConsumerQueueSize
 	}
 
+	topic := c.Kafka.TrackingTopic
+	if topic == "" {
+		topic = event.DefaultTrackingTopic
+	}
+
+	ctx.trackingConsumerUnit = appkafka.NewMultiTopicConsumerUnitFromConfigs(
+		[]appkafka.ConsumerTopicConfig{{Topic: topic}},
+		c.Kafka.Brokers,
+		c.Kafka.GroupID+"-tracking",
+		handler,
+		workerCount,
+		queueSize,
+		appkafka.RetryConfig{
+			MaxRetry: 3,
+			OnFailure: func(ctx context.Context, msg *appkafka.Event, err error) error {
+				logx.Errorf("kafka tracking event consume failed after retries: %v", err)
+				return nil
+			},
+		},
+	)
+	ctx.trackingConsumerUnit.Start(context.Background())
+}
+
+func newKafkaConsumerUnit(c config.Config, handler appkafka.ConsumerHandler, errFormat string) *appkafka.MultiTopicConsumerUnit {
+	workerCount := c.Kafka.WorkerCount
+	if workerCount <= 0 {
+		workerCount = appkafka.DefaultConsumerWorkerCount
+	}
+	queueSize := c.Kafka.QueueSize
+	if queueSize <= 0 {
+		queueSize = appkafka.DefaultConsumerQueueSize
+	}
+
+	return appkafka.NewMultiTopicConsumerUnitFromConfigs(
+		consumerTopics(c),
+		c.Kafka.Brokers,
+		c.Kafka.GroupID,
+		handler,
+		workerCount,
+		queueSize,
+		appkafka.RetryConfig{
+			MaxRetry: 3,
+			OnFailure: func(ctx context.Context, msg *appkafka.Event, err error) error {
+				logx.Errorf(errFormat, err)
+				return nil
+			},
+		},
+	)
+}
+
+func consumerTopics(c config.Config) []appkafka.ConsumerTopicConfig {
 	topics := make([]appkafka.ConsumerTopicConfig, 0, 2)
 	if c.Kafka.HotScoreTopic != "" {
 		topics = append(topics, appkafka.ConsumerTopicConfig{Topic: c.Kafka.HotScoreTopic})
@@ -132,23 +192,7 @@ func (ctx *ServiceContext) startKafkaConsumer(c config.Config, videoService *vid
 			{Topic: event.DefaultVideoVisitTopic},
 		}
 	}
-
-	ctx.consumerUnit = appkafka.NewMultiTopicConsumerUnitFromConfigs(
-		topics,
-		c.Kafka.Brokers,
-		c.Kafka.GroupID,
-		handler,
-		workerCount,
-		queueSize,
-		appkafka.RetryConfig{
-			MaxRetry: 3,
-			OnFailure: func(c context.Context, msg *appkafka.Event, err error) error {
-				logx.Errorf("kafka hot-score event consume failed after retries: %v", err)
-				return nil
-			},
-		},
-	)
-	ctx.consumerUnit.Start(context.Background())
+	return topics
 }
 
 const (
@@ -230,6 +274,9 @@ func (ctx *ServiceContext) Close() {
 	}
 	if ctx.consumerUnit != nil {
 		ctx.consumerUnit.Stop()
+	}
+	if ctx.trackingConsumerUnit != nil {
+		ctx.trackingConsumerUnit.Stop()
 	}
 	if ctx.visitProducer != nil {
 		_ = ctx.visitProducer.Close()

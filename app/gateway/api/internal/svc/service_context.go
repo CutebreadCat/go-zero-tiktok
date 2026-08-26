@@ -24,6 +24,7 @@ type ServiceContext struct {
 	CommunicationRpc       communicationservice.CommunicationService
 	RateLimit              rest.Middleware
 	hotScoreRecalcProducer HotScoreRecalcProducer
+	TrackingEventProducer  TrackingEventProducer
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -41,6 +42,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		producer := NewKafkaHotScoreRecalcProducer(c.Kafka.Brokers, c.Kafka.Topic)
 		producer.WatchErrors()
 		ctx.hotScoreRecalcProducer = producer
+
+		trackingProducer := NewKafkaTrackingEventProducer(c.Kafka.Brokers, c.Kafka.TrackingTopic)
+		trackingProducer.WatchErrors()
+		ctx.TrackingEventProducer = trackingProducer
 	}
 
 	return ctx
@@ -75,5 +80,8 @@ func (s *ServiceContext) TriggerHotScoreRecalc(ctx context.Context, videoID int6
 func (s *ServiceContext) Close() {
 	if s.hotScoreRecalcProducer != nil {
 		_ = s.hotScoreRecalcProducer.Close()
+	}
+	if s.TrackingEventProducer != nil {
+		_ = s.TrackingEventProducer.Close()
 	}
 }

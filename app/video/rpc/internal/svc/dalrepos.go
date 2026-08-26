@@ -8,12 +8,13 @@ import (
 )
 
 type Repositories struct {
-	Video        *videorepo.VideoBaseinfoRepo
-	VideoStat    *videorepo.VideoStatRepo
-	VideoQoS     *videorepo.VideoQoSRepo
-	Feed         *videorepo.FeedRepo
-	FeedSeen     *videorepo.FeedSeenRepo
-	PlaybackQoS  *videorepo.PlaybackQoSRepo
+	Video         *videorepo.VideoBaseinfoRepo
+	VideoStat     *videorepo.VideoStatRepo
+	VideoQoS      *videorepo.VideoQoSRepo
+	Feed          *videorepo.FeedRepo
+	FeedSeen      *videorepo.FeedSeenRepo
+	PlaybackQoS   *videorepo.PlaybackQoSRepo
+	VideoViewEvent *videorepo.VideoViewEventRepo
 }
 
 func NewRepositories(db *gorm.DB, rdb *redis.Redis) (*Repositories, error) {
@@ -22,11 +23,12 @@ func NewRepositories(db *gorm.DB, rdb *redis.Redis) (*Repositories, error) {
 		return nil, err
 	}
 	return &Repositories{
-		Video:       videoRepo,
-		VideoStat:   videorepo.NewVideoStatRepo(db),
-		VideoQoS:    videorepo.NewVideoQoSRepo(db),
-		Feed:        videorepo.NewFeedRepo(rdb),
-		FeedSeen:    videorepo.NewFeedSeenRepo(rdb),
-		PlaybackQoS: videorepo.NewPlaybackQoSRepo(db),
+		Video:          videoRepo,
+		VideoStat:      videorepo.NewVideoStatRepo(db),
+		VideoQoS:       videorepo.NewVideoQoSRepo(db),
+		Feed:           videorepo.NewFeedRepo(rdb),
+		FeedSeen:       videorepo.NewFeedSeenRepo(rdb),
+		PlaybackQoS:    videorepo.NewPlaybackQoSRepo(db),
+		VideoViewEvent: videorepo.NewVideoViewEventRepo(db),
 	}, nil
 }

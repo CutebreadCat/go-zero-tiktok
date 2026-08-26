@@ -200,28 +200,6 @@ type Item struct {
 	Favorited     bool          `json:"favorited"`
 }
 
-type PlaybackQoSReportRequest struct {
-	VideoID        int64  `json:"video_id,string" form:"video_id"`
-	IdempotencyKey string `json:"idempotency_key" form:"idempotency_key"`
-	EventType      string `json:"event_type" form:"event_type"`
-	DurationMs     int64  `json:"duration_ms" form:"duration_ms,optional"`
-	PlayedMs       int64  `json:"played_ms" form:"played_ms,optional"`
-	BufferedMs     int64  `json:"buffered_ms" form:"buffered_ms,optional"`
-	StallCount     int32  `json:"stall_count" form:"stall_count,optional"`
-	StallTotalMs   int64  `json:"stall_total_ms" form:"stall_total_ms,optional"`
-	Resolution     string `json:"resolution" form:"resolution,optional"`
-	BitrateKbps    int32  `json:"bitrate_kbps" form:"bitrate_kbps,optional"`
-	Fps            int32  `json:"fps" form:"fps,optional"`
-	ErrorCode      int32  `json:"error_code" form:"error_code,optional"`
-	ErrorMsg       string `json:"error_msg" form:"error_msg,optional"`
-	NetworkType    string `json:"network_type" form:"network_type,optional"`
-	DeviceInfo     string `json:"device_info" form:"device_info,optional"`
-}
-
-type PlaybackQoSReportResponse struct {
-	Base BaseResponse `json:"base"`
-}
-
 type LikeCommentRequest struct {
 	CommentId int64 `path:"id"`
 }
@@ -249,6 +227,28 @@ type LoginResponse struct {
 	UserID       int64        `json:"user_id,string"`
 	AccessToken  string       `json:"-"`
 	RefreshToken string       `json:"-"`
+}
+
+type PlaybackQoSReportRequest struct {
+	VideoID        int64  `json:"video_id,string" form:"video_id"`
+	IdempotencyKey string `json:"idempotency_key" form:"idempotency_key"`
+	EventType      string `json:"event_type" form:"event_type"`
+	DurationMs     int64  `json:"duration_ms" form:"duration_ms,optional"`
+	PlayedMs       int64  `json:"played_ms" form:"played_ms,optional"`
+	BufferedMs     int64  `json:"buffered_ms" form:"buffered_ms,optional"`
+	StallCount     int32  `json:"stall_count" form:"stall_count,optional"`
+	StallTotalMs   int64  `json:"stall_total_ms" form:"stall_total_ms,optional"`
+	Resolution     string `json:"resolution" form:"resolution,optional"`
+	BitrateKbps    int32  `json:"bitrate_kbps" form:"bitrate_kbps,optional"`
+	Fps            int32  `json:"fps" form:"fps,optional"`
+	ErrorCode      int32  `json:"error_code" form:"error_code,optional"`
+	ErrorMsg       string `json:"error_msg" form:"error_msg,optional"`
+	NetworkType    string `json:"network_type" form:"network_type,optional"`
+	DeviceInfo     string `json:"device_info" form:"device_info,optional"`
+}
+
+type PlaybackQoSReportResponse struct {
+	Base BaseResponse `json:"base"`
 }
 
 type PublishVideoRequest struct {
@@ -298,6 +298,30 @@ type SubscribeRequest struct {
 
 type SubscribeResponse struct {
 	Base BaseResponse `json:"base"`
+}
+
+type TrackingEventRequest struct {
+	EventType    string `json:"event_type"` // impression / play / progress / complete / comment / follow / share
+	Timestamp    int64  `json:"timestamp,optional"`
+	VideoID      int64  `json:"video_id,string,optional"`
+	Scene        string `json:"scene,optional"`
+	RequestID    string `json:"request_id,optional"`
+	Position     int32  `json:"position,optional"`
+	Progress     int32  `json:"progress,optional"`
+	WatchMs      int64  `json:"watch_ms,optional"`
+	DurationMs   int64  `json:"duration_ms,optional"`
+	CommentID    int64  `json:"comment_id,string,optional"`
+	FollowUserID int64  `json:"follow_user_id,string,optional"`
+	Action       string `json:"action,optional"` // follow / unfollow
+	Channel      string `json:"channel,optional"`
+}
+
+type TrackingEventResponse struct {
+	Base BaseResponse `json:"base"`
+}
+
+type TrackingEventsRequest struct {
+	Events []TrackingEventRequest `json:"events"`
 }
 
 type UnsubscribeRequest struct {

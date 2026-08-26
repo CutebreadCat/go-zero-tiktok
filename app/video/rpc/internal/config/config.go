@@ -63,6 +63,8 @@ type KafkaConfig struct {
 	HotScoreTopic string `json:"HotScoreTopic"`
 	// VisitTopic 视频访问事件 topic（由本服务发送并消费）。
 	VisitTopic string `json:"VisitTopic"`
+	// TrackingTopic 埋点事件 topic（由 Gateway 发送，本服务消费）。
+	TrackingTopic string `json:"TrackingTopic"`
 	// GroupID 消费组 ID。
 	GroupID string `json:"GroupID"`
 	// Enable 是否启用 Kafka 事件链路。

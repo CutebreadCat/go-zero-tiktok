@@ -29,6 +29,10 @@ service tiktok-api {
   // 播放质量上报
   @handler ReportPlaybackQoSHandler
   post /playback-qos-reports (PlaybackQoSReportRequest) returns (PlaybackQoSReportResponse)
+
+  // 埋点事件上报
+  @handler TrackEventHandler
+  post /tracking-events (TrackingEventsRequest) returns (TrackingEventResponse)
 }
 
 type (
@@ -105,6 +109,30 @@ type (
   }
 
   PlaybackQoSReportResponse {
+    Base BaseResponse `json:"base"`
+  }
+
+  TrackingEventRequest {
+    EventType    string `json:"event_type"`                         // impression / play / progress / complete / comment / follow / share
+    Timestamp    int64  `json:"timestamp,optional"`
+    VideoID      int64  `json:"video_id,string,optional"`
+    Scene        string `json:"scene,optional"`
+    RequestID    string `json:"request_id,optional"`
+    Position     int32  `json:"position,optional"`
+    Progress     int32  `json:"progress,optional"`
+    WatchMs      int64  `json:"watch_ms,optional"`
+    DurationMs   int64  `json:"duration_ms,optional"`
+    CommentID    int64  `json:"comment_id,string,optional"`
+    FollowUserID int64  `json:"follow_user_id,string,optional"`
+    Action       string `json:"action,optional"`                    // follow / unfollow
+    Channel      string `json:"channel,optional"`
+  }
+
+  TrackingEventsRequest {
+    Events []TrackingEventRequest `json:"events"`
+  }
+
+  TrackingEventResponse {
     Base BaseResponse `json:"base"`
   }
 )

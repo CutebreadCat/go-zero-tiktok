@@ -1,3 +1,6 @@
+// Code scaffolded by goctl. Safe to edit.
+// goctl 1.10.1
+
 package video
 
 import (
@@ -9,20 +12,20 @@ import (
 	myutils "go_zero-tiktok/pkg/utils"
 	"go_zero-tiktok/pkg/xerr"
 
-	logger "go_zero-tiktok/pkg/logger"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type ReportPlaybackQoSLogic struct {
-	*logger.ContextLogger
+	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
 func NewReportPlaybackQoSLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ReportPlaybackQoSLogic {
 	return &ReportPlaybackQoSLogic{
-		ContextLogger: logger.WithContext(ctx),
-		ctx:           ctx,
-		svcCtx:        svcCtx,
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
 	}
 }
 

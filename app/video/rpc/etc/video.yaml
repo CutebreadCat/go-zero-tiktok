@@ -19,12 +19,13 @@ Telemetry:
   Sampler: 1.0
   Batcher: otlpgrpc
 
-# Kafka: 热度分重算事件（Gateway 发送）与访问事件（本服务自产自消）
+# Kafka: 热度分重算事件（Gateway 发送）、访问事件（本服务自产自消）、埋点事件（Gateway 发送）
 Kafka:
   Brokers:
   - "${KAFKA_BROKERS}"
   HotScoreTopic: "video-hot-score-recalc"
   VisitTopic: "video-visit-events"
+  TrackingTopic: "tracking-events"
   GroupID: "video-hot-score-consumer-group"
   Enable: true
   WorkerCount: 10
