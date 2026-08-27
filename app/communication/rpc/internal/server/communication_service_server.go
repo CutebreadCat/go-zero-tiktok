@@ -42,3 +42,23 @@ func (s *CommunicationServiceServer) GetFriendList(ctx context.Context, in *comm
 	l := logic.NewGetFriendListLogic(ctx, s.svcCtx)
 	return l.GetFriendList(in)
 }
+
+func (s *CommunicationServiceServer) CreateMessage(ctx context.Context, in *communication_pb.CreateMessageRequest) (*communication_pb.CreateMessageResponse, error) {
+	l := logic.NewCreateMessageLogic(ctx, s.svcCtx)
+	return l.CreateMessage(in)
+}
+
+func (s *CommunicationServiceServer) GetMessages(ctx context.Context, in *communication_pb.GetMessagesRequest) (*communication_pb.GetMessagesResponse, error) {
+	l := logic.NewGetMessagesLogic(ctx, s.svcCtx)
+	return l.GetMessages(in)
+}
+
+func (s *CommunicationServiceServer) CountUnread(ctx context.Context, in *communication_pb.CountUnreadRequest) (*communication_pb.CountUnreadResponse, error) {
+	l := logic.NewCountUnreadLogic(ctx, s.svcCtx)
+	return l.CountUnread(in)
+}
+
+func (s *CommunicationServiceServer) MarkRead(ctx context.Context, in *communication_pb.MarkReadRequest) (*communication_pb.MarkReadResponse, error) {
+	l := logic.NewMarkReadLogic(ctx, s.svcCtx)
+	return l.MarkRead(in)
+}

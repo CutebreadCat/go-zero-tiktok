@@ -46,9 +46,78 @@ message GetFriendListResponse {
     int64 total = 2;
 }
 
+message CreateMessageRequest {
+    int64  receiver_id       = 1;
+    string type              = 2;
+    string title             = 3;
+    string content           = 4;
+    string event_id          = 5;
+    int64  sender_id         = 6;
+    string sender_nickname   = 7;
+    string sender_avatar_url = 8;
+    int64  target_id         = 9;
+    string target_type       = 10;
+}
+
+message CreateMessageResponse {
+    int64 message_id = 1;
+    bool  created    = 2;
+}
+
+message GetMessagesRequest {
+    int64  user_id = 1;
+    string type    = 2;
+    string cursor  = 3;
+    int32  limit   = 4;
+}
+
+message MessageInfo {
+    int64  message_id        = 1;
+    int64  receiver_id       = 2;
+    string type              = 3;
+    string title             = 4;
+    string content           = 5;
+    string event_id          = 6;
+    int64  sender_id         = 7;
+    string sender_nickname   = 8;
+    string sender_avatar_url = 9;
+    int64  target_id         = 10;
+    string target_type       = 11;
+    bool   is_read           = 12;
+    string created_at        = 13;
+    string read_at           = 14;
+}
+
+message GetMessagesResponse {
+    repeated MessageInfo items       = 1;
+    string               next_cursor = 2;
+    bool                 has_more    = 3;
+}
+
+message CountUnreadRequest {
+    int64 user_id = 1;
+}
+
+message CountUnreadResponse {
+    int64 unread_count = 1;
+}
+
+message MarkReadRequest {
+    int64          user_id     = 1;
+    repeated int64 message_ids = 2;
+}
+
+message MarkReadResponse {
+    int64 updated_count = 1;
+}
+
 service CommunicationService {
     rpc Subscribe(SubscribeRequest) returns (SubscribeResponse);
     rpc GetFansList(GetFansListRequest) returns (GetFansListResponse);
     rpc GetSubscriberList(GetSubscriberListRequest) returns (GetSubscriberListResponse);
     rpc GetFriendList(GetFriendListRequest) returns (GetFriendListResponse);
+    rpc CreateMessage(CreateMessageRequest) returns (CreateMessageResponse);
+    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+    rpc CountUnread(CountUnreadRequest) returns (CountUnreadResponse);
+    rpc MarkRead(MarkReadRequest) returns (MarkReadResponse);
 }

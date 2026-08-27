@@ -22,6 +22,21 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Route{
 				{
 					Method:  http.MethodGet,
+					Path:    "/message-stats/unread",
+					Handler: communication.CountUnreadHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/messages",
+					Handler: communication.GetMessagesHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPatch,
+					Path:    "/messages",
+					Handler: communication.MarkReadHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
 					Path:    "/users/me/followers",
 					Handler: communication.GetFansListHandler(serverCtx),
 				},

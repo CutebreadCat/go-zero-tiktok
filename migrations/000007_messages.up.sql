@@ -1,0 +1,21 @@
+CREATE TABLE messages (
+    id                  BIGINT UNSIGNED     NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+    message_id          BIGINT UNSIGNED     NOT NULL COMMENT '消息唯一 ID（雪花 ID）',
+    receiver_id         BIGINT UNSIGNED     NOT NULL COMMENT '接收用户 ID',
+    type                VARCHAR(16)         NOT NULL COMMENT 'LIKE / COMMENT / FOLLOW / SYSTEM',
+    title               VARCHAR(128)        NOT NULL COMMENT '标题',
+    content             VARCHAR(1024)       NOT NULL COMMENT '内容',
+    event_id            VARCHAR(64)         NULL COMMENT '来源事件 ID，用于幂等',
+    sender_id           BIGINT UNSIGNED     NOT NULL DEFAULT 0 COMMENT '发送者 ID，0 表示系统',
+    sender_nickname     VARCHAR(64)         NOT NULL DEFAULT '' COMMENT '发送者昵称快照',
+    sender_avatar_url   VARCHAR(512)        NOT NULL DEFAULT '' COMMENT '发送者头像快照',
+    target_id           BIGINT UNSIGNED     NOT NULL DEFAULT 0 COMMENT '关联目标 ID（如视频 ID）',
+    target_type         VARCHAR(32)         NOT NULL DEFAULT '' COMMENT '关联目标类型：video/comment/user',
+    is_read             TINYINT             NOT NULL DEFAULT 0 COMMENT '是否已读：0 未读，1 已读',
+    created_at          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    read_at             DATETIME            NULL COMMENT '已读时间',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_message_id (message_id),
+    UNIQUE KEY uk_receiver_event (receiver_id, event_id),
+    KEY idx_receiver_read_created (receiver_id, is_read, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='站内消息表';

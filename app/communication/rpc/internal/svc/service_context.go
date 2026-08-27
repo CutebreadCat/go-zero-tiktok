@@ -3,6 +3,7 @@ package svc
 import (
 	"go_zero-tiktok/app/communication/rpc/internal/config"
 	followdomain "go_zero-tiktok/app/communication/rpc/internal/domain"
+	applicationmessage "go_zero-tiktok/app/communication/rpc/internal/application/message"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/driver/mysql"
@@ -14,6 +15,7 @@ type ServiceContext struct {
 	DB                *gorm.DB
 	Dal               *Repositories
 	UserFollowService *followdomain.UserFollowService
+	MessageService    *applicationmessage.Service
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -27,5 +29,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		DB:                db,
 		Dal:               dalRepo,
 		UserFollowService: followdomain.NewUserFollowService(dalRepo.Follow),
+		MessageService:    applicationmessage.New(dalRepo.Message),
 	}
 }

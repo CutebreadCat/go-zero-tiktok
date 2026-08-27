@@ -63,6 +63,14 @@ type CommentVideoResponse struct {
 	CommentID int64        `json:"comment_id,string"`
 }
 
+type CountUnreadRequest struct {
+}
+
+type CountUnreadResponse struct {
+	Base        BaseResponse `json:"base"`
+	UnreadCount int64        `json:"unread_count"`
+}
+
 type DeleteCommentRequest struct {
 	CommentId int64 `path:"id"`
 }
@@ -152,6 +160,19 @@ type GetLikeListResponse struct {
 	LikeCount int64           `json:"like_count"`
 }
 
+type GetMessagesRequest struct {
+	Type   string `form:"type,optional"`
+	Cursor string `form:"cursor,optional"`
+	Limit  int32  `form:"limit,optional"`
+}
+
+type GetMessagesResponse struct {
+	Base       BaseResponse  `json:"base"`
+	Items      []MessageInfo `json:"items"`
+	NextCursor string        `json:"next_cursor"`
+	HasMore    bool          `json:"has_more"`
+}
+
 type GetMfaQRCodeRequest struct {
 }
 
@@ -227,6 +248,32 @@ type LoginResponse struct {
 	UserID       int64        `json:"user_id,string"`
 	AccessToken  string       `json:"-"`
 	RefreshToken string       `json:"-"`
+}
+
+type MarkReadRequest struct {
+	MessageIDs []int64 `json:"message_ids,optional"`
+}
+
+type MarkReadResponse struct {
+	Base         BaseResponse `json:"base"`
+	UpdatedCount int64        `json:"updated_count"`
+}
+
+type MessageInfo struct {
+	MessageID       int64  `json:"message_id,string"`
+	ReceiverID      int64  `json:"receiver_id,string"`
+	Type            string `json:"type"`
+	Title           string `json:"title"`
+	Content         string `json:"content"`
+	EventID         string `json:"event_id"`
+	SenderID        int64  `json:"sender_id,string"`
+	SenderNickname  string `json:"sender_nickname"`
+	SenderAvatarURL string `json:"sender_avatar_url"`
+	TargetID        int64  `json:"target_id,string"`
+	TargetType      string `json:"target_type"`
+	IsRead          bool   `json:"is_read"`
+	CreatedAt       string `json:"created_at"`
+	ReadAt          string `json:"read_at,optional"`
 }
 
 type PlaybackQoSReportRequest struct {

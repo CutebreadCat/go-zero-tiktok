@@ -1,17 +1,18 @@
 package svc
 
 import (
-	followrepo "go_zero-tiktok/app/communication/rpc/internal/dal/reposity"
-
+	"go_zero-tiktok/app/communication/rpc/internal/dal/reposity"
 	"gorm.io/gorm"
 )
 
 type Repositories struct {
-	Follow *followrepo.UserFollowRepo
+	Follow  *reposity.UserFollowRepo
+	Message *reposity.MessageRepo
 }
 
 func NewRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
-		Follow: followrepo.NewUserFollowRepo(db),
+		Follow:  reposity.NewUserFollowRepo(db),
+		Message: reposity.NewMessageRepo(db),
 	}
 }

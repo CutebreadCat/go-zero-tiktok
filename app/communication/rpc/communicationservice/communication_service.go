@@ -14,12 +14,21 @@ import (
 )
 
 type (
+	CountUnreadRequest        = communication_pb.CountUnreadRequest
+	CountUnreadResponse       = communication_pb.CountUnreadResponse
+	CreateMessageRequest      = communication_pb.CreateMessageRequest
+	CreateMessageResponse     = communication_pb.CreateMessageResponse
 	GetFansListRequest        = communication_pb.GetFansListRequest
 	GetFansListResponse       = communication_pb.GetFansListResponse
 	GetFriendListRequest      = communication_pb.GetFriendListRequest
 	GetFriendListResponse     = communication_pb.GetFriendListResponse
+	GetMessagesRequest        = communication_pb.GetMessagesRequest
+	GetMessagesResponse       = communication_pb.GetMessagesResponse
 	GetSubscriberListRequest  = communication_pb.GetSubscriberListRequest
 	GetSubscriberListResponse = communication_pb.GetSubscriberListResponse
+	MarkReadRequest           = communication_pb.MarkReadRequest
+	MarkReadResponse          = communication_pb.MarkReadResponse
+	MessageInfo               = communication_pb.MessageInfo
 	SubscribeRequest          = communication_pb.SubscribeRequest
 	SubscribeResponse         = communication_pb.SubscribeResponse
 
@@ -28,6 +37,10 @@ type (
 		GetFansList(ctx context.Context, in *GetFansListRequest, opts ...grpc.CallOption) (*GetFansListResponse, error)
 		GetSubscriberList(ctx context.Context, in *GetSubscriberListRequest, opts ...grpc.CallOption) (*GetSubscriberListResponse, error)
 		GetFriendList(ctx context.Context, in *GetFriendListRequest, opts ...grpc.CallOption) (*GetFriendListResponse, error)
+		CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*CreateMessageResponse, error)
+		GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
+		CountUnread(ctx context.Context, in *CountUnreadRequest, opts ...grpc.CallOption) (*CountUnreadResponse, error)
+		MarkRead(ctx context.Context, in *MarkReadRequest, opts ...grpc.CallOption) (*MarkReadResponse, error)
 	}
 
 	defaultCommunicationService struct {
@@ -59,4 +72,24 @@ func (m *defaultCommunicationService) GetSubscriberList(ctx context.Context, in 
 func (m *defaultCommunicationService) GetFriendList(ctx context.Context, in *GetFriendListRequest, opts ...grpc.CallOption) (*GetFriendListResponse, error) {
 	client := communication_pb.NewCommunicationServiceClient(m.cli.Conn())
 	return client.GetFriendList(ctx, in, opts...)
+}
+
+func (m *defaultCommunicationService) CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*CreateMessageResponse, error) {
+	client := communication_pb.NewCommunicationServiceClient(m.cli.Conn())
+	return client.CreateMessage(ctx, in, opts...)
+}
+
+func (m *defaultCommunicationService) GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error) {
+	client := communication_pb.NewCommunicationServiceClient(m.cli.Conn())
+	return client.GetMessages(ctx, in, opts...)
+}
+
+func (m *defaultCommunicationService) CountUnread(ctx context.Context, in *CountUnreadRequest, opts ...grpc.CallOption) (*CountUnreadResponse, error) {
+	client := communication_pb.NewCommunicationServiceClient(m.cli.Conn())
+	return client.CountUnread(ctx, in, opts...)
+}
+
+func (m *defaultCommunicationService) MarkRead(ctx context.Context, in *MarkReadRequest, opts ...grpc.CallOption) (*MarkReadResponse, error) {
+	client := communication_pb.NewCommunicationServiceClient(m.cli.Conn())
+	return client.MarkRead(ctx, in, opts...)
 }
