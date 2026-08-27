@@ -97,18 +97,20 @@ mysql: db-shell
 
 # Database migrations (run against the docker mysql container only, never local MySQL)
 MIGRATE_DSN := mysql://root:yourpassword@tcp(mysql:3306)/gozero-tiktok?charset=utf8mb4&parseTime=True&loc=Local
+# 用 make 内置 $(CURDIR) 拼绝对路径，避免 Git-for-Windows/MSYS 把 ../migrations 解析成 Git 安装目录
+MIGRATIONS_DIR := $(CURDIR)/migrations
 
 migrate-up:
-	docker compose -f deploy/docker-compose.yml --profile migrate run --rm --no-deps \
-		-e MIGRATE_DSN="$(MIGRATE_DSN)" \
+	MSYS_NO_PATHCONV=1 docker compose -f deploy/docker-compose.yml --profile migrate run --rm --no-deps \
+		--volume "$(MIGRATIONS_DIR):/migrations" \
 		--entrypoint migrate migrate \
-		-path /migrations -database "$$MIGRATE_DSN" up
+		-path /migrations -database "$(MIGRATE_DSN)" up
 
 migrate-down:
-	docker compose -f deploy/docker-compose.yml --profile migrate run --rm --no-deps \
-		-e MIGRATE_DSN="$(MIGRATE_DSN)" \
+	MSYS_NO_PATHCONV=1 docker compose -f deploy/docker-compose.yml --profile migrate run --rm --no-deps \
+		--volume "$(MIGRATIONS_DIR):/migrations" \
 		--entrypoint migrate migrate \
-		-path /migrations -database "$$MIGRATE_DSN" down 1
+		-path /migrations -database "$(MIGRATE_DSN)" down 1
 
 # 日志清理(log-cleaner):过滤保留近 3 天日志,删除更早日志
 # 默认守护轮询(1h);可用 LOG_ROOT/RETENTION/INTERVAL 环境变量覆盖

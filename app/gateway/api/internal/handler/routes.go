@@ -173,19 +173,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.RateLimit},
 			[]rest.Route{
 				{
-					Method:  http.MethodPost,
-					Path:    "/videos",
-					Handler: video.PublishVideoHandler(serverCtx),
-				},
-			}...,
-		),
-	)
-
-	server.AddRoutes(
-		rest.WithMiddlewares(
-			[]rest.Middleware{serverCtx.RateLimit},
-			[]rest.Route{
-				{
 					Method:  http.MethodGet,
 					Path:    "/feed-items",
 					Handler: video.GetFeedVideoHandler(serverCtx),
@@ -214,6 +201,19 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodGet,
 					Path:    "/videos/search",
 					Handler: video.VideoSearchHandler(serverCtx),
+				},
+			}...,
+		),
+	)
+
+	server.AddRoutes(
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.RateLimit},
+			[]rest.Route{
+				{
+					Method:  http.MethodPost,
+					Path:    "/videos",
+					Handler: video.PublishVideoHandler(serverCtx),
 				},
 			}...,
 		),

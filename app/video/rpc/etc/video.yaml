@@ -31,6 +31,12 @@ Kafka:
   WorkerCount: 10
   QueueSize: 1000
 
+# QoS 播放质量聚合配置
+QoS:
+  AggregateInterval: 5m
+  AggregateBatchSize: 1000
+  LastIDRedisKey: "qos:aggregator:last_id"
+
 # 热度分计算与清理配置
 Hot:
   BaseScore: 100          # 基础分，让新视频有初始竞争力
