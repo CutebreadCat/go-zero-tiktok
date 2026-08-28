@@ -29,6 +29,18 @@ service tiktok-api {
   // 我的好友列表（互关）
   @handler GetFriendListHandler
   get /users/me/friends (GetFriendListRequest) returns (GetFriendListResponse)
+
+  // 消息列表
+  @handler GetMessagesHandler
+  get /messages (GetMessagesRequest) returns (GetMessagesResponse)
+
+  // 未读消息数
+  @handler CountUnreadHandler
+  get /message-stats/unread (CountUnreadRequest) returns (CountUnreadResponse)
+
+  // 批量标记已读
+  @handler MarkReadHandler
+  patch /messages (MarkReadRequest) returns (MarkReadResponse)
 }
 
 type (
@@ -74,5 +86,49 @@ type (
     Base        BaseResponse   `json:"base"`
     FriendList  []UserBaseinfo `json:"friend_list"`
     FriendCount int64          `json:"friend_count"`
+  }
+
+  MessageInfo {
+    MessageID        int64  `json:"message_id,string"`
+    ReceiverID       int64  `json:"receiver_id,string"`
+    Type             string `json:"type"`
+    Title            string `json:"title"`
+    Content          string `json:"content"`
+    EventID          string `json:"event_id"`
+    SenderID         int64  `json:"sender_id,string"`
+    SenderNickname   string `json:"sender_nickname"`
+    SenderAvatarURL  string `json:"sender_avatar_url"`
+    TargetID         int64  `json:"target_id,string"`
+    TargetType       string `json:"target_type"`
+    IsRead           bool   `json:"is_read"`
+    CreatedAt        string `json:"created_at"`
+    ReadAt           string `json:"read_at,optional"`
+  }
+
+  GetMessagesRequest {
+    Type   string `form:"type,optional"`
+    Cursor string `form:"cursor,optional"`
+    Limit  int32  `form:"limit,optional"`
+  }
+  GetMessagesResponse {
+    Base       BaseResponse  `json:"base"`
+    Items      []MessageInfo `json:"items"`
+    NextCursor string        `json:"next_cursor"`
+    HasMore    bool          `json:"has_more"`
+  }
+
+  CountUnreadRequest {
+  }
+  CountUnreadResponse {
+    Base         BaseResponse `json:"base"`
+    UnreadCount  int64        `json:"unread_count"`
+  }
+
+  MarkReadRequest {
+    MessageIDs []int64 `json:"message_ids,optional"`
+  }
+  MarkReadResponse {
+    Base          BaseResponse `json:"base"`
+    UpdatedCount  int64        `json:"updated_count"`
   }
 )

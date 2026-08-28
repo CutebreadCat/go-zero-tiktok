@@ -59,7 +59,9 @@ func TestDeleteCommentByID(t *testing.T) {
 		db := testhelpers.NewTestDB(t)
 		ctx := context.Background()
 		testhelpers.AssertNoErr(t, CreateComment(ctx, db, &CommentBaseinfo{CommentID: 1, UserID: 100, VideoID: 200, Content: "c"}))
-		testhelpers.AssertNoErr(t, DeleteCommentByID(ctx, db, 1, 100))
+		videoID, err := DeleteCommentByID(ctx, db, 1, 100)
+		testhelpers.AssertNoErr(t, err)
+		testhelpers.AssertEqual(t, videoID, int64(200))
 
 		var count int64
 		_ = db.Model(&CommentBaseinfo{}).Count(&count)
@@ -68,7 +70,7 @@ func TestDeleteCommentByID(t *testing.T) {
 
 	t.Run("评论不存在报错", func(t *testing.T) {
 		db := testhelpers.NewTestDB(t)
-		err := DeleteCommentByID(context.Background(), db, 999, 100)
+		_, err := DeleteCommentByID(context.Background(), db, 999, 100)
 		testhelpers.AssertInvalidParam(t, err)
 	})
 
@@ -76,7 +78,7 @@ func TestDeleteCommentByID(t *testing.T) {
 		db := testhelpers.NewTestDB(t)
 		ctx := context.Background()
 		testhelpers.AssertNoErr(t, CreateComment(ctx, db, &CommentBaseinfo{CommentID: 1, UserID: 100, VideoID: 200, Content: "c"}))
-		err := DeleteCommentByID(ctx, db, 1, 200)
+		_, err := DeleteCommentByID(ctx, db, 1, 200)
 		testhelpers.AssertInvalidParam(t, err)
 	})
 }

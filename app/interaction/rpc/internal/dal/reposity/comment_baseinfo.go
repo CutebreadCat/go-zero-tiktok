@@ -62,11 +62,12 @@ func (r *CommentRepo) CreateCommentFromParams(ctx context.Context, commentID, us
 	return nil
 }
 
-func (r *CommentRepo) DeleteCommentByID(ctx context.Context, commentID int64, userID int64) error {
-	if err := commenttable.DeleteCommentByID(ctx, r.db, commentID, userID); err != nil {
-		return pkgerrors.WithMessage(err, "CommentRepo.DeleteCommentByID")
+func (r *CommentRepo) DeleteCommentByID(ctx context.Context, commentID int64, userID int64) (int64, error) {
+	videoID, err := commenttable.DeleteCommentByID(ctx, r.db, commentID, userID)
+	if err != nil {
+		return 0, pkgerrors.WithMessage(err, "CommentRepo.DeleteCommentByID")
 	}
-	return nil
+	return videoID, nil
 }
 
 func (r *CommentRepo) GetCommentsByVideoID(ctx context.Context, videoID int64, pageNumber, pageSize int32) ([]types.CommentBaseinfo, int64, error) {

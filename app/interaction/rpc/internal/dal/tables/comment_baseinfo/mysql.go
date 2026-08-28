@@ -44,28 +44,28 @@ func CreateComment(ctx context.Context, db *gorm.DB, comment *CommentBaseinfo) e
 	return nil
 }
 
-func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID int64, userID int64) error {
+func DeleteCommentByID(ctx context.Context, db *gorm.DB, commentID int64, userID int64) (int64, error) {
 	var comment CommentBaseinfo
 	if err := db.WithContext(ctx).Where("comment_id = ?", commentID).First(&comment).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return xerr.NewInvalidParam("评论不存在")
+			return 0, xerr.NewInvalidParam("评论不存在")
 		}
-		return xerr.Wrap(err, "delete comment query failed")
+		return 0, xerr.Wrap(err, "delete comment query failed")
 	}
 	if comment.UserID != userID {
-		return xerr.NewInvalidParam("删除评论失败，用户ID不匹配")
+		return 0, xerr.NewInvalidParam("删除评论失败，用户ID不匹配")
 	}
 
 	result := db.WithContext(ctx).Where("comment_id = ?", commentID).Delete(&comment)
 	if result.Error != nil {
-		return xerr.Wrap(result.Error, "delete comment failed")
+		return 0, xerr.Wrap(result.Error, "delete comment failed")
 	}
 
 	if result.RowsAffected == 0 {
-		return xerr.NewInvalidParam("删除评论失败")
+		return 0, xerr.NewInvalidParam("删除评论失败")
 	}
 
-	return nil
+	return comment.VideoID, nil
 }
 
 func GetCommentsByVideoID(ctx context.Context, db *gorm.DB, videoID int64, pageNumber, pageSize int32) ([]CommentBaseinfo, int64, error) {

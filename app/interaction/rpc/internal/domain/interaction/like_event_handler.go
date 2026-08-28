@@ -3,20 +3,26 @@ package interaction
 import (
 	"context"
 
-	videodomain "go_zero-tiktok/app/interaction/rpc/internal/domain"
 	"go_zero-tiktok/pkg/kafka"
 	appLogger "go_zero-tiktok/pkg/logger"
 )
 
-// LikeEventHandler 消费 Kafka 互动事件并持久化到 MySQL。
-// 注意：like 关系与计数已在请求路径写入 Redis，因此 video-rpc 内部 consumer
-// 只负责把事件最终落库，不再更新 Redis；同时保留日志点供消息中心/推荐权重使用。
-type LikeEventHandler struct {
-	interactionRepo videodomain.IVideoInteractionRepo
+// LikeDirtyMarker 标记视频互动状态需要被 flush 到 MySQL 的接口。
+// Kafka 消费者不再直接写库，而是通过此接口把 video_id 加入脏集合，
+// 由后台 LikeCountSyncer 统一批量同步到 MySQL，避免单条消息触发一次 DB 写。
+type LikeDirtyMarker interface {
+	MarkVideoLikeDirty(ctx context.Context, videoID int64) error
+	MarkVideoFavoriteDirty(ctx context.Context, videoID int64) error
 }
 
-func NewLikeEventHandler(interactionRepo videodomain.IVideoInteractionRepo) *LikeEventHandler {
-	return &LikeEventHandler{interactionRepo: interactionRepo}
+// LikeEventHandler 消费 Kafka 互动事件，仅把对应视频标记为脏，等待 syncer 批量落库。
+// 注意：like 关系与计数已在请求路径写入 Redis；本 handler 不再直接操作 MySQL。
+type LikeEventHandler struct {
+	dirtyMarker LikeDirtyMarker
+}
+
+func NewLikeEventHandler(dirtyMarker LikeDirtyMarker) *LikeEventHandler {
+	return &LikeEventHandler{dirtyMarker: dirtyMarker}
 }
 
 func (h *LikeEventHandler) Consume(ctx context.Context, event *kafka.Event) error {
@@ -26,7 +32,15 @@ func (h *LikeEventHandler) Consume(ctx context.Context, event *kafka.Event) erro
 		return nil
 	}
 
-	return h.interactionRepo.ApplyLikeEvent(ctx, string(e.Action), e.UserID, e.VideoID)
+	switch e.Action {
+	case LikeActionLike, LikeActionCancel:
+		return h.dirtyMarker.MarkVideoLikeDirty(ctx, e.VideoID)
+	case LikeActionFavorite, LikeActionCancelFavorite:
+		return h.dirtyMarker.MarkVideoFavoriteDirty(ctx, e.VideoID)
+	default:
+		appLogger.Warnf("LikeEventHandler unknown action: %s", e.Action)
+		return nil
+	}
 }
 
 // Compile-time check: LikeEventHandler 实现 kafka.ConsumerHandler。

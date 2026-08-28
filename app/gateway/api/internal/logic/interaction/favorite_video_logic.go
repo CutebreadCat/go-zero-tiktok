@@ -3,6 +3,7 @@ package interaction
 import (
 	"context"
 
+	"go_zero-tiktok/app/gateway/api/internal/logic/communication"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
@@ -41,6 +42,14 @@ func (l *FavoriteVideoLogic) FavoriteVideo(req *types.FavoriteVideoRequest) (res
 	})
 	if err != nil {
 		return nil, xerr.HandleDaoError(err, "FavoriteVideo.FavoriteVideo")
+	}
+
+	// 互动成功后触发热度分重算（Kafka 事件解耦）。
+	l.svcCtx.TriggerHotScoreRecalc(l.ctx, req.VideoId)
+
+	// 创建收藏消息通知（非关键路径，失败仅记日志不影响主响应）。
+	if err := communication.CreateMessageForInteraction(l.ctx, l.svcCtx, userID, req.VideoId, "LIKE", "收到收藏", "有人收藏了你的视频"); err != nil {
+		l.Errorf("FavoriteVideo.CreateMessageForInteraction failed: %v", err)
 	}
 
 	return &types.FavoriteVideoResponse{

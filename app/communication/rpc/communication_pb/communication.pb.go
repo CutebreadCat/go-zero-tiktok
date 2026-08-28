@@ -453,6 +453,634 @@ func (x *GetFriendListResponse) GetTotal() int64 {
 	return 0
 }
 
+type CreateMessageRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ReceiverId      int64                  `protobuf:"varint,1,opt,name=receiver_id,json=receiverId,proto3" json:"receiver_id,omitempty"`
+	Type            string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Title           string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Content         string                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
+	EventId         string                 `protobuf:"bytes,5,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	SenderId        int64                  `protobuf:"varint,6,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`
+	SenderNickname  string                 `protobuf:"bytes,7,opt,name=sender_nickname,json=senderNickname,proto3" json:"sender_nickname,omitempty"`
+	SenderAvatarUrl string                 `protobuf:"bytes,8,opt,name=sender_avatar_url,json=senderAvatarUrl,proto3" json:"sender_avatar_url,omitempty"`
+	TargetId        int64                  `protobuf:"varint,9,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
+	TargetType      string                 `protobuf:"bytes,10,opt,name=target_type,json=targetType,proto3" json:"target_type,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CreateMessageRequest) Reset() {
+	*x = CreateMessageRequest{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateMessageRequest) ProtoMessage() {}
+
+func (x *CreateMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateMessageRequest.ProtoReflect.Descriptor instead.
+func (*CreateMessageRequest) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CreateMessageRequest) GetReceiverId() int64 {
+	if x != nil {
+		return x.ReceiverId
+	}
+	return 0
+}
+
+func (x *CreateMessageRequest) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *CreateMessageRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateMessageRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *CreateMessageRequest) GetEventId() string {
+	if x != nil {
+		return x.EventId
+	}
+	return ""
+}
+
+func (x *CreateMessageRequest) GetSenderId() int64 {
+	if x != nil {
+		return x.SenderId
+	}
+	return 0
+}
+
+func (x *CreateMessageRequest) GetSenderNickname() string {
+	if x != nil {
+		return x.SenderNickname
+	}
+	return ""
+}
+
+func (x *CreateMessageRequest) GetSenderAvatarUrl() string {
+	if x != nil {
+		return x.SenderAvatarUrl
+	}
+	return ""
+}
+
+func (x *CreateMessageRequest) GetTargetId() int64 {
+	if x != nil {
+		return x.TargetId
+	}
+	return 0
+}
+
+func (x *CreateMessageRequest) GetTargetType() string {
+	if x != nil {
+		return x.TargetType
+	}
+	return ""
+}
+
+type CreateMessageResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MessageId     int64                  `protobuf:"varint,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	Created       bool                   `protobuf:"varint,2,opt,name=created,proto3" json:"created,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateMessageResponse) Reset() {
+	*x = CreateMessageResponse{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateMessageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateMessageResponse) ProtoMessage() {}
+
+func (x *CreateMessageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateMessageResponse.ProtoReflect.Descriptor instead.
+func (*CreateMessageResponse) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateMessageResponse) GetMessageId() int64 {
+	if x != nil {
+		return x.MessageId
+	}
+	return 0
+}
+
+func (x *CreateMessageResponse) GetCreated() bool {
+	if x != nil {
+		return x.Created
+	}
+	return false
+}
+
+type GetMessagesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Cursor        string                 `protobuf:"bytes,3,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	Limit         int32                  `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMessagesRequest) Reset() {
+	*x = GetMessagesRequest{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMessagesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMessagesRequest) ProtoMessage() {}
+
+func (x *GetMessagesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMessagesRequest.ProtoReflect.Descriptor instead.
+func (*GetMessagesRequest) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetMessagesRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetMessagesRequest) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *GetMessagesRequest) GetCursor() string {
+	if x != nil {
+		return x.Cursor
+	}
+	return ""
+}
+
+func (x *GetMessagesRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type MessageInfo struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	MessageId       int64                  `protobuf:"varint,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	ReceiverId      int64                  `protobuf:"varint,2,opt,name=receiver_id,json=receiverId,proto3" json:"receiver_id,omitempty"`
+	Type            string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	Title           string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
+	Content         string                 `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
+	EventId         string                 `protobuf:"bytes,6,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	SenderId        int64                  `protobuf:"varint,7,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`
+	SenderNickname  string                 `protobuf:"bytes,8,opt,name=sender_nickname,json=senderNickname,proto3" json:"sender_nickname,omitempty"`
+	SenderAvatarUrl string                 `protobuf:"bytes,9,opt,name=sender_avatar_url,json=senderAvatarUrl,proto3" json:"sender_avatar_url,omitempty"`
+	TargetId        int64                  `protobuf:"varint,10,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
+	TargetType      string                 `protobuf:"bytes,11,opt,name=target_type,json=targetType,proto3" json:"target_type,omitempty"`
+	IsRead          bool                   `protobuf:"varint,12,opt,name=is_read,json=isRead,proto3" json:"is_read,omitempty"`
+	CreatedAt       string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ReadAt          string                 `protobuf:"bytes,14,opt,name=read_at,json=readAt,proto3" json:"read_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *MessageInfo) Reset() {
+	*x = MessageInfo{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MessageInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MessageInfo) ProtoMessage() {}
+
+func (x *MessageInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MessageInfo.ProtoReflect.Descriptor instead.
+func (*MessageInfo) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *MessageInfo) GetMessageId() int64 {
+	if x != nil {
+		return x.MessageId
+	}
+	return 0
+}
+
+func (x *MessageInfo) GetReceiverId() int64 {
+	if x != nil {
+		return x.ReceiverId
+	}
+	return 0
+}
+
+func (x *MessageInfo) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *MessageInfo) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *MessageInfo) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *MessageInfo) GetEventId() string {
+	if x != nil {
+		return x.EventId
+	}
+	return ""
+}
+
+func (x *MessageInfo) GetSenderId() int64 {
+	if x != nil {
+		return x.SenderId
+	}
+	return 0
+}
+
+func (x *MessageInfo) GetSenderNickname() string {
+	if x != nil {
+		return x.SenderNickname
+	}
+	return ""
+}
+
+func (x *MessageInfo) GetSenderAvatarUrl() string {
+	if x != nil {
+		return x.SenderAvatarUrl
+	}
+	return ""
+}
+
+func (x *MessageInfo) GetTargetId() int64 {
+	if x != nil {
+		return x.TargetId
+	}
+	return 0
+}
+
+func (x *MessageInfo) GetTargetType() string {
+	if x != nil {
+		return x.TargetType
+	}
+	return ""
+}
+
+func (x *MessageInfo) GetIsRead() bool {
+	if x != nil {
+		return x.IsRead
+	}
+	return false
+}
+
+func (x *MessageInfo) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *MessageInfo) GetReadAt() string {
+	if x != nil {
+		return x.ReadAt
+	}
+	return ""
+}
+
+type GetMessagesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*MessageInfo         `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	NextCursor    string                 `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	HasMore       bool                   `protobuf:"varint,3,opt,name=has_more,json=hasMore,proto3" json:"has_more,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMessagesResponse) Reset() {
+	*x = GetMessagesResponse{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMessagesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMessagesResponse) ProtoMessage() {}
+
+func (x *GetMessagesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMessagesResponse.ProtoReflect.Descriptor instead.
+func (*GetMessagesResponse) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetMessagesResponse) GetItems() []*MessageInfo {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *GetMessagesResponse) GetNextCursor() string {
+	if x != nil {
+		return x.NextCursor
+	}
+	return ""
+}
+
+func (x *GetMessagesResponse) GetHasMore() bool {
+	if x != nil {
+		return x.HasMore
+	}
+	return false
+}
+
+type CountUnreadRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CountUnreadRequest) Reset() {
+	*x = CountUnreadRequest{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CountUnreadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CountUnreadRequest) ProtoMessage() {}
+
+func (x *CountUnreadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CountUnreadRequest.ProtoReflect.Descriptor instead.
+func (*CountUnreadRequest) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CountUnreadRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type CountUnreadResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UnreadCount   int64                  `protobuf:"varint,1,opt,name=unread_count,json=unreadCount,proto3" json:"unread_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CountUnreadResponse) Reset() {
+	*x = CountUnreadResponse{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CountUnreadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CountUnreadResponse) ProtoMessage() {}
+
+func (x *CountUnreadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CountUnreadResponse.ProtoReflect.Descriptor instead.
+func (*CountUnreadResponse) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *CountUnreadResponse) GetUnreadCount() int64 {
+	if x != nil {
+		return x.UnreadCount
+	}
+	return 0
+}
+
+type MarkReadRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	MessageIds    []int64                `protobuf:"varint,2,rep,packed,name=message_ids,json=messageIds,proto3" json:"message_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MarkReadRequest) Reset() {
+	*x = MarkReadRequest{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkReadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkReadRequest) ProtoMessage() {}
+
+func (x *MarkReadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkReadRequest.ProtoReflect.Descriptor instead.
+func (*MarkReadRequest) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *MarkReadRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *MarkReadRequest) GetMessageIds() []int64 {
+	if x != nil {
+		return x.MessageIds
+	}
+	return nil
+}
+
+type MarkReadResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UpdatedCount  int64                  `protobuf:"varint,1,opt,name=updated_count,json=updatedCount,proto3" json:"updated_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MarkReadResponse) Reset() {
+	*x = MarkReadResponse{}
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkReadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkReadResponse) ProtoMessage() {}
+
+func (x *MarkReadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_app_communication_rpc_communication_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MarkReadResponse.ProtoReflect.Descriptor instead.
+func (*MarkReadResponse) Descriptor() ([]byte, []int) {
+	return file_app_communication_rpc_communication_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *MarkReadResponse) GetUpdatedCount() int64 {
+	if x != nil {
+		return x.UpdatedCount
+	}
+	return 0
+}
+
 var File_app_communication_rpc_communication_proto protoreflect.FileDescriptor
 
 const file_app_communication_rpc_communication_proto_rawDesc = "" +
@@ -485,12 +1113,74 @@ const file_app_communication_rpc_communication_proto_rawDesc = "" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"H\n" +
 	"\x15GetFriendListResponse\x12\x19\n" +
 	"\buser_ids\x18\x01 \x03(\x03R\auserIds\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total2\x80\x03\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\xc6\x02\n" +
+	"\x14CreateMessageRequest\x12\x1f\n" +
+	"\vreceiver_id\x18\x01 \x01(\x03R\n" +
+	"receiverId\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x04 \x01(\tR\acontent\x12\x19\n" +
+	"\bevent_id\x18\x05 \x01(\tR\aeventId\x12\x1b\n" +
+	"\tsender_id\x18\x06 \x01(\x03R\bsenderId\x12'\n" +
+	"\x0fsender_nickname\x18\a \x01(\tR\x0esenderNickname\x12*\n" +
+	"\x11sender_avatar_url\x18\b \x01(\tR\x0fsenderAvatarUrl\x12\x1b\n" +
+	"\ttarget_id\x18\t \x01(\x03R\btargetId\x12\x1f\n" +
+	"\vtarget_type\x18\n" +
+	" \x01(\tR\n" +
+	"targetType\"P\n" +
+	"\x15CreateMessageResponse\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\x03R\tmessageId\x12\x18\n" +
+	"\acreated\x18\x02 \x01(\bR\acreated\"o\n" +
+	"\x12GetMessagesRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x16\n" +
+	"\x06cursor\x18\x03 \x01(\tR\x06cursor\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\x05R\x05limit\"\xad\x03\n" +
+	"\vMessageInfo\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\x03R\tmessageId\x12\x1f\n" +
+	"\vreceiver_id\x18\x02 \x01(\x03R\n" +
+	"receiverId\x12\x12\n" +
+	"\x04type\x18\x03 \x01(\tR\x04type\x12\x14\n" +
+	"\x05title\x18\x04 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x05 \x01(\tR\acontent\x12\x19\n" +
+	"\bevent_id\x18\x06 \x01(\tR\aeventId\x12\x1b\n" +
+	"\tsender_id\x18\a \x01(\x03R\bsenderId\x12'\n" +
+	"\x0fsender_nickname\x18\b \x01(\tR\x0esenderNickname\x12*\n" +
+	"\x11sender_avatar_url\x18\t \x01(\tR\x0fsenderAvatarUrl\x12\x1b\n" +
+	"\ttarget_id\x18\n" +
+	" \x01(\x03R\btargetId\x12\x1f\n" +
+	"\vtarget_type\x18\v \x01(\tR\n" +
+	"targetType\x12\x17\n" +
+	"\ais_read\x18\f \x01(\bR\x06isRead\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\r \x01(\tR\tcreatedAt\x12\x17\n" +
+	"\aread_at\x18\x0e \x01(\tR\x06readAt\"\x83\x01\n" +
+	"\x13GetMessagesResponse\x120\n" +
+	"\x05items\x18\x01 \x03(\v2\x1a.communication.MessageInfoR\x05items\x12\x1f\n" +
+	"\vnext_cursor\x18\x02 \x01(\tR\n" +
+	"nextCursor\x12\x19\n" +
+	"\bhas_more\x18\x03 \x01(\bR\ahasMore\"-\n" +
+	"\x12CountUnreadRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"8\n" +
+	"\x13CountUnreadResponse\x12!\n" +
+	"\funread_count\x18\x01 \x01(\x03R\vunreadCount\"K\n" +
+	"\x0fMarkReadRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x1f\n" +
+	"\vmessage_ids\x18\x02 \x03(\x03R\n" +
+	"messageIds\"7\n" +
+	"\x10MarkReadResponse\x12#\n" +
+	"\rupdated_count\x18\x01 \x01(\x03R\fupdatedCount2\xd5\x05\n" +
 	"\x14CommunicationService\x12N\n" +
 	"\tSubscribe\x12\x1f.communication.SubscribeRequest\x1a .communication.SubscribeResponse\x12T\n" +
 	"\vGetFansList\x12!.communication.GetFansListRequest\x1a\".communication.GetFansListResponse\x12f\n" +
 	"\x11GetSubscriberList\x12'.communication.GetSubscriberListRequest\x1a(.communication.GetSubscriberListResponse\x12Z\n" +
-	"\rGetFriendList\x12#.communication.GetFriendListRequest\x1a$.communication.GetFriendListResponseB\x14Z\x12./communication_pbb\x06proto3"
+	"\rGetFriendList\x12#.communication.GetFriendListRequest\x1a$.communication.GetFriendListResponse\x12Z\n" +
+	"\rCreateMessage\x12#.communication.CreateMessageRequest\x1a$.communication.CreateMessageResponse\x12T\n" +
+	"\vGetMessages\x12!.communication.GetMessagesRequest\x1a\".communication.GetMessagesResponse\x12T\n" +
+	"\vCountUnread\x12!.communication.CountUnreadRequest\x1a\".communication.CountUnreadResponse\x12K\n" +
+	"\bMarkRead\x12\x1e.communication.MarkReadRequest\x1a\x1f.communication.MarkReadResponseB\x14Z\x12./communication_pbb\x06proto3"
 
 var (
 	file_app_communication_rpc_communication_proto_rawDescOnce sync.Once
@@ -504,7 +1194,7 @@ func file_app_communication_rpc_communication_proto_rawDescGZIP() []byte {
 	return file_app_communication_rpc_communication_proto_rawDescData
 }
 
-var file_app_communication_rpc_communication_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_app_communication_rpc_communication_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_app_communication_rpc_communication_proto_goTypes = []any{
 	(*SubscribeRequest)(nil),          // 0: communication.SubscribeRequest
 	(*SubscribeResponse)(nil),         // 1: communication.SubscribeResponse
@@ -514,21 +1204,39 @@ var file_app_communication_rpc_communication_proto_goTypes = []any{
 	(*GetSubscriberListResponse)(nil), // 5: communication.GetSubscriberListResponse
 	(*GetFriendListRequest)(nil),      // 6: communication.GetFriendListRequest
 	(*GetFriendListResponse)(nil),     // 7: communication.GetFriendListResponse
+	(*CreateMessageRequest)(nil),      // 8: communication.CreateMessageRequest
+	(*CreateMessageResponse)(nil),     // 9: communication.CreateMessageResponse
+	(*GetMessagesRequest)(nil),        // 10: communication.GetMessagesRequest
+	(*MessageInfo)(nil),               // 11: communication.MessageInfo
+	(*GetMessagesResponse)(nil),       // 12: communication.GetMessagesResponse
+	(*CountUnreadRequest)(nil),        // 13: communication.CountUnreadRequest
+	(*CountUnreadResponse)(nil),       // 14: communication.CountUnreadResponse
+	(*MarkReadRequest)(nil),           // 15: communication.MarkReadRequest
+	(*MarkReadResponse)(nil),          // 16: communication.MarkReadResponse
 }
 var file_app_communication_rpc_communication_proto_depIdxs = []int32{
-	0, // 0: communication.CommunicationService.Subscribe:input_type -> communication.SubscribeRequest
-	2, // 1: communication.CommunicationService.GetFansList:input_type -> communication.GetFansListRequest
-	4, // 2: communication.CommunicationService.GetSubscriberList:input_type -> communication.GetSubscriberListRequest
-	6, // 3: communication.CommunicationService.GetFriendList:input_type -> communication.GetFriendListRequest
-	1, // 4: communication.CommunicationService.Subscribe:output_type -> communication.SubscribeResponse
-	3, // 5: communication.CommunicationService.GetFansList:output_type -> communication.GetFansListResponse
-	5, // 6: communication.CommunicationService.GetSubscriberList:output_type -> communication.GetSubscriberListResponse
-	7, // 7: communication.CommunicationService.GetFriendList:output_type -> communication.GetFriendListResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	11, // 0: communication.GetMessagesResponse.items:type_name -> communication.MessageInfo
+	0,  // 1: communication.CommunicationService.Subscribe:input_type -> communication.SubscribeRequest
+	2,  // 2: communication.CommunicationService.GetFansList:input_type -> communication.GetFansListRequest
+	4,  // 3: communication.CommunicationService.GetSubscriberList:input_type -> communication.GetSubscriberListRequest
+	6,  // 4: communication.CommunicationService.GetFriendList:input_type -> communication.GetFriendListRequest
+	8,  // 5: communication.CommunicationService.CreateMessage:input_type -> communication.CreateMessageRequest
+	10, // 6: communication.CommunicationService.GetMessages:input_type -> communication.GetMessagesRequest
+	13, // 7: communication.CommunicationService.CountUnread:input_type -> communication.CountUnreadRequest
+	15, // 8: communication.CommunicationService.MarkRead:input_type -> communication.MarkReadRequest
+	1,  // 9: communication.CommunicationService.Subscribe:output_type -> communication.SubscribeResponse
+	3,  // 10: communication.CommunicationService.GetFansList:output_type -> communication.GetFansListResponse
+	5,  // 11: communication.CommunicationService.GetSubscriberList:output_type -> communication.GetSubscriberListResponse
+	7,  // 12: communication.CommunicationService.GetFriendList:output_type -> communication.GetFriendListResponse
+	9,  // 13: communication.CommunicationService.CreateMessage:output_type -> communication.CreateMessageResponse
+	12, // 14: communication.CommunicationService.GetMessages:output_type -> communication.GetMessagesResponse
+	14, // 15: communication.CommunicationService.CountUnread:output_type -> communication.CountUnreadResponse
+	16, // 16: communication.CommunicationService.MarkRead:output_type -> communication.MarkReadResponse
+	9,  // [9:17] is the sub-list for method output_type
+	1,  // [1:9] is the sub-list for method input_type
+	1,  // [1:1] is the sub-list for extension type_name
+	1,  // [1:1] is the sub-list for extension extendee
+	0,  // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_app_communication_rpc_communication_proto_init() }
@@ -542,7 +1250,7 @@ func file_app_communication_rpc_communication_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_app_communication_rpc_communication_proto_rawDesc), len(file_app_communication_rpc_communication_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

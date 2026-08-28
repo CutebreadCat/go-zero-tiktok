@@ -138,13 +138,24 @@ func schemaDDL() []string {
 		)`,
 		`CREATE INDEX idx_comment_id ON comment_liker(comment_id)`,
 		`CREATE TABLE playback_qos_reports (
-			id              bigint   NOT NULL PRIMARY KEY,
+			id              INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
 			user_id         bigint   NOT NULL,
 			video_id        bigint   NOT NULL,
 			report_data     text     DEFAULT NULL,
 			idempotency_key varchar(64) DEFAULT NULL,
 			created_at      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			UNIQUE (user_id, idempotency_key)
+		)`,
+		`CREATE TABLE video_qos_stat (
+			video_id         bigint   NOT NULL PRIMARY KEY,
+			completion_rate  int      NOT NULL DEFAULT 0,
+			stall_rate       int      NOT NULL DEFAULT 0,
+			error_rate       int      NOT NULL DEFAULT 0,
+			avg_bitrate_kbps int      NOT NULL DEFAULT 0,
+			avg_buffered_ms  bigint   NOT NULL DEFAULT 0,
+			avg_stall_count  int      NOT NULL DEFAULT 0,
+			report_count     bigint   NOT NULL DEFAULT 0,
+			updated_at       datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 		)`,
 		`CREATE TABLE user_relation_stat (
 			user_id         bigint   NOT NULL,
@@ -155,5 +166,25 @@ func schemaDDL() []string {
 			updated_at      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (user_id)
 		)`,
+		`CREATE TABLE messages (
+			id                  INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
+			message_id          BIGINT       NOT NULL,
+			receiver_id         BIGINT       NOT NULL,
+			type                VARCHAR(16)  NOT NULL,
+			title               VARCHAR(128) NOT NULL,
+			content             VARCHAR(1024) NOT NULL,
+			event_id            VARCHAR(64)  DEFAULT NULL,
+			sender_id           BIGINT       NOT NULL DEFAULT 0,
+			sender_nickname     VARCHAR(64)  NOT NULL DEFAULT '',
+			sender_avatar_url   VARCHAR(512) NOT NULL DEFAULT '',
+			target_id           BIGINT       NOT NULL DEFAULT 0,
+			target_type         VARCHAR(32)  NOT NULL DEFAULT '',
+			is_read             TINYINT      NOT NULL DEFAULT 0,
+			created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			read_at             DATETIME     DEFAULT NULL,
+			UNIQUE (message_id),
+			UNIQUE (receiver_id, event_id)
+		)`,
+		`CREATE INDEX idx_receiver_read_created ON messages(receiver_id, is_read, created_at)`,
 	}
 }

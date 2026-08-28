@@ -233,6 +233,11 @@ func (c *LikeCountCache) SetFavoriteCount(ctx context.Context, videoID int64, co
 	return nil
 }
 
+// MarkVideoFavoriteDirty 把视频加入 favorite 脏集合，供 syncer 后续批量 flush。
+func (c *LikeCountCache) MarkVideoFavoriteDirty(ctx context.Context, videoID int64) error {
+	return c.markDirty(ctx, FavoriteDirtyKey, videoID)
+}
+
 // PopFavoriteDirtyVideos 从收藏脏集合中随机取出 batch 个待同步视频 ID。
 func (c *LikeCountCache) PopFavoriteDirtyVideos(ctx context.Context, batch int) ([]int64, error) {
 	if batch <= 0 {

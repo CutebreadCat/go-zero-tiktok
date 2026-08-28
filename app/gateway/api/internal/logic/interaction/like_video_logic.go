@@ -3,6 +3,7 @@ package interaction
 import (
 	"context"
 
+	"go_zero-tiktok/app/gateway/api/internal/logic/communication"
 	"go_zero-tiktok/app/gateway/api/internal/svc"
 	"go_zero-tiktok/app/gateway/api/internal/types"
 	interactionpb "go_zero-tiktok/app/interaction/rpc/interaction_pb"
@@ -42,6 +43,14 @@ func (l *LikeVideoLogic) LikeVideo(req *types.LikeVideoRequest) (resp *types.Lik
 	})
 	if err != nil {
 		return nil, xerr.HandleDaoError(err, "LikeVideo.LikeVideo")
+	}
+
+	// 互动成功后触发热度分重算（Kafka 事件解耦）。
+	l.svcCtx.TriggerHotScoreRecalc(l.ctx, req.VideoId)
+
+	// 创建点赞消息通知（非关键路径，失败仅记日志不影响主响应）。
+	if err := communication.CreateMessageForInteraction(l.ctx, l.svcCtx, userID, req.VideoId, "LIKE", "收到点赞", "有人点赞了你的视频"); err != nil {
+		l.Errorf("LikeVideo.CreateMessageForInteraction failed: %v", err)
 	}
 
 	return &types.LikeVideoResponse{

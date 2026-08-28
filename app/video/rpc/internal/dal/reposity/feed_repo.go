@@ -16,8 +16,10 @@ const (
 	feedGlobalKey = "feed:global"
 	// feedRetention 候选池保留窗口，超出该窗口的视频自动裁剪，退出分发。
 	feedRetention = 7 * 24 * time.Hour
-	// hotVideosKey 全站热门视频有序集合：member=video_id, score=热度分
+	// hotVideosKey 全站热门视频有序集合：member=video_id, score=热度分（放大 1000 倍）
 	hotVideosKey = "hot:videos"
+	// hotVideosActivityKey 视频最后活跃时间索引：member=video_id, score=活跃时间戳(UnixMilli)
+	hotVideosActivityKey = "hot:videos:activity"
 	// hotFetchFactor Redis 同分过滤兜底因子，先多取若干条再按 video_id 精断
 	hotFetchFactor = 5
 )
@@ -124,13 +126,58 @@ func (r *FeedRepo) PoolLen(ctx context.Context) (int64, error) {
 	return int64(n), err
 }
 
-// IncreaseHotScore 对 hot:videos 按 delta 累加热度分。
-func (r *FeedRepo) IncreaseHotScore(ctx context.Context, videoID int64, delta int64) error {
-	if delta == 0 {
+// RefreshHotScore 覆盖更新视频热度分与最后活跃时间。
+func (r *FeedRepo) RefreshHotScore(ctx context.Context, videoID int64, score int64, activeAt time.Time) error {
+	if videoID == 0 {
 		return nil
 	}
-	_, err := r.rdb.ZincrbyCtx(ctx, hotVideosKey, delta, strconv.FormatInt(videoID, 10))
-	return err
+	member := strconv.FormatInt(videoID, 10)
+	activeTs := activeAt.UnixMilli()
+
+	return r.rdb.Pipelined(func(pipe redis.Pipeliner) error {
+		pipe.ZAdd(ctx, hotVideosKey, redis.Z{Score: float64(score), Member: member})
+		pipe.ZAdd(ctx, hotVideosActivityKey, redis.Z{Score: float64(activeTs), Member: member})
+		return nil
+	})
+}
+
+// CleanupExpiredHotVideos 清理超过 cutoffMs 未活跃的成员，并裁剪保留 Top keepTopN。
+func (r *FeedRepo) CleanupExpiredHotVideos(ctx context.Context, cutoffMs int64, keepTopN int) error {
+	// 1. 批量取出过期成员
+	expiredPairs, err := r.rdb.ZrangebyscoreWithScoresAndLimitCtx(
+		ctx, hotVideosActivityKey, math.MinInt64, cutoffMs, 0, math.MaxInt32)
+	if err != nil {
+		return err
+	}
+
+	if len(expiredPairs) > 0 {
+		members := make([]string, 0, len(expiredPairs))
+		for _, p := range expiredPairs {
+			members = append(members, p.Key)
+		}
+
+		if err := r.rdb.Pipelined(func(pipe redis.Pipeliner) error {
+			pipe.ZRem(ctx, hotVideosKey, members)
+			pipe.ZRem(ctx, hotVideosActivityKey, members)
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+
+	// 2. 控制规模：只保留 Top keepTopN
+	if keepTopN > 0 {
+		_, err := r.rdb.ZremrangebyrankCtx(ctx, hotVideosKey, int64(keepTopN), math.MaxInt64)
+		if err != nil {
+			return err
+		}
+		_, err = r.rdb.ZremrangebyrankCtx(ctx, hotVideosActivityKey, int64(keepTopN), math.MaxInt64)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // GetHotVideosByCursor 从 hot:videos 取热度分 <= cursorScore 的索引，按热度倒序。

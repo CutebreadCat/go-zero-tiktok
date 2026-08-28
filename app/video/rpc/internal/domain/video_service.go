@@ -10,31 +10,54 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
+// VisitEventProducer 视频访问事件生产者接口，用于异步化访问量刷新。
+type VisitEventProducer interface {
+	Send(ctx context.Context, videoID int64, delta int64) error
+	Close() error
+}
+
 // VideoService 视频领域服务，聚焦视频发布、Feed、搜索、热度排序等核心能力。
 // 点赞/收藏等互动能力已拆分到 interaction 子领域。
 type VideoService struct {
-	videoRepo       IVideoRepo
-	popularRepo     IPopularRepo
-	storage         StorageProvider
-	feedRepo        IFeedRepo
-	strategyFactory *feedpkg.StrategyFactory
+	videoRepo          IVideoRepo
+	popularRepo        IPopularRepo
+	qosRepo            IVideoQoSRepo
+	storage            StorageProvider
+	feedRepo           IFeedRepo
+	hotScoreCalculator *feedpkg.HotScoreCalculator
+	strategyFactory    *feedpkg.StrategyFactory
+	visitProducer      VisitEventProducer
 }
 
-func NewVideoService(videoRepo IVideoRepo, popularRepo IPopularRepo, storage StorageProvider, feedRepo IFeedRepo) *VideoService {
+func NewVideoService(
+	videoRepo IVideoRepo,
+	popularRepo IPopularRepo,
+	qosRepo IVideoQoSRepo,
+	storage StorageProvider,
+	feedRepo IFeedRepo,
+	seenRepo ISeenRepo,
+	hotScoreCalculator *feedpkg.HotScoreCalculator,
+	visitProducer VisitEventProducer,
+	recommendConfig feedpkg.RecommendConfig,
+) *VideoService {
 	return &VideoService{
-		videoRepo:       videoRepo,
-		popularRepo:     popularRepo,
-		storage:         storage,
-		feedRepo:        feedRepo,
+		videoRepo:          videoRepo,
+		popularRepo:        popularRepo,
+		qosRepo:            qosRepo,
+		storage:            storage,
+		feedRepo:           feedRepo,
+		visitProducer:      visitProducer,
+		hotScoreCalculator: hotScoreCalculator,
 		strategyFactory: feedpkg.NewStrategyFactory(
 			feedpkg.NewTimelineStrategy(videoRepo, popularRepo, feedRepo),
 			feedpkg.NewFollowingStrategy(videoRepo, popularRepo, feedRepo),
 			feedpkg.NewHotStrategy(videoRepo, popularRepo, feedRepo),
+			feedpkg.NewRecommendStrategy(videoRepo, popularRepo, feedRepo, qosRepo, seenRepo, recommendConfig),
 		),
 	}
 }
 
-// PublishVideo 创建视频并初始化 Popular 记录，发布成功后写入 Feed 候选池。
+// PublishVideo 创建视频并初始化 Popular 记录，发布成功后写入 Feed 候选池与热门榜。
 // 候选池写入失败不阻断发布（DB 是主数据源，Redis 是加速层）。
 // 返回发布时刻 publishAt，供 gateway 编排扇出时保证 feed:global 与 feed:inbox 的 score 一致。
 func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description string) (time.Time, error) {
@@ -52,6 +75,12 @@ func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64
 			logx.Errorf("add video %d to feed global pool failed: %v", videoID, err)
 		}
 	}
+
+	// 新视频发布后立即同步计算初始热度分并写入 hot:videos（Redis 写入失败不阻断发布）。
+	if err := s.RecalculateHotScore(ctx, videoID); err != nil {
+		logx.Errorf("recalculate hot score for new video %d failed: %v", videoID, err)
+	}
+
 	return publishAt, nil
 }
 
@@ -69,40 +98,64 @@ func (s *VideoService) FanoutToUsers(ctx context.Context, videoID int64, userIDs
 	return nil
 }
 
-// IncreaseVideoVisitCount 同步增加视频访问量，并累加热度分（权重 1）。
+// IncreaseVideoVisitCount 同步增加视频访问量，并触发热度分重算。
 // 热度分写入 Redis 失败不阻断访问计数主流程。
 func (s *VideoService) IncreaseVideoVisitCount(ctx context.Context, videoID int64, delta int64) error {
 	if err := s.popularRepo.IncreaseVideoVisitCount(ctx, videoID, delta); err != nil {
 		return err
 	}
-	if s.feedRepo != nil {
-		if err := s.feedRepo.IncreaseHotScore(ctx, videoID, delta); err != nil {
-			logx.Errorf("increase hot score failed for video %d: %v", videoID, err)
-		}
+	if err := s.RecalculateHotScore(ctx, videoID); err != nil {
+		logx.Errorf("recalculate hot score failed for video %d: %v", videoID, err)
 	}
 	return nil
 }
 
-// RecordVisit 异步记录视频访问量与热度分。
-func (s *VideoService) RecordVisit(videoID int64) {
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				logx.Errorf("panic in RecordVisit videoID=%d: %v", videoID, r)
-			}
-		}()
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-		if err := s.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
-			logx.Errorf("record visit failed for video %d: %v", videoID, err)
-		}
-	}()
+// RecalculateHotScore 根据 MySQL 统计与发布时间重新计算并覆盖 Redis 热度分。
+func (s *VideoService) RecalculateHotScore(ctx context.Context, videoID int64) error {
+	if videoID == 0 || s.feedRepo == nil || s.hotScoreCalculator == nil {
+		return nil
+	}
+
+	publishAt, err := s.videoRepo.GetVideoPublishAt(ctx, videoID)
+	if err != nil {
+		return err
+	}
+
+	populars, err := s.popularRepo.GetPopularVideosByIDs(ctx, []int64{videoID})
+	if err != nil {
+		return err
+	}
+	popular, ok := populars[videoID]
+	if !ok {
+		popular = types.VideoPopular{VideoID: videoID}
+	}
+
+	score := s.hotScoreCalculator.Compute(popular, publishAt)
+	return s.feedRepo.RefreshHotScore(ctx, videoID, score, time.Now())
 }
 
-// recordVisits 批量异步记录访问量
-func (s *VideoService) recordVisits(videos []types.VideoBaseinfo) {
+// RecordVisit 记录视频访问量与热度分。
+// 若配置了访问事件生产者，则通过 Kafka 异步化（业务代码不创建 goroutine）；
+// 否则同步执行 IncreaseVideoVisitCount 作为兜底。
+func (s *VideoService) RecordVisit(ctx context.Context, videoID int64) {
+	if videoID == 0 {
+		return
+	}
+	if s.visitProducer != nil {
+		if err := s.visitProducer.Send(ctx, videoID, 1); err != nil {
+			logx.Errorf("send video visit event failed, video_id=%d: %v", videoID, err)
+		}
+		return
+	}
+	if err := s.IncreaseVideoVisitCount(ctx, videoID, 1); err != nil {
+		logx.Errorf("record visit failed for video %d: %v", videoID, err)
+	}
+}
+
+// recordVisits 批量记录访问量。
+func (s *VideoService) recordVisits(ctx context.Context, videos []types.VideoBaseinfo) {
 	for _, video := range videos {
-		s.RecordVisit(video.VideoID)
+		s.RecordVisit(ctx, video.VideoID)
 	}
 }
 
@@ -111,7 +164,7 @@ func (s *VideoService) GetVideosByIDs(ctx context.Context, videoIDs []int64) ([]
 	return s.videoRepo.GetVideosByIDs(ctx, videoIDs)
 }
 
-// GetPopularVideos 获取热门视频列表（ID 水合为完整视频信息）
+// GetPopularVideos 获取热门视频列表（ID 水合为完整视频信息），并拼接 QoS 聚合指标。
 func (s *VideoService) GetPopularVideos(ctx context.Context, pageNum, pageSize int32) ([]types.VideoBaseinfo, []types.VideoPopular, error) {
 	videoPopulars, _, err := s.popularRepo.GetPopularVideoIDsByVisitCount(ctx, pageNum, pageSize)
 	if err != nil {
@@ -128,7 +181,35 @@ func (s *VideoService) GetPopularVideos(ctx context.Context, pageNum, pageSize i
 		return nil, nil, err
 	}
 
+	// 合并 QoS 指标（失败仅记日志，不影响 popular 主链路）。
+	if s.qosRepo != nil {
+		if err := s.mergeQoSMetrics(ctx, videoPopulars); err != nil {
+			logx.Errorf("merge qos metrics failed: %v", err)
+		}
+	}
+
 	return videos, videoPopulars, nil
+}
+
+// mergeQoSMetrics 把 video_qos_stat 指标合并到 VideoPopular 列表。
+func (s *VideoService) mergeQoSMetrics(ctx context.Context, populars []types.VideoPopular) error {
+	if len(populars) == 0 {
+		return nil
+	}
+	videoIDs := make([]int64, 0, len(populars))
+	for _, p := range populars {
+		videoIDs = append(videoIDs, p.VideoID)
+	}
+
+	metrics, err := s.qosRepo.GetQoSMetricsByVideoIDs(ctx, videoIDs)
+	if err != nil {
+		return err
+	}
+
+	for i := range populars {
+		populars[i].VideoQoSMetrics = metrics[populars[i].VideoID]
+	}
+	return nil
 }
 
 // SearchVideos 搜索视频并记录访问量
@@ -137,7 +218,7 @@ func (s *VideoService) SearchVideos(ctx context.Context, keyword string, pageNum
 	if err != nil {
 		return nil, 0, err
 	}
-	s.recordVisits(videos)
+	s.recordVisits(ctx, videos)
 	return videos, total, nil
 }
 
@@ -147,7 +228,7 @@ func (s *VideoService) GetVideosByAuthor(ctx context.Context, authorID int64, pa
 	if err != nil {
 		return nil, 0, err
 	}
-	s.recordVisits(videos)
+	s.recordVisits(ctx, videos)
 	return videos, total, nil
 }
 
@@ -165,6 +246,6 @@ func (s *VideoService) GetFeedVideos(ctx context.Context, viewerID int64, scene,
 		return nil, err
 	}
 
-	s.recordVisits(result.Videos)
+	s.recordVisits(ctx, result.Videos)
 	return result, nil
 }

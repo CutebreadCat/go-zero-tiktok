@@ -8,6 +8,7 @@ import (
 	"go_zero-tiktok/pkg/contract"
 )
 
+
 type IVideoRepo interface {
 	CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoURL, coverURL, title, description string) error
 	SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
@@ -17,6 +18,8 @@ type IVideoRepo interface {
 	// GetVideosByCursor 复合游标分页兜底：按 (created_at, video_id) < (publishedAt, videoID) 倒序取 limit 条。
 	// publishedAt=0 且 videoID=0 表示首页。
 	GetVideosByCursor(ctx context.Context, publishedAt, videoID int64, limit int32) ([]types.VideoBaseinfo, error)
+	// GetVideoPublishAt 获取视频发布时间，优先读缓存，未命中回源 MySQL。
+	GetVideoPublishAt(ctx context.Context, videoID int64) (time.Time, error)
 }
 
 type IPopularRepo interface {
@@ -52,8 +55,34 @@ type IVideoInteractionRepo interface {
 	ApplyLikeEvent(ctx context.Context, action string, userID, videoID int64) error
 }
 
+type IPlaybackQoSRepo interface {
+	CreateReport(ctx context.Context, report *types.PlaybackQoSReport) error
+	// GetReportsAfterID 按 id 游标读取待聚合的上报记录。
+	GetReportsAfterID(ctx context.Context, lastID int64, limit int32) ([]*types.PlaybackQoSReport, error)
+	// GetReportsByVideoIDs 批量读取指定视频的全部上报记录（用于重算指标）。
+	GetReportsByVideoIDs(ctx context.Context, videoIDs []int64) ([]*types.PlaybackQoSReport, error)
+}
+
+type IVideoQoSRepo interface {
+	// UpdateQoSAggregates 更新视频 QoS 聚合指标（不存在则创建）。
+	UpdateQoSAggregates(ctx context.Context, videoID int64, metrics types.VideoQoSMetrics) error
+	// GetQoSMetricsByVideoIDs 批量查询视频 QoS 聚合指标。
+	GetQoSMetricsByVideoIDs(ctx context.Context, videoIDs []int64) (map[int64]types.VideoQoSMetrics, error)
+}
+
 type StorageProvider interface {
 	UploadFile(reader io.Reader, objectKey string) (string, error)
+}
+
+// ISeenRepo 用户曝光记录访问接口：记录用户已刷到的视频，用于推荐去重。
+// 使用 Redis ZSet 存储，member=video_id，score=曝光时间戳，支持按时间 TTL 淘汰和容量控制。
+type ISeenRepo interface {
+	// IsSeen 判断指定视频是否已被用户曝光。
+	IsSeen(ctx context.Context, userID, videoID int64) (bool, error)
+	// MarkSeen 批量标记视频为用户已曝光。
+	MarkSeen(ctx context.Context, userID int64, videoIDs []int64) error
+	// Cleanup 清理过期和超出容量限制的曝光记录。
+	Cleanup(ctx context.Context, userID int64, ttl time.Duration, maxSize int) error
 }
 
 // IFeedRepo Feed 索引访问接口：全站候选池（feed:global）+ 关注流收件箱（feed:inbox:{uid}）。
@@ -74,9 +103,11 @@ type IFeedRepo interface {
 	FanoutInbox(ctx context.Context, videoID int64, userIDs []int64, publishAt time.Time) error
 	// GetUserInbox 取用户收件箱 (lastTimeMs, +inf] 范围内按 score 倒序的索引。
 	GetUserInbox(ctx context.Context, uid, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
-	// IncreaseHotScore 对 hot:videos 有序集合按 delta 累加热度分。
-	IncreaseHotScore(ctx context.Context, videoID int64, delta int64) error
+	// RefreshHotScore 覆盖更新视频热度分与最后活跃时间。
+	RefreshHotScore(ctx context.Context, videoID int64, score int64, activeAt time.Time) error
 	// GetHotVideosByCursor 从 hot:videos 取热度分 <= cursorScore 的索引，按热度倒序。
 	// 返回数量会略多于 limit，供调用方按 video_id 做同分精断。
 	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
+	// CleanupExpiredHotVideos 清理超过 cutoffMs 未活跃的成员，并只保留 Top keepTopN。
+	CleanupExpiredHotVideos(ctx context.Context, cutoffMs int64, keepTopN int) error
 }

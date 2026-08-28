@@ -26,8 +26,12 @@ type (
 	GetVideosByIDsResponse          = video_pb.GetVideosByIDsResponse
 	IncreaseVideoVisitCountRequest  = video_pb.IncreaseVideoVisitCountRequest
 	IncreaseVideoVisitCountResponse = video_pb.IncreaseVideoVisitCountResponse
+	PlaybackQoSReportRequest        = video_pb.PlaybackQoSReportRequest
+	PlaybackQoSReportResponse       = video_pb.PlaybackQoSReportResponse
 	PublishVideoRequest             = video_pb.PublishVideoRequest
 	PublishVideoResponse            = video_pb.PublishVideoResponse
+	RecalculateHotScoreRequest      = video_pb.RecalculateHotScoreRequest
+	RecalculateHotScoreResponse     = video_pb.RecalculateHotScoreResponse
 	SearchVideoRequest              = video_pb.SearchVideoRequest
 	SearchVideoResponse             = video_pb.SearchVideoResponse
 	VideoInfo                       = video_pb.VideoInfo
@@ -41,7 +45,9 @@ type (
 		GetPopularVideo(ctx context.Context, in *GetPopularVideoRequest, opts ...grpc.CallOption) (*GetPopularVideoResponse, error)
 		GetVideosByIDs(ctx context.Context, in *GetVideosByIDsRequest, opts ...grpc.CallOption) (*GetVideosByIDsResponse, error)
 		IncreaseVideoVisitCount(ctx context.Context, in *IncreaseVideoVisitCountRequest, opts ...grpc.CallOption) (*IncreaseVideoVisitCountResponse, error)
+		RecalculateHotScore(ctx context.Context, in *RecalculateHotScoreRequest, opts ...grpc.CallOption) (*RecalculateHotScoreResponse, error)
 		FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error)
+		ReportPlaybackQoS(ctx context.Context, in *PlaybackQoSReportRequest, opts ...grpc.CallOption) (*PlaybackQoSReportResponse, error)
 	}
 
 	defaultVideoService struct {
@@ -90,7 +96,17 @@ func (m *defaultVideoService) IncreaseVideoVisitCount(ctx context.Context, in *I
 	return client.IncreaseVideoVisitCount(ctx, in, opts...)
 }
 
+func (m *defaultVideoService) RecalculateHotScore(ctx context.Context, in *RecalculateHotScoreRequest, opts ...grpc.CallOption) (*RecalculateHotScoreResponse, error) {
+	client := video_pb.NewVideoServiceClient(m.cli.Conn())
+	return client.RecalculateHotScore(ctx, in, opts...)
+}
+
 func (m *defaultVideoService) FeedFanout(ctx context.Context, in *FeedFanoutRequest, opts ...grpc.CallOption) (*FeedFanoutResponse, error) {
 	client := video_pb.NewVideoServiceClient(m.cli.Conn())
 	return client.FeedFanout(ctx, in, opts...)
+}
+
+func (m *defaultVideoService) ReportPlaybackQoS(ctx context.Context, in *PlaybackQoSReportRequest, opts ...grpc.CallOption) (*PlaybackQoSReportResponse, error) {
+	client := video_pb.NewVideoServiceClient(m.cli.Conn())
+	return client.ReportPlaybackQoS(ctx, in, opts...)
 }

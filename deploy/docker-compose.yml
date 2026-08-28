@@ -80,11 +80,11 @@ services:
     restart: unless-stopped
 
   # ===================== 迁移工具(随用随起,不常驻) =====================
+  # 注意:迁移目录由 Makefile 的 migrate-up/down 通过 --volume 绝对路径挂载,
+  # 这里不再写 ../migrations(在 Git-for-Windows/MSYS 下会被错误解析成 Git 安装目录)。
   migrate:
     image: migrate/migrate:v4.19.1
     profiles: ["migrate"]
-    volumes:
-      - ../migrations:/migrations
     entrypoint: ["sh", "-c", "echo 'Run: make migrate-up' && sleep 3600"]
 
   # ===================== 监控(Loki/Alloy/Grafana,可选) =====================

@@ -69,19 +69,10 @@ func NewProducerWithConfig(cfg ProducerConfig) *Producer {
 		balancer = &kafka.Hash{}
 	}
 
-	// 异步模式下 kafka-go 通过 Completion 回调上报写结果，
-	// 封装成错误通道，供调用方后台 goroutine 消费感知失败。
-	// 注意：v0.4.51 的 kafka.WriterConfig 无 Completion 字段，需直接构造 Writer struct。
+	// 说明：本封装按 cfg.Async 决定是否异步写；由调用方根据场景选择。
+	// 例如埋点事件在 gateway 侧通过 goroutine 异步发送（见 kafka_adapter.go），
+	// 而 Producer 内部保持 cfg.Async 的语义，WriteMessages 在异步模式下立即入缓冲。
 	errCh := make(chan error, producerErrQueueSize)
-	completion := func(messages []kafka.Message, err error) {
-		if err != nil {
-			select {
-			case errCh <- err:
-			default:
-				appLogger.Errorf("异步写 Kafka 失败且错误通道已满, 丢弃错误: %v", err)
-			}
-		}
-	}
 
 	return &Producer{
 		writer: &kafka.Writer{
@@ -95,7 +86,7 @@ func NewProducerWithConfig(cfg ProducerConfig) *Producer {
 			BatchSize:    cfg.BatchSize,
 			BatchBytes:   int64(cfg.BatchBytes),
 			BatchTimeout: cfg.BatchTimeout,
-			Completion:   completion,
+			ErrorLogger:  kafka.LoggerFunc(func(format string, a ...interface{}) { appLogger.Errorf("[kafka] write error: "+format, a...) }),
 		},
 		errCh: errCh,
 	}
@@ -122,7 +113,10 @@ func (k *Producer) SendMessage(ctx context.Context, m *Event) error {
 		Key:   m.Msg.Key,
 		Value: payload,
 	})
+	// 诊断：异步模式下 WriteMessages 通常返回 nil（仅入缓冲），但若 broker 不可达/连接失败会在此报错。
+	// 显式打日志，便于联调时确认是否真的发送失败。
 	if err != nil {
+		appLogger.Errorf("Kafka WriteMessages 失败 topic=%s key=%s err=%v", k.writer.Topic, string(m.Msg.Key), err)
 		return xerr.Wrap(err, "Producer.SendMessage.WriteMessages")
 	}
 	return nil

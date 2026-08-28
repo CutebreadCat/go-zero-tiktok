@@ -98,6 +98,22 @@ func UpdateVideoFavoriteCount(ctx context.Context, db *gorm.DB, videoID int64, d
 	return nil
 }
 
+func UpdateVideoCommentCount(ctx context.Context, db *gorm.DB, videoID int64, delta int64) error {
+	result := db.WithContext(ctx).
+		Model(&VideoStat{}).
+		Where("video_id = ?", videoID).
+		Update("comment_count", gorm.Expr("CASE WHEN comment_count + ? < 0 THEN 0 ELSE comment_count + ? END", delta, delta))
+	if result.Error != nil {
+		return xerr.Wrap(result.Error, "update video comment count failed")
+	}
+
+	if result.RowsAffected == 0 {
+		return xerr.Wrap(fmt.Errorf("video %d not found", videoID), "update video comment count failed")
+	}
+
+	return nil
+}
+
 func SetLikeCount(ctx context.Context, db *gorm.DB, videoID int64, count int64) error {
 	return setCount(ctx, db, videoID, "like_count", count)
 }

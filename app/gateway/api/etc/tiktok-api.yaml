@@ -26,6 +26,14 @@ CommunicationRpc:
     Hosts: ["${ETCD_HOSTS}"]
     Key: communication.rpc
 
+# Kafka: 热度分重算事件 + 埋点事件
+Kafka:
+  Brokers:
+  - "${KAFKA_BROKERS}"
+  Topic: "video-hot-score-recalc"
+  TrackingTopic: "tracking-events"
+  Enable: true
+
 # 链路追踪:go-zero 内置 Telemetry(OTLP gRPC 导出,可接 Tempo/Jaeger)
 Telemetry:
   Name: gateway-api

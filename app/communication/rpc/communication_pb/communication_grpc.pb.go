@@ -23,6 +23,10 @@ const (
 	CommunicationService_GetFansList_FullMethodName       = "/communication.CommunicationService/GetFansList"
 	CommunicationService_GetSubscriberList_FullMethodName = "/communication.CommunicationService/GetSubscriberList"
 	CommunicationService_GetFriendList_FullMethodName     = "/communication.CommunicationService/GetFriendList"
+	CommunicationService_CreateMessage_FullMethodName     = "/communication.CommunicationService/CreateMessage"
+	CommunicationService_GetMessages_FullMethodName       = "/communication.CommunicationService/GetMessages"
+	CommunicationService_CountUnread_FullMethodName       = "/communication.CommunicationService/CountUnread"
+	CommunicationService_MarkRead_FullMethodName          = "/communication.CommunicationService/MarkRead"
 )
 
 // CommunicationServiceClient is the client API for CommunicationService service.
@@ -33,6 +37,10 @@ type CommunicationServiceClient interface {
 	GetFansList(ctx context.Context, in *GetFansListRequest, opts ...grpc.CallOption) (*GetFansListResponse, error)
 	GetSubscriberList(ctx context.Context, in *GetSubscriberListRequest, opts ...grpc.CallOption) (*GetSubscriberListResponse, error)
 	GetFriendList(ctx context.Context, in *GetFriendListRequest, opts ...grpc.CallOption) (*GetFriendListResponse, error)
+	CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*CreateMessageResponse, error)
+	GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
+	CountUnread(ctx context.Context, in *CountUnreadRequest, opts ...grpc.CallOption) (*CountUnreadResponse, error)
+	MarkRead(ctx context.Context, in *MarkReadRequest, opts ...grpc.CallOption) (*MarkReadResponse, error)
 }
 
 type communicationServiceClient struct {
@@ -83,6 +91,46 @@ func (c *communicationServiceClient) GetFriendList(ctx context.Context, in *GetF
 	return out, nil
 }
 
+func (c *communicationServiceClient) CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*CreateMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateMessageResponse)
+	err := c.cc.Invoke(ctx, CommunicationService_CreateMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *communicationServiceClient) GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMessagesResponse)
+	err := c.cc.Invoke(ctx, CommunicationService_GetMessages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *communicationServiceClient) CountUnread(ctx context.Context, in *CountUnreadRequest, opts ...grpc.CallOption) (*CountUnreadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CountUnreadResponse)
+	err := c.cc.Invoke(ctx, CommunicationService_CountUnread_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *communicationServiceClient) MarkRead(ctx context.Context, in *MarkReadRequest, opts ...grpc.CallOption) (*MarkReadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MarkReadResponse)
+	err := c.cc.Invoke(ctx, CommunicationService_MarkRead_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CommunicationServiceServer is the server API for CommunicationService service.
 // All implementations must embed UnimplementedCommunicationServiceServer
 // for forward compatibility.
@@ -91,6 +139,10 @@ type CommunicationServiceServer interface {
 	GetFansList(context.Context, *GetFansListRequest) (*GetFansListResponse, error)
 	GetSubscriberList(context.Context, *GetSubscriberListRequest) (*GetSubscriberListResponse, error)
 	GetFriendList(context.Context, *GetFriendListRequest) (*GetFriendListResponse, error)
+	CreateMessage(context.Context, *CreateMessageRequest) (*CreateMessageResponse, error)
+	GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error)
+	CountUnread(context.Context, *CountUnreadRequest) (*CountUnreadResponse, error)
+	MarkRead(context.Context, *MarkReadRequest) (*MarkReadResponse, error)
 	mustEmbedUnimplementedCommunicationServiceServer()
 }
 
@@ -112,6 +164,18 @@ func (UnimplementedCommunicationServiceServer) GetSubscriberList(context.Context
 }
 func (UnimplementedCommunicationServiceServer) GetFriendList(context.Context, *GetFriendListRequest) (*GetFriendListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFriendList not implemented")
+}
+func (UnimplementedCommunicationServiceServer) CreateMessage(context.Context, *CreateMessageRequest) (*CreateMessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateMessage not implemented")
+}
+func (UnimplementedCommunicationServiceServer) GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMessages not implemented")
+}
+func (UnimplementedCommunicationServiceServer) CountUnread(context.Context, *CountUnreadRequest) (*CountUnreadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CountUnread not implemented")
+}
+func (UnimplementedCommunicationServiceServer) MarkRead(context.Context, *MarkReadRequest) (*MarkReadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkRead not implemented")
 }
 func (UnimplementedCommunicationServiceServer) mustEmbedUnimplementedCommunicationServiceServer() {}
 func (UnimplementedCommunicationServiceServer) testEmbeddedByValue()                              {}
@@ -206,6 +270,78 @@ func _CommunicationService_GetFriendList_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CommunicationService_CreateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CommunicationServiceServer).CreateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CommunicationService_CreateMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommunicationServiceServer).CreateMessage(ctx, req.(*CreateMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CommunicationService_GetMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CommunicationServiceServer).GetMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CommunicationService_GetMessages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommunicationServiceServer).GetMessages(ctx, req.(*GetMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CommunicationService_CountUnread_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CountUnreadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CommunicationServiceServer).CountUnread(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CommunicationService_CountUnread_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommunicationServiceServer).CountUnread(ctx, req.(*CountUnreadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CommunicationService_MarkRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CommunicationServiceServer).MarkRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CommunicationService_MarkRead_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommunicationServiceServer).MarkRead(ctx, req.(*MarkReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CommunicationService_ServiceDesc is the grpc.ServiceDesc for CommunicationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +364,22 @@ var CommunicationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFriendList",
 			Handler:    _CommunicationService_GetFriendList_Handler,
+		},
+		{
+			MethodName: "CreateMessage",
+			Handler:    _CommunicationService_CreateMessage_Handler,
+		},
+		{
+			MethodName: "GetMessages",
+			Handler:    _CommunicationService_GetMessages_Handler,
+		},
+		{
+			MethodName: "CountUnread",
+			Handler:    _CommunicationService_CountUnread_Handler,
+		},
+		{
+			MethodName: "MarkRead",
+			Handler:    _CommunicationService_MarkRead_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

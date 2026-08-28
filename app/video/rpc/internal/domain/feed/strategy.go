@@ -46,3 +46,17 @@ type domainFeedRepo interface {
 	// GetHotVideosByCursor 从 hot:videos 取热度索引。
 	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
 }
+
+// domainQoSRepo 是各 Strategy 所需的 QoS 指标仓储能力子集。
+type domainQoSRepo interface {
+	// GetQoSMetricsByVideoIDs 批量查询视频 QoS 聚合指标。
+	GetQoSMetricsByVideoIDs(ctx context.Context, videoIDs []int64) (map[int64]types.VideoQoSMetrics, error)
+}
+
+// domainSeenRepo 是各 Strategy 所需的曝光记录仓储能力子集。
+type domainSeenRepo interface {
+	// IsSeen 判断指定视频是否已被用户曝光。
+	IsSeen(ctx context.Context, userID, videoID int64) (bool, error)
+	// MarkSeen 批量标记视频为用户已曝光。
+	MarkSeen(ctx context.Context, userID int64, videoIDs []int64) error
+}

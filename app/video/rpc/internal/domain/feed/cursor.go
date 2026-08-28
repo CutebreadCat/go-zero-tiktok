@@ -82,3 +82,41 @@ func DecodeHotCursor(raw string) (*HotCursor, error) {
 	}
 	return &c, nil
 }
+
+// RecommendCursor 是推荐场景的复合游标。
+// 使用 recommend_score + video_id 组合，score 为推荐粗排分，video_id 用于同分精断。
+type RecommendCursor struct {
+	Score   int64 `json:"score"`
+	VideoID int64 `json:"video_id"`
+}
+
+// EncodeRecommendCursor 把推荐游标编码为字符串。
+// 游标无效时返回空字符串。
+func EncodeRecommendCursor(c *RecommendCursor) string {
+	if c == nil || c.VideoID <= 0 {
+		return ""
+	}
+	encoded, err := cursor.Encode(c)
+	if err != nil {
+		return ""
+	}
+	return encoded
+}
+
+// DecodeRecommendCursor 解码推荐游标。
+// 空游标表示首页，返回 nil。
+func DecodeRecommendCursor(raw string) (*RecommendCursor, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, nil
+	}
+
+	var c RecommendCursor
+	if err := cursor.Decode(raw, &c); err != nil {
+		return nil, xerr.NewInvalidParam("invalid recommend cursor")
+	}
+	if c.VideoID <= 0 {
+		return nil, xerr.NewInvalidParam("invalid recommend cursor")
+	}
+	return &c, nil
+}

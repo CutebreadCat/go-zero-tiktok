@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"fmt"
 
 	"go_zero-tiktok/app/communication/rpc/communication_pb"
 	"go_zero-tiktok/app/communication/rpc/internal/svc"
@@ -36,6 +37,12 @@ func (l *SubscribeLogic) Subscribe(in *communication_pb.SubscribeRequest) (*comm
 	case 1:
 		if err := l.svcCtx.UserFollowService.FollowUser(l.ctx, in.FollowerId, in.UserId); err != nil {
 			return nil, xerr.HandleDaoError(err, "Subscribe.FollowUser")
+		}
+		// 创建关注消息通知（非关键路径，失败仅记日志不影响主响应）。
+		eventID := fmt.Sprintf("FOLLOW:%d:%d", in.FollowerId, in.UserId)
+		if _, err := l.svcCtx.MessageService.Create(l.ctx, in.UserId, "FOLLOW", "新增关注", "有人关注了你",
+			eventID, eventID, in.FollowerId, "", "", in.FollowerId, "user"); err != nil {
+			l.Errorf("Subscribe.CreateFollowMessage failed follower=%d user=%d: %v", in.FollowerId, in.UserId, err)
 		}
 	case 0:
 		if err := l.svcCtx.UserFollowService.UnfollowUser(l.ctx, in.FollowerId, in.UserId); err != nil {

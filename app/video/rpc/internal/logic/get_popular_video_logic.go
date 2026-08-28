@@ -50,11 +50,19 @@ func (l *GetPopularVideoLogic) GetPopularVideo(in *video_pb.GetPopularVideoReque
 	popularInfos := make([]*video_pb.VideoPopularInfo, 0, len(videoPopulars))
 	for _, p := range videoPopulars {
 		popularInfos = append(popularInfos, &video_pb.VideoPopularInfo{
-			VideoId:       p.VideoID,
-			VisitCount:    p.VisitCount,
-			LikeCount:     p.LikeCount,
-			CommentCount:  p.CommentCount,
-			FavoriteCount: p.FavoriteCount,
+			VideoId:        p.VideoID,
+			VisitCount:     p.VisitCount,
+			LikeCount:      p.LikeCount,
+			CommentCount:   p.CommentCount,
+			FavoriteCount:  p.FavoriteCount,
+			HotScore:       p.HotScore,
+			CompletionRate: p.CompletionRate,
+			StallRate:      p.StallRate,
+			ErrorRate:      p.ErrorRate,
+			AvgBitrateKbps: p.AvgBitrateKbps,
+			AvgBufferedMs:  p.AvgBufferedMs,
+			AvgStallCount:  p.AvgStallCount,
+			ReportCount:    p.ReportCount,
 		})
 	}
 

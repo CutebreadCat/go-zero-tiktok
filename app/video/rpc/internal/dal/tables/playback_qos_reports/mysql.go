@@ -32,3 +32,31 @@ func GetReportsByVideoID(ctx context.Context, db *gorm.DB, videoID int64, pageNu
 	}
 	return rows, nil
 }
+
+// GetReportsAfterID 按 id 游标读取待聚合的上报记录。
+func GetReportsAfterID(ctx context.Context, db *gorm.DB, lastID int64, limit int32) ([]PlaybackQoSReport, error) {
+	var rows []PlaybackQoSReport
+	if err := db.WithContext(ctx).
+		Where("id > ?", lastID).
+		Order("id ASC").
+		Limit(int(limit)).
+		Find(&rows).Error; err != nil {
+		return nil, xerr.Wrap(err, "get playback qos reports after id failed")
+	}
+	return rows, nil
+}
+
+// GetReportsByVideoIDs 批量读取指定视频的全部上报记录（用于重算指标）。
+func GetReportsByVideoIDs(ctx context.Context, db *gorm.DB, videoIDs []int64) ([]PlaybackQoSReport, error) {
+	if len(videoIDs) == 0 {
+		return nil, nil
+	}
+
+	var rows []PlaybackQoSReport
+	if err := db.WithContext(ctx).
+		Where("video_id IN ?", videoIDs).
+		Find(&rows).Error; err != nil {
+		return nil, xerr.Wrap(err, "get playback qos reports by video ids failed")
+	}
+	return rows, nil
+}
