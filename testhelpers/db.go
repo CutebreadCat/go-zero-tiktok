@@ -166,5 +166,25 @@ func schemaDDL() []string {
 			updated_at      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (user_id)
 		)`,
+		`CREATE TABLE messages (
+			id                  INTEGER      NOT NULL PRIMARY KEY AUTOINCREMENT,
+			message_id          BIGINT       NOT NULL,
+			receiver_id         BIGINT       NOT NULL,
+			type                VARCHAR(16)  NOT NULL,
+			title               VARCHAR(128) NOT NULL,
+			content             VARCHAR(1024) NOT NULL,
+			event_id            VARCHAR(64)  DEFAULT NULL,
+			sender_id           BIGINT       NOT NULL DEFAULT 0,
+			sender_nickname     VARCHAR(64)  NOT NULL DEFAULT '',
+			sender_avatar_url   VARCHAR(512) NOT NULL DEFAULT '',
+			target_id           BIGINT       NOT NULL DEFAULT 0,
+			target_type         VARCHAR(32)  NOT NULL DEFAULT '',
+			is_read             TINYINT      NOT NULL DEFAULT 0,
+			created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			read_at             DATETIME     DEFAULT NULL,
+			UNIQUE (message_id),
+			UNIQUE (receiver_id, event_id)
+		)`,
+		`CREATE INDEX idx_receiver_read_created ON messages(receiver_id, is_read, created_at)`,
 	}
 }

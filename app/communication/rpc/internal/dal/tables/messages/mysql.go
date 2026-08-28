@@ -38,28 +38,51 @@ func Create(ctx context.Context, db *gorm.DB, message *domainmessage.Message, id
 		record.CreatedAt = time.Now()
 	}
 
+	// 先查询幂等键，避免驱动层错误码差异导致测试/生产行为不一致。
+	if existing, found, err := findExistingByIdempotency(ctx, db, message); err != nil {
+		return nil, false, err
+	} else if found {
+		return existing, false, nil
+	}
+
 	err := db.WithContext(ctx).Create(record).Error
 	if err == nil {
 		return record, true, nil
 	}
 
 	var mysqlErr *mysql.MySQLError
-	if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-		// 幂等命中：按 event_id 或 message_id 查找已有记录
-		var existing Message
-		query := db.WithContext(ctx).Where("receiver_id = ?", message.ReceiverID)
-		if message.EventID != "" {
-			if err := query.Where("event_id = ?", message.EventID).First(&existing).Error; err == nil {
-				return &existing, false, nil
-			}
-		}
-		if err := db.WithContext(ctx).Where("message_id = ?", message.ID).First(&existing).Error; err == nil {
-			return &existing, false, nil
+	if errors.Is(err, gorm.ErrDuplicatedKey) || (errors.As(err, &mysqlErr) && mysqlErr.Number == 1062) {
+		// 兜底：并发场景下唯一索引冲突，再次查询返回已有记录。
+		if existing, found, err := findExistingByIdempotency(ctx, db, message); err != nil {
+			return nil, false, err
+		} else if found {
+			return existing, false, nil
 		}
 		return nil, false, xerr.Wrap(err, "MessageMySQL.Create duplicate but not found")
 	}
 
 	return nil, false, xerr.Wrap(err, "MessageMySQL.Create")
+}
+
+// findExistingByIdempotency 按 event_id / message_id 查找已有消息。
+func findExistingByIdempotency(ctx context.Context, db *gorm.DB, message *domainmessage.Message) (*Message, bool, error) {
+	if message.EventID != "" {
+		var existing Message
+		if err := db.WithContext(ctx).Where("receiver_id = ? AND event_id = ?", message.ReceiverID, message.EventID).First(&existing).Error; err == nil {
+			return &existing, true, nil
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, false, xerr.Wrap(err, "MessageMySQL.findExisting event_id")
+		}
+	}
+
+	var existing Message
+	if err := db.WithContext(ctx).Where("message_id = ?", message.ID).First(&existing).Error; err == nil {
+		return &existing, true, nil
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, false, xerr.Wrap(err, "MessageMySQL.findExisting message_id")
+	}
+
+	return nil, false, nil
 }
 
 // ListByUser 按创建时间倒序读取接收人的消息列表。
