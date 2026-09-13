@@ -1,6 +1,6 @@
 # go-zero-tiktok
 
-基于 [go-zero](https://go-zero.dev) 的短视频平台后端（仿 TikTok），**网关 + 4 个 gRPC 微服务**，覆盖账户、视频、互动、关系、消息五大业务域。当前主线：构建**可解释、可控且播放质量（QoE）感知的推荐飞轮** → [docs/下一阶段发展规划-推荐飞轮与QoE.md](docs/下一阶段发展规划-推荐飞轮与QoE.md)。
+基于 [go-zero](https://go-zero.dev) 的短视频平台（仿 TikTok）：**网关 + 4 个 gRPC 微服务 + Vue 3 前端**，覆盖账户、视频、互动、关系、消息五大业务域。当前主线：构建**可解释、可控且播放质量（QoE）感知的推荐飞轮** → [docs/下一阶段发展规划-推荐飞轮与QoE.md](docs/下一阶段发展规划-推荐飞轮与QoE.md)。
 
 [![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go&logoColor=white)](https://go.dev)
 [![go-zero](https://img.shields.io/badge/go--zero-1.7-blue)](https://go-zero.dev)
@@ -13,7 +13,9 @@
 
 ```mermaid
 flowchart TB
-    client(["客户端"])
+    client(["浏览器客户端"])
+
+    web["frontend<br/>Vue 3 + Vite · Nginx 静态托管<br/>同源 /api 反代网关"]
 
     gw["gateway :8888<br/>JWT 鉴权 · 限流 · RPC 编排"]
 
@@ -38,7 +40,8 @@ flowchart TB
         c4["QoS 聚合"]
     end
 
-    client -- HTTP --> gw
+    client -- HTTP --> web
+    web -- "/api/*" --> gw
     gw --> rpcs
 
     user & video & inter & comm --> mysql
@@ -50,6 +53,7 @@ flowchart TB
 
 | 服务 | 职责 | 端口 | 目录 |
 |---|---|---|---|
+| frontend | 用户端 Web：Feed / 搜索 / 发布 / 资料 / 消息 / 登录 | 5173（dev）· 80（prod） | `frontend/` |
 | gateway | HTTP 网关：鉴权、限流、跨服务编排 | 8888 | `app/gateway/api` |
 | user.rpc | 注册 / 登录 / 刷新令牌 / MFA | 8890 | `app/user/rpc` |
 | video.rpc | 视频、搜索、热门、Feed 四种 scene、规则推荐、播放 QoS、埋点消费 | 8891 | `app/video/rpc` |
@@ -179,6 +183,7 @@ sequenceDiagram
 | 分类 | 选型 |
 |---|---|
 | 语言 / 框架 | Go 1.21+、go-zero（goctl 代码生成）、GORM |
+| 前端 | Vue 3（组合式 API）、Vue Router、Pinia、Axios、Vite；Nginx 静态托管与 `/api` 反代 |
 | 服务通信 | gRPC + protobuf、etcd 服务发现 |
 | 存储 | MySQL 8.0、Redis 7.2、Kafka 4.0、阿里云 OSS |
 | 鉴权 | JWT（Access + Refresh）、MFA（TOTP） |
@@ -189,13 +194,13 @@ sequenceDiagram
 
 ## 快速开始
 
-前置：Go 1.21+、Docker Compose。
+前置：Go 1.21+、Node 18+（前端）、Docker Compose。
 
 ```bash
 # 1. 基础设施（etcd / MySQL / Redis / Kafka）+ 建表
 make infra-up && make migrate-up
 
-# 2. 构建 + 启动（每个服务一个终端）
+# 2. 构建 + 启动后端（每个服务一个终端）
 make build-local
 make run-gateway-local        # HTTP :8888
 make run-user-local           # RPC  :8890
@@ -203,7 +208,10 @@ make run-video-local          # RPC  :8891
 make run-interaction-local    # RPC  :8892
 make run-communication-local  # RPC  :8893
 
-# 3. 验证
+# 3. 启动前端（另开一个终端）
+make frontend-dev             # http://localhost:5173，经 /api 代理直连网关
+
+# 4. 验证
 curl -X POST http://localhost:8888/users -d "username=alice&password=123456"
 ```
 
@@ -227,4 +235,81 @@ curl -X POST http://localhost:8888/users -d "username=alice&password=123456"
 | `make test` / `make vet` / `make fmt` | 测试 / 静态检查 / 格式化 |
 | `make db-shell` | 进入 MySQL 容器 |
 
-> 生产部署形态：基础设施走 Docker Compose，5 个业务服务编译为二进制、systemd 托管，环境变量集中在 `/etc/go-zero-tiktok/env`；接口契约与文档索引见 [docs/README.md](docs/README.md)。
+---
+
+## 部署
+
+生产形态：**基础设施 Docker Compose 常驻 + 业务服务 systemd 托管二进制 + 前端静态资源 Nginx 托管并同源反代网关**。
+
+采用**单域名同源**部署——Nginx 在 `/` 提供前端、在 `/api/` 反代网关，浏览器视角只有 Nginx 一个源：HttpOnly Cookie 直接携带，**无需后端 CORS，也不受 `SameSite=Lax` 跨站限制**。
+
+```mermaid
+flowchart LR
+    U["浏览器"] --> N["Nginx :80"]
+    N -- "静态资源 /" --> DIST[("frontend/dist")]
+    N -- "接口 /api/*（去前缀）" --> GW["gateway :8888"]
+    GW --> RPC["user / video / interaction / communication.rpc<br/>:8890-8893"]
+    RPC --> INFRA[("etcd · MySQL · Redis · Kafka")]
+```
+
+### 1. 基础设施
+
+```bash
+make infra-up        # etcd / MySQL / Redis / Kafka（Docker Compose）
+make migrate-up      # 建表（一次性）
+```
+
+### 2. 后端服务
+
+```bash
+make build-local     # 编译出 bin/{gateway,user-rpc,video-rpc,interaction-rpc,communication-rpc}
+```
+
+环境变量集中到 `/etc/go-zero-tiktok/env`（权限 `600`），`app/*/etc/*.yaml` 全部是 `${ENV}` 占位符。systemd 单元示例：
+
+```ini
+# /etc/systemd/system/gateway.service
+[Unit]
+Description=go-zero-tiktok gateway
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/go-zero-tiktok
+EnvironmentFile=/etc/go-zero-tiktok/env
+ExecStart=/opt/go-zero-tiktok/bin/gateway -f app/gateway/api/etc/tiktok-api.yaml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+4 个 RPC 服务同构，仅 `ExecStart` 指向不同二进制与 yaml。
+
+### 3. 前端
+
+```bash
+cd frontend
+npm ci
+npm run build        # 产物 frontend/dist，构建期 VITE_API_BASE=/api（见 frontend/.env.production）
+```
+
+把产物部署到 Nginx 站点根目录并启用 [deploy/nginx/tiktok-web.conf](deploy/nginx/tiktok-web.conf)：
+
+```bash
+sudo cp -r frontend/dist/* /var/www/go-zero-tiktok/
+sudo cp deploy/nginx/tiktok-web.conf /etc/nginx/conf.d/tiktok-web.conf
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+前端请求统一走 `/api/*`，由 Nginx 去前缀反代到网关——`/messages`、`/users/:id/videos` 等与 SPA 路由同名的接口因此不再冲突。若改为跨机直连网关，运行时在页面右上角「连接设置」填完整地址即可（需后端放开 CORS 且满足同站 Cookie 约束）。
+
+### 4. 上线检查清单
+
+- [ ] `ACCESS_SECRET` 在 5 个后端服务中完全一致，否则跨服务 JWT 校验失败；
+- [ ] Nginx `root` 指向构建产物、`/api/` 反代目标端口与网关一致；
+- [ ] 反向代理透传 `Host` / `X-Real-IP` / `X-Forwarded-For`（限流与日志依赖真实 IP）；
+- [ ] 生产密码等敏感值经环境文件注入，禁止提交进仓库。
+
+---
+
+接口契约与文档索引见 [docs/README.md](docs/README.md)。

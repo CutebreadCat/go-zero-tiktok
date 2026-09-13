@@ -2,6 +2,7 @@
         infra-pull infra-up infra-stop monitoring-up monitoring-stop \
         build-local run-gateway-local run-user-local run-video-local \
         run-interaction-local run-communication-local run-all-local \
+        frontend-install frontend-dev frontend-build \
         test vet fmt api-get api-apifox db-shell mysql \
         migrate-up migrate-down \
         log-clean log-clean-dry log-clean-stop
@@ -82,6 +83,16 @@ vet:
 
 fmt:
 	gofmt -w app pkg
+
+# Frontend (Vue 3 + Vite)
+frontend-install:
+	cd frontend && npm ci
+
+frontend-dev:
+	cd frontend && npm install && npm run dev
+
+frontend-build:
+	cd frontend && npm ci && npm run build
 
 # Documentation and local database access
 # 使用 go-zero 内置 swagger 插件导出 .api 为 JSON（OpenAPI 2.0），可直接导入 Apifox

@@ -9,10 +9,12 @@ import (
 
 	contract "go_zero-tiktok/pkg/contract"
 	jwtpkg "go_zero-tiktok/pkg/jwt"
+	"go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/pkg/xerr"
 
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"go.uber.org/zap"
 )
 
 func WithAuth(secret string) rest.RunOption {
@@ -52,10 +54,33 @@ func AuthMiddleware(secret string) rest.Middleware {
 				return
 			}
 
-			userID, _ := strconv.ParseInt(claims.UserID, 10, 64)
+			// 身份提取必须 fail-closed：user_id 缺失、无法解析为非负整数或 <= 0 时一律拒绝，
+			// 避免以 0 号幽灵身份放行、污染下游数据。
+			userID, err := strconv.ParseInt(claims.UserID, 10, 64)
+			if err != nil || userID <= 0 {
+				logger.WithContext(r.Context()).Warn("auth: invalid user_id in access token",
+					zap.String("path", r.URL.Path),
+					zap.String("reason", invalidUserIDReason(claims.UserID, err)),
+				)
+				httpx.ErrorCtx(r.Context(), w, xerr.NewUnauthorized("token invalid"))
+				return
+			}
+
 			ctx := context.WithValue(r.Context(), contract.ContextKeyUserID, userID)
 			next(w, r.WithContext(ctx))
 		}
+	}
+}
+
+// invalidUserIDReason 归纳身份提取失败的简要原因，仅用于告警日志（不包含令牌内容）。
+func invalidUserIDReason(raw string, err error) string {
+	switch {
+	case raw == "":
+		return "user_id missing"
+	case err != nil:
+		return "user_id not numeric"
+	default:
+		return "user_id not positive"
 	}
 }
 
