@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"go_zero-tiktok/pkg/contract"
-	"go_zero-tiktok/testhelpers"
+	"go_zero-tiktok/pkg/testutil"
 )
 
 func TestUpdateQoSAggregates(t *testing.T) {
-	db := testhelpers.NewTestDB(t)
+	db := testutil.NewTestDB(t)
 	ctx := context.Background()
 
 	metrics := types.VideoQoSMetrics{
@@ -22,30 +22,30 @@ func TestUpdateQoSAggregates(t *testing.T) {
 		ReportCount:    100,
 	}
 
-	testhelpers.AssertNoErr(t, UpdateQoSAggregates(ctx, db, 1, metrics))
+	testutil.AssertNoErr(t, UpdateQoSAggregates(ctx, db, 1, metrics))
 
 	got, err := GetQoSMetricsByVideoIDs(ctx, db, []int64{1})
-	testhelpers.AssertNoErr(t, err)
-	testhelpers.AssertEqual(t, got[1].CompletionRate, metrics.CompletionRate)
-	testhelpers.AssertEqual(t, got[1].StallRate, metrics.StallRate)
-	testhelpers.AssertEqual(t, got[1].AvgBitrateKbps, metrics.AvgBitrateKbps)
+	testutil.AssertNoErr(t, err)
+	testutil.AssertEqual(t, got[1].CompletionRate, metrics.CompletionRate)
+	testutil.AssertEqual(t, got[1].StallRate, metrics.StallRate)
+	testutil.AssertEqual(t, got[1].AvgBitrateKbps, metrics.AvgBitrateKbps)
 }
 
 func TestGetQoSMetricsByVideoIDs_Empty(t *testing.T) {
-	db := testhelpers.NewTestDB(t)
+	db := testutil.NewTestDB(t)
 	ctx := context.Background()
 
 	got, err := GetQoSMetricsByVideoIDs(ctx, db, []int64{})
-	testhelpers.AssertNoErr(t, err)
-	testhelpers.AssertEqual(t, int64(len(got)), int64(0))
+	testutil.AssertNoErr(t, err)
+	testutil.AssertEqual(t, int64(len(got)), int64(0))
 }
 
 func TestGetQoSMetricsByVideoIDs_Missing(t *testing.T) {
-	db := testhelpers.NewTestDB(t)
+	db := testutil.NewTestDB(t)
 	ctx := context.Background()
 
 	got, err := GetQoSMetricsByVideoIDs(ctx, db, []int64{999})
-	testhelpers.AssertNoErr(t, err)
+	testutil.AssertNoErr(t, err)
 	if _, ok := got[999]; ok {
 		t.Fatalf("expected missing video to not be present")
 	}

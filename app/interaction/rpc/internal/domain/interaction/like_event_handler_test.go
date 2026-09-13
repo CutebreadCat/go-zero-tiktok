@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"go_zero-tiktok/testhelpers"
+	"go_zero-tiktok/pkg/testutil"
 )
 
 type mockLikeDirtyMarker struct {
@@ -33,10 +33,10 @@ func TestLikeEventHandler_Consume_Like(t *testing.T) {
 		Action:  LikeActionLike,
 	}).ToKafkaEvent(DefaultLikeTopic)
 
-	testhelpers.AssertNoErr(t, handler.Consume(ctx, event))
-	testhelpers.AssertEqual(t, len(marker.likeVideos), 1)
-	testhelpers.AssertEqual(t, marker.likeVideos[0], int64(2001))
-	testhelpers.AssertEqual(t, len(marker.favoriteVideos), 0)
+	testutil.AssertNoErr(t, handler.Consume(ctx, event))
+	testutil.AssertEqual(t, len(marker.likeVideos), 1)
+	testutil.AssertEqual(t, marker.likeVideos[0], int64(2001))
+	testutil.AssertEqual(t, len(marker.favoriteVideos), 0)
 }
 
 func TestLikeEventHandler_Consume_Cancel(t *testing.T) {
@@ -50,9 +50,9 @@ func TestLikeEventHandler_Consume_Cancel(t *testing.T) {
 		Action:  LikeActionCancel,
 	}).ToKafkaEvent(DefaultLikeTopic)
 
-	testhelpers.AssertNoErr(t, handler.Consume(ctx, event))
-	testhelpers.AssertEqual(t, len(marker.likeVideos), 1)
-	testhelpers.AssertEqual(t, marker.likeVideos[0], int64(2001))
+	testutil.AssertNoErr(t, handler.Consume(ctx, event))
+	testutil.AssertEqual(t, len(marker.likeVideos), 1)
+	testutil.AssertEqual(t, marker.likeVideos[0], int64(2001))
 }
 
 func TestLikeEventHandler_Consume_Favorite(t *testing.T) {
@@ -66,9 +66,9 @@ func TestLikeEventHandler_Consume_Favorite(t *testing.T) {
 		Action:  LikeActionFavorite,
 	}).ToKafkaEvent(DefaultLikeTopic)
 
-	testhelpers.AssertNoErr(t, handler.Consume(ctx, event))
-	testhelpers.AssertEqual(t, len(marker.favoriteVideos), 1)
-	testhelpers.AssertEqual(t, marker.favoriteVideos[0], int64(2002))
+	testutil.AssertNoErr(t, handler.Consume(ctx, event))
+	testutil.AssertEqual(t, len(marker.favoriteVideos), 1)
+	testutil.AssertEqual(t, marker.favoriteVideos[0], int64(2002))
 }
 
 func TestLikeEventHandler_Consume_UnknownAction(t *testing.T) {
@@ -82,7 +82,7 @@ func TestLikeEventHandler_Consume_UnknownAction(t *testing.T) {
 		Action:  "unknown",
 	}).ToKafkaEvent(DefaultLikeTopic)
 
-	testhelpers.AssertNoErr(t, handler.Consume(ctx, event))
-	testhelpers.AssertEqual(t, len(marker.likeVideos), 0)
-	testhelpers.AssertEqual(t, len(marker.favoriteVideos), 0)
+	testutil.AssertNoErr(t, handler.Consume(ctx, event))
+	testutil.AssertEqual(t, len(marker.likeVideos), 0)
+	testutil.AssertEqual(t, len(marker.favoriteVideos), 0)
 }
