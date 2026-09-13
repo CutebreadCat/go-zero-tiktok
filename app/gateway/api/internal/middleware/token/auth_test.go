@@ -13,9 +13,15 @@ import (
 
 const testSecret = "unit-test-secret"
 
-// invokeMiddleware 以给定路径与 Authorization 头调用鉴权中间件，
+// invokeMiddleware 使用默认白名单调用鉴权中间件，
 // 返回 next 是否被放行，以及下游从上下文读到的 user_id。
 func invokeMiddleware(t *testing.T, path, authorization string) (called bool, userID int64) {
+	t.Helper()
+	return invokeMiddlewareWithWhitelist(t, path, authorization, NewWhitelist(DefaultPublicPaths))
+}
+
+// invokeMiddlewareWithWhitelist 同上，但使用调用方指定的白名单，用于验证配置驱动的行为。
+func invokeMiddlewareWithWhitelist(t *testing.T, path, authorization string, whitelist *Whitelist) (called bool, userID int64) {
 	t.Helper()
 
 	req := httptest.NewRequest(http.MethodGet, path, http.NoBody)
@@ -30,7 +36,7 @@ func invokeMiddleware(t *testing.T, path, authorization string) (called bool, us
 		w.WriteHeader(http.StatusOK)
 	}
 
-	AuthMiddleware(testSecret)(next)(rec, req)
+	AuthMiddleware(testSecret, whitelist)(next)(rec, req)
 	return called, userID
 }
 
@@ -120,5 +126,19 @@ func TestAuthMiddleware_PublicPathAllowsAnonymous(t *testing.T) {
 	}
 	if userID != 0 {
 		t.Fatalf("anonymous user_id = %d, want 0", userID)
+	}
+}
+
+func TestAuthMiddleware_CustomWhitelistOverridesDefault(t *testing.T) {
+	custom := NewWhitelist([]string{"/custom/public"})
+
+	called, _ := invokeMiddlewareWithWhitelist(t, "/custom/public", "", custom)
+	if !called {
+		t.Fatal("expected custom public path to pass without token")
+	}
+
+	called, _ = invokeMiddlewareWithWhitelist(t, "/videos/popular", "", custom)
+	if called {
+		t.Fatal("expected default public path to be protected once whitelist is overridden")
 	}
 }

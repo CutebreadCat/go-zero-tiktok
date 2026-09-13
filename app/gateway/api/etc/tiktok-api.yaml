@@ -5,6 +5,15 @@ Port: 8888
 Auth:
   AccessSecret: "${ACCESS_SECRET}"
   AccessExpire: 3600
+  # 公开接口白名单（免鉴权）；* 匹配任意字符（含 /）。
+  # 显式配置为空列表时回退到 middleware/token.DefaultPublicPaths。
+  PublicPaths:
+    - /users              # POST 注册
+    - /sessions           # POST 登录
+    - /sessions/refresh   # POST 刷新令牌
+    - /users/*/videos     # GET 作者视频列表（动态路径）
+    - /videos/popular     # GET 热门视频
+    - /videos/search      # GET 搜索视频
 
 UserRpc:
   Etcd:

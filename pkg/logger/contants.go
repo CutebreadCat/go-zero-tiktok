@@ -1,8 +1,13 @@
 package logger
 
 const (
-	// LogFilePath 对应 ${pwd}/{LogFilePath}/{service}/{date}/xxx.log 相对于当前运行路径而言
+	// LogFilePath 是日志根目录下的叶子目录名，最终路径为
+	// {项目根}/{LogFilePath}/{service}/{date}/xxx.log，与进程 cwd 无关。
 	LogFilePath = "logs"
+
+	// LogDirEnv 用于覆盖日志根目录（{service}/{date}/ 的父目录）。
+	// 未设置时自动定位项目根下的 logs/。
+	LogDirEnv = "TIKTOK_LOG_DIR"
 
 	LogFilePathTemplate      = "%s/%s/%s/%s.log"
 	ErrorLogFilePathTemplate = "%s/%s/%s/%s_stderr.log"

@@ -22,6 +22,9 @@ type Config struct {
 type AuthConfig struct {
 	AccessSecret string
 	AccessExpire int64
+	// PublicPaths 免鉴权路径白名单，支持 * 通配（匹配任意字符，含 /）。
+	// 配置为空列表时回退到 middleware/token.DefaultPublicPaths。
+	PublicPaths []string `json:"PublicPaths"`
 }
 
 // KafkaConfig Kafka 配置。

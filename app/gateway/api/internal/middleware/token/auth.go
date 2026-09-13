@@ -17,10 +17,17 @@ import (
 	"go.uber.org/zap"
 )
 
-func WithAuth(secret string) rest.RunOption {
+// WithAuth 装配鉴权中间件；publicPaths 为空时回退到 DefaultPublicPaths。
+// 白名单在启动阶段编译一次，请求链路上只做查询。
+func WithAuth(secret string, publicPaths []string) rest.RunOption {
+	if len(publicPaths) == 0 {
+		publicPaths = DefaultPublicPaths
+	}
+	whitelist := NewWhitelist(publicPaths)
+
 	return func(server *rest.Server) {
 		rest.WithUnauthorizedCallback(UnauthorizedCallback)(server)
-		server.Use(AuthMiddleware(secret))
+		server.Use(AuthMiddleware(secret, whitelist))
 	}
 }
 
@@ -34,10 +41,10 @@ func UnauthorizedCallback(w http.ResponseWriter, r *http.Request, err error) {
 	httpx.WriteJsonCtx(r.Context(), w, http.StatusOK, codeErr.HandleResponse())
 }
 
-func AuthMiddleware(secret string) rest.Middleware {
+func AuthMiddleware(secret string, whitelist *Whitelist) rest.Middleware {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			if isPublicPath(r.URL.Path) {
+			if whitelist.Contains(r.URL.Path) {
 				next(w, r)
 				return
 			}
@@ -95,31 +102,6 @@ func extractAccessToken(r *http.Request) string {
 		return parts[1]
 	}
 	return ""
-}
-
-var publicPaths = map[string]struct{}{
-	// 账户公开口
-	"/users":            {}, // POST 注册
-	"/sessions":         {}, // POST 登录
-	"/sessions/refresh": {}, // POST 刷新令牌
-	// 视频公开口（以 * 结尾表示前缀匹配，如动态路径 /users/:id/videos）
-	"/users/*/videos": {}, // GET 作者视频列表
-	"/videos/popular": {}, // GET 热门视频
-	"/videos/search":  {}, // GET 搜索视频
-}
-
-// isPublicPath 判断请求路径是否命中公开白名单。
-// 支持以 * 结尾的前缀匹配，用于带动态路径参数的公开接口。
-func isPublicPath(path string) bool {
-	if _, ok := publicPaths[path]; ok {
-		return true
-	}
-	for p := range publicPaths {
-		if strings.HasSuffix(p, "*") && strings.HasPrefix(path, strings.TrimSuffix(p, "*")) {
-			return true
-		}
-	}
-	return false
 }
 
 func UserIDFromContext(ctx context.Context) int64 {
