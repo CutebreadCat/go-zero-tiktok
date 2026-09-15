@@ -12,9 +12,11 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// openLogFiles creates the daily service log files under logs/{service}/{date}/.
+// openLogFiles creates the daily service log files under
+// {LogRootDir}/{service}/{date}/. LogRootDir is anchored to the project root
+// (or TIKTOK_LOG_DIR), so the location no longer depends on the process cwd.
 func openLogFiles(service string) (io.WriteCloser, io.WriteCloser, error) {
-	dir := filepath.Join(CurrentDir(), LogFilePath, service, time.Now().Format("2006-01-02"))
+	dir := filepath.Join(LogRootDir(), service, time.Now().Format("2006-01-02"))
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, nil, err
 	}

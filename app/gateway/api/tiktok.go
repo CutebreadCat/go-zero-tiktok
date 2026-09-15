@@ -34,7 +34,8 @@ func main() {
 	appLogger.RegisterOTelTraceExtractor()
 	defer appLogger.Close()
 
-	server := rest.MustNewServer(c.RestConf, token.WithAuth(c.Auth.AccessSecret))
+	server := rest.MustNewServer(c.RestConf,
+		token.WithAuth(c.Auth.AccessSecret, c.Auth.PublicPaths))
 	appLogger.RegisterLogxBridge()
 	defer server.Stop()
 

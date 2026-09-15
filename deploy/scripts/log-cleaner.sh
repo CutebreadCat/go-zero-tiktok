@@ -9,8 +9,8 @@
 #   2. 过滤  删除同目录下的 *_stderr.log,仅保留业务主日志
 #
 # 运行方式(守护模式,定时轮询):
-#   nohup ./deploy/log-cleaner/log-cleaner.sh >/dev/null 2>&1 &
-#   或写 systemd service(见文末注释)
+#   nohup ./deploy/scripts/log-cleaner.sh >/dev/null 2>&1 &
+#   或交给 systemd 托管(推荐,unit 见 deploy/systemd/log-cleaner.service)
 #
 # 可通过环境变量调整,例如:
 #   LOG_ROOT=/app/tiktok/logs RETENTION=3 INTERVAL=3600 ./log-cleaner.sh
@@ -90,18 +90,7 @@ while true; do
   sleep "$INTERVAL"
 done
 
-# systemd 托管示例 /etc/systemd/system/log-cleaner.service:
-#   [Unit]
-#   Description=Tiktok log cleaner
-#   After=network.target
-#   [Service]
-#   Type=simple
-#   WorkingDirectory=/opt/tiktok
-#   Environment=LOG_ROOT=/opt/tiktok/logs
-#   Environment=RETENTION=3
-#   Environment=INTERVAL=3600
-#   ExecStart=/opt/tiktok/deploy/log-cleaner/log-cleaner.sh
-#   Restart=always
-#   RestartSec=30
-#   [Install]
-#   WantedBy=multi-user.target
+# systemd 托管(推荐):在部署机上执行 `make log-cleaner-install`
+#   unit 模板: deploy/systemd/log-cleaner.service
+#   可调参数:  LOG_ROOT / RETENTION / INTERVAL / KEEP_STDERR / DRY_RUN
+# 前台调试或非 systemd 环境仍可直接运行本脚本。

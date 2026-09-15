@@ -93,7 +93,9 @@ services:
     profiles: ["monitoring"]
     ports:
       - "3100:3100"
-    command: ["-config.file=/etc/loki/loki-config.yaml"]
+    # -config.expand-env=true 必须开启:否则 loki-config.yaml 里的 ${RETENTION_PERIOD}
+    # 不会展开,会被当成字面量 duration 解析,导致 Loki 启动即崩溃并无限重启。
+    command: ["-config.file=/etc/loki/loki-config.yaml", "-config.expand-env=true"]
     environment:
       - RETENTION_PERIOD=${RETENTION_PERIOD:-72h}
     volumes:

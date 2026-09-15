@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"go_zero-tiktok/pkg/contract"
-	"go_zero-tiktok/testhelpers"
+	"go_zero-tiktok/pkg/testutil"
 )
 
 func TestCalcVideoQoSMetrics(t *testing.T) {
@@ -17,21 +17,21 @@ func TestCalcVideoQoSMetrics(t *testing.T) {
 	m := calcVideoQoSMetrics(reports)
 
 	// completion = (1 + 0.5) / 2 = 0.75 -> 7500
-	testhelpers.AssertEqual(t, m.CompletionRate, int32(7500))
+	testutil.AssertEqual(t, m.CompletionRate, int32(7500))
 	// stall rate = 1/3 -> 3333
-	testhelpers.AssertEqual(t, m.StallRate, int32(3333))
+	testutil.AssertEqual(t, m.StallRate, int32(3333))
 	// error rate = 1/3 -> 3333
-	testhelpers.AssertEqual(t, m.ErrorRate, int32(3333))
+	testutil.AssertEqual(t, m.ErrorRate, int32(3333))
 	// avg bitrate = (2000+3000)/2 = 2500
-	testhelpers.AssertEqual(t, m.AvgBitrateKbps, int32(2500))
+	testutil.AssertEqual(t, m.AvgBitrateKbps, int32(2500))
 	// avg buffered = (100+200+0)/3 = 100
-	testhelpers.AssertEqual(t, m.AvgBufferedMs, int64(100))
+	testutil.AssertEqual(t, m.AvgBufferedMs, int64(100))
 	// avg stall count = (0+1+0)/3 = 0
-	testhelpers.AssertEqual(t, m.AvgStallCount, int32(0))
-	testhelpers.AssertEqual(t, m.ReportCount, int64(3))
+	testutil.AssertEqual(t, m.AvgStallCount, int32(0))
+	testutil.AssertEqual(t, m.ReportCount, int64(3))
 }
 
 func TestCalcVideoQoSMetrics_Empty(t *testing.T) {
 	m := calcVideoQoSMetrics(nil)
-	testhelpers.AssertEqual(t, m.ReportCount, int64(0))
+	testutil.AssertEqual(t, m.ReportCount, int64(0))
 }
