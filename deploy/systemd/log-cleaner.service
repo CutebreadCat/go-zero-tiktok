@@ -1,0 +1,40 @@
+# log-cleaner systemd 单元:把 deploy/scripts/log-cleaner.sh 托管为系统服务。
+#
+# 安装(在部署机上执行,需要 root):
+#   make log-cleaner-install                       # 默认 APP_DIR=/opt/tiktok
+#   make log-cleaner-install APP_DIR=/srv/tiktok   # 自定义部署根目录
+#
+# 等价的手工安装:
+#   将下文路径占位符替换为实际部署根目录(默认 /opt/tiktok)后,
+#   写入 /etc/systemd/system/log-cleaner.service,再执行:
+#     sudo systemctl daemon-reload && sudo systemctl enable --now log-cleaner
+#
+# 常用操作:
+#   systemctl status log-cleaner
+#   journalctl -u log-cleaner -f
+#
+# 可调参数见下方 Environment=(改完重新执行 make log-cleaner-install 生效):
+#   LOG_ROOT    日志根目录
+#   RETENTION   保留天数
+#   INTERVAL    轮询间隔(秒)
+#   KEEP_STDERR 1=保留 *_stderr.log
+#   DRY_RUN     1=只打印不删除
+
+[Unit]
+Description=Tiktok service log cleaner (retention prune + stderr filter)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=__APP_DIR__
+Environment=LOG_ROOT=__APP_DIR__/logs
+Environment=RETENTION=3
+Environment=INTERVAL=3600
+Environment=KEEP_STDERR=0
+Environment=DRY_RUN=0
+ExecStart=__APP_DIR__/deploy/scripts/log-cleaner.sh
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

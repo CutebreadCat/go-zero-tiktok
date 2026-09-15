@@ -5,7 +5,8 @@
         frontend-install frontend-dev frontend-build \
         test vet fmt api-get api-apifox db-shell mysql \
         migrate-up migrate-down \
-        log-clean log-clean-dry log-clean-stop
+        log-clean log-clean-dry log-clean-stop \
+        log-cleaner-install log-cleaner-uninstall log-cleaner-status
 
 # go-zero code generation
 api-build:
@@ -125,7 +126,7 @@ migrate-down:
 
 # 日志清理(log-cleaner):过滤保留近 3 天日志,删除更早日志
 # 默认守护轮询(1h);可用 LOG_ROOT/RETENTION/INTERVAL 环境变量覆盖
-LOG_CLEANER := deploy/log-cleaner/log-cleaner.sh
+LOG_CLEANER := deploy/scripts/log-cleaner.sh
 
 log-clean:            # 前台守护运行(按 Ctrl-C 停止)或配合 systemd
 	bash $(LOG_CLEANER)
@@ -135,3 +136,29 @@ log-clean-dry:        # 试运行:只看会删/过滤什么,不真正删除
 
 log-clean-stop:       # 停止前台的守护进程(配合 log-clean 使用)
 	@-pkill -f "$(LOG_CLEANER)" 2>/dev/null && echo "已停止 log-cleaner" || echo "log-cleaner 未在运行"
+
+# 日志清理(log-cleaner)systemd 系统托管:
+#   make log-cleaner-install [APP_DIR=/opt/tiktok]   # 安装 unit 并 enable --now(需要 sudo)
+#   make log-cleaner-status                          # 查看服务状态
+#   make log-cleaner-uninstall                       # 停止并移除 unit(需要 sudo)
+# 注意:上面的 log-clean 是前台临时运行;systemd 托管后请用 systemctl 管理,
+#       不要再混用 pkill 式的 log-clean-stop。
+SYSTEMD_UNIT_DIR := /etc/systemd/system
+LOG_CLEANER_UNIT := log-cleaner.service
+LOG_CLEANER_UNIT_SRC := deploy/systemd/$(LOG_CLEANER_UNIT)
+APP_DIR ?= /opt/tiktok
+
+log-cleaner-install:
+	sed 's|__APP_DIR__|$(APP_DIR)|g' $(LOG_CLEANER_UNIT_SRC) | sudo tee $(SYSTEMD_UNIT_DIR)/$(LOG_CLEANER_UNIT) >/dev/null
+	sudo systemctl daemon-reload
+	sudo systemctl enable --now log-cleaner
+	@echo "log-cleaner 已安装并启动 (APP_DIR=$(APP_DIR));查看日志: journalctl -u log-cleaner -f"
+
+log-cleaner-status:
+	systemctl status log-cleaner --no-pager
+
+log-cleaner-uninstall:
+	@-sudo systemctl disable --now log-cleaner 2>/dev/null
+	@-sudo rm -f $(SYSTEMD_UNIT_DIR)/$(LOG_CLEANER_UNIT)
+	sudo systemctl daemon-reload
+	@echo "log-cleaner 已卸载"
