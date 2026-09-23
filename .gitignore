@@ -56,4 +56,5 @@ go_zero-tiktok.code-workspace
 
 docs
 log
-scripts
+# 只忽略根目录的本地脚本(如 integration_test.sh);deploy/scripts/ 下的运维脚本需纳入版本库
+/scripts/
