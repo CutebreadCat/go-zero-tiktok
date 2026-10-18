@@ -103,11 +103,13 @@ type IFeedRepo interface {
 	FanoutInbox(ctx context.Context, videoID int64, userIDs []int64, publishAt time.Time) error
 	// GetUserInbox 取用户收件箱 (lastTimeMs, +inf] 范围内按 score 倒序的索引。
 	GetUserInbox(ctx context.Context, uid, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
-	// RefreshHotScore 覆盖更新视频热度分与最后活跃时间。
-	RefreshHotScore(ctx context.Context, videoID int64, score int64, activeAt time.Time) error
+	// RefreshHotScore 覆盖更新视频热度分。
+	RefreshHotScore(ctx context.Context, videoID int64, score int64) error
 	// GetHotVideosByCursor 从 hot:videos 取热度分 <= cursorScore 的索引，按热度倒序。
 	// 返回数量会略多于 limit，供调用方按 video_id 做同分精断。
 	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
-	// CleanupExpiredHotVideos 清理超过 cutoffMs 未活跃的成员，并只保留 Top keepTopN。
-	CleanupExpiredHotVideos(ctx context.Context, cutoffMs int64, keepTopN int) error
+	// RemoveHotVideos 从热门榜单移除详情已不存在的成员，避免榜单出现空洞。
+	RemoveHotVideos(ctx context.Context, videoIDs []int64) error
+	// TrimHotVideos 只保留热度最高的 keepTopN 个成员，榜单退出由排名决定。
+	TrimHotVideos(ctx context.Context, keepTopN int) error
 }

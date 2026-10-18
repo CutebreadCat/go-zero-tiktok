@@ -86,10 +86,8 @@ type HotConfig struct {
 	FavoriteWeight float64 `json:"FavoriteWeight"`
 	// Gravity HN 公式时间衰减指数。
 	Gravity float64 `json:"Gravity"`
-	// CleanupInterval 过期清理任务执行间隔。
+	// CleanupInterval 榜单裁剪任务执行间隔。
 	CleanupInterval time.Duration `json:"CleanupInterval"`
-	// Window 滑动窗口时长，超过该时长未活跃的视频会被清理。
-	Window time.Duration `json:"Window"`
 	// KeepTopN 热度榜保留的最大视频数，超出部分会被裁剪。
 	KeepTopN int `json:"KeepTopN"`
 }

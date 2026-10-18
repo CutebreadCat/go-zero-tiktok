@@ -9,16 +9,14 @@ import (
 	appLogger "go_zero-tiktok/pkg/logger"
 )
 
-// HotScoreCleaner 定期清理过期热度分。
-// 1. 删除超过滑动窗口未活跃的视频；
-// 2. 裁剪热度榜，只保留 Top keepTopN。
+// HotScoreCleaner 定期裁剪热度榜规模，只保留 Top keepTopN。
+// 榜单退出由排名决定；不再按"最后活跃时间"淘汰，避免低流量或停服超过窗口时长后整榜被清空。
 type HotScoreCleaner struct {
-	feedRepo  domain.IFeedRepo
-	interval  time.Duration
-	window    time.Duration
-	keepTopN  int
-	stopOnce  sync.Once
-	stopCh    chan struct{}
+	feedRepo domain.IFeedRepo
+	interval time.Duration
+	keepTopN int
+	stopOnce sync.Once
+	stopCh   chan struct{}
 }
 
 // CleanerOption 配置函数。
@@ -26,10 +24,6 @@ type CleanerOption func(*HotScoreCleaner)
 
 func WithCleanupInterval(d time.Duration) CleanerOption {
 	return func(c *HotScoreCleaner) { c.interval = d }
-}
-
-func WithCleanupWindow(d time.Duration) CleanerOption {
-	return func(c *HotScoreCleaner) { c.window = d }
 }
 
 func WithKeepTopN(n int) CleanerOption {
@@ -41,7 +35,6 @@ func NewHotScoreCleaner(feedRepo domain.IFeedRepo, opts ...CleanerOption) *HotSc
 	c := &HotScoreCleaner{
 		feedRepo: feedRepo,
 		interval: 24 * time.Hour,
-		window:   24 * time.Hour,
 		keepTopN: 10000,
 		stopCh:   make(chan struct{}),
 	}
@@ -87,16 +80,15 @@ func (c *HotScoreCleaner) Stop() {
 	})
 }
 
-// cleanupOnce 执行一次清理：删除过期成员 + 裁剪规模。
+// cleanupOnce 执行一次裁剪：只保留热度最高的 keepTopN 个成员。
 func (c *HotScoreCleaner) cleanupOnce(ctx context.Context) error {
 	if c.feedRepo == nil {
 		return nil
 	}
 
-	cutoffMs := time.Now().Add(-c.window).UnixMilli()
-	appLogger.Infof("HotScoreCleaner cleanup start, cutoff=%d, keepTopN=%d", cutoffMs, c.keepTopN)
+	appLogger.Infof("HotScoreCleaner cleanup start, keepTopN=%d", c.keepTopN)
 
-	if err := c.feedRepo.CleanupExpiredHotVideos(ctx, cutoffMs, c.keepTopN); err != nil {
+	if err := c.feedRepo.TrimHotVideos(ctx, c.keepTopN); err != nil {
 		return err
 	}
 

@@ -51,7 +51,7 @@ func NewVideoService(
 		strategyFactory: feedpkg.NewStrategyFactory(
 			feedpkg.NewTimelineStrategy(videoRepo, popularRepo, feedRepo),
 			feedpkg.NewFollowingStrategy(videoRepo, popularRepo, feedRepo),
-			feedpkg.NewHotStrategy(videoRepo, popularRepo, feedRepo),
+			feedpkg.NewHotStrategy(videoRepo, feedRepo),
 			feedpkg.NewRecommendStrategy(videoRepo, popularRepo, feedRepo, qosRepo, seenRepo, recommendConfig),
 		),
 	}
@@ -131,7 +131,7 @@ func (s *VideoService) RecalculateHotScore(ctx context.Context, videoID int64) e
 	}
 
 	score := s.hotScoreCalculator.Compute(popular, publishAt)
-	return s.feedRepo.RefreshHotScore(ctx, videoID, score, time.Now())
+	return s.feedRepo.RefreshHotScore(ctx, videoID, score)
 }
 
 // RecordVisit 记录视频访问量与热度分。

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	pkgerrors "github.com/pkg/errors"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 
 	"go_zero-tiktok/pkg/contract" // package types
@@ -18,8 +19,6 @@ const (
 	feedRetention = 7 * 24 * time.Hour
 	// hotVideosKey 全站热门视频有序集合：member=video_id, score=热度分（放大 1000 倍）
 	hotVideosKey = "hot:videos"
-	// hotVideosActivityKey 视频最后活跃时间索引：member=video_id, score=活跃时间戳(UnixMilli)
-	hotVideosActivityKey = "hot:videos:activity"
 	// hotFetchFactor Redis 同分过滤兜底因子，先多取若干条再按 video_id 精断
 	hotFetchFactor = 5
 )
@@ -126,72 +125,78 @@ func (r *FeedRepo) PoolLen(ctx context.Context) (int64, error) {
 	return int64(n), err
 }
 
-// RefreshHotScore 覆盖更新视频热度分与最后活跃时间。
-func (r *FeedRepo) RefreshHotScore(ctx context.Context, videoID int64, score int64, activeAt time.Time) error {
+// RefreshHotScore 覆盖更新视频热度分。
+func (r *FeedRepo) RefreshHotScore(ctx context.Context, videoID int64, score int64) error {
 	if videoID == 0 {
 		return nil
 	}
 	member := strconv.FormatInt(videoID, 10)
-	activeTs := activeAt.UnixMilli()
-
-	return r.rdb.Pipelined(func(pipe redis.Pipeliner) error {
-		pipe.ZAdd(ctx, hotVideosKey, redis.Z{Score: float64(score), Member: member})
-		pipe.ZAdd(ctx, hotVideosActivityKey, redis.Z{Score: float64(activeTs), Member: member})
-		return nil
-	})
+	if _, err := r.rdb.ZaddCtx(ctx, hotVideosKey, score, member); err != nil {
+		return pkgerrors.WithMessage(err, "FeedRepo.RefreshHotScore")
+	}
+	return nil
 }
 
-// CleanupExpiredHotVideos 清理超过 cutoffMs 未活跃的成员，并裁剪保留 Top keepTopN。
-func (r *FeedRepo) CleanupExpiredHotVideos(ctx context.Context, cutoffMs int64, keepTopN int) error {
-	// 1. 批量取出过期成员
-	expiredPairs, err := r.rdb.ZrangebyscoreWithScoresAndLimitCtx(
-		ctx, hotVideosActivityKey, math.MinInt64, cutoffMs, 0, math.MaxInt32)
-	if err != nil {
-		return err
+// RemoveHotVideos 从热门榜单移除指定成员（详情已不存在时调用），避免榜单出现空洞。
+func (r *FeedRepo) RemoveHotVideos(ctx context.Context, videoIDs []int64) error {
+	if len(videoIDs) == 0 {
+		return nil
 	}
-
-	if len(expiredPairs) > 0 {
-		members := make([]string, 0, len(expiredPairs))
-		for _, p := range expiredPairs {
-			members = append(members, p.Key)
+	members := make([]any, 0, len(videoIDs))
+	for _, id := range videoIDs {
+		if id <= 0 {
+			continue
 		}
-
-		if err := r.rdb.Pipelined(func(pipe redis.Pipeliner) error {
-			pipe.ZRem(ctx, hotVideosKey, members)
-			pipe.ZRem(ctx, hotVideosActivityKey, members)
-			return nil
-		}); err != nil {
-			return err
-		}
+		members = append(members, strconv.FormatInt(id, 10))
 	}
-
-	// 2. 控制规模：只保留 Top keepTopN
-	if keepTopN > 0 {
-		_, err := r.rdb.ZremrangebyrankCtx(ctx, hotVideosKey, int64(keepTopN), math.MaxInt64)
-		if err != nil {
-			return err
-		}
-		_, err = r.rdb.ZremrangebyrankCtx(ctx, hotVideosActivityKey, int64(keepTopN), math.MaxInt64)
-		if err != nil {
-			return err
-		}
+	if len(members) == 0 {
+		return nil
 	}
+	if _, err := r.rdb.ZremCtx(ctx, hotVideosKey, members...); err != nil {
+		return pkgerrors.WithMessage(err, "FeedRepo.RemoveHotVideos")
+	}
+	return nil
+}
 
+// TrimHotVideos 只保留热度最高的 keepTopN 个成员。
+// 榜单退出由排名决定，不再按"最后活跃时间"淘汰：
+// 否则低流量或服务停摆超过窗口时长时，整个榜单会被清理器一次性清空。
+func (r *FeedRepo) TrimHotVideos(ctx context.Context, keepTopN int) error {
+	if keepTopN <= 0 {
+		return nil
+	}
+	// ZREMRANGEBYRANK 按 score 升序排名，-1 表示分数最高的成员，
+	// 因此保留最高分的 keepTopN 个等价于删除 [0, -(keepTopN+1)]。
+	if _, err := r.rdb.ZremrangebyrankCtx(ctx, hotVideosKey, 0, -int64(keepTopN)-1); err != nil {
+		return pkgerrors.WithMessage(err, "FeedRepo.TrimHotVideos")
+	}
 	return nil
 }
 
 // GetHotVideosByCursor 从 hot:videos 取热度分 <= cursorScore 的索引，按热度倒序。
 // Redis ZSet 只能按 score 范围查询，同分场景下多取 hotFetchFactor*limit 条，
 // 由调用方按 (score, video_id) < (cursorScore, cursorVideoID) 精断后截断。
+//
+// 注意 go-zero 的 ZrevrangebyscoreWithScoresAndLimitCtx 参数语义是
+// (key, start=Min, stop=Max)，对应 ZREVRANGEBYSCORE key Max Min，不能写反。
 func (r *FeedRepo) GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error) {
-	// 先取严格小于 cursorScore 的部分
-	pairs, err := r.rdb.ZrevrangebyscoreWithScoresAndLimitCtx(
-		ctx, hotVideosKey, cursorScore-1, math.MinInt64, 0, limit)
-	if err != nil {
-		return nil, err
+	if limit <= 0 {
+		return nil, nil
 	}
 
-	// 如果 cursorScore 为 0 表示首页，直接返回；否则补足同分按 video_id 过滤的部分
+	// 首页（cursorScore==0）从最高分开始取，上界为 +inf；
+	// 翻页时先取严格小于游标分的部分，同分成员在下面按 video_id 补。
+	maxScore := cursorScore - 1
+	if cursorScore == 0 {
+		maxScore = math.MaxInt64
+	}
+	pairs, err := r.rdb.ZrevrangebyscoreWithScoresAndLimitCtx(
+		ctx, hotVideosKey, math.MinInt64, maxScore, 0, limit)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "FeedRepo.GetHotVideosByCursor")
+	}
+
+	// 首页没有同分游标需要精断，直接返回
 	if cursorScore == 0 {
 		return r.pairsToIndexes(pairs), nil
 	}
@@ -200,7 +205,7 @@ func (r *FeedRepo) GetHotVideosByCursor(ctx context.Context, cursorScore, cursor
 	tiePairs, err := r.rdb.ZrevrangebyscoreWithScoresAndLimitCtx(
 		ctx, hotVideosKey, cursorScore, cursorScore, 0, limit*hotFetchFactor)
 	if err != nil {
-		return nil, err
+		return nil, pkgerrors.WithMessage(err, "FeedRepo.GetHotVideosByCursor")
 	}
 	for _, p := range tiePairs {
 		id, err := strconv.ParseInt(p.Key, 10, 64)

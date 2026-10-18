@@ -44,9 +44,8 @@ Hot:
   CommentWeight: 10       # 评论权重
   FavoriteWeight: 3       # 收藏权重
   Gravity: 1.5            # HN 时间衰减指数
-  CleanupInterval: 24h    # 清理任务间隔
-  Window: 24h             # 滑动窗口：超过该时长未活跃则清理
-  KeepTopN: 10000         # 保留热度榜 Top N
+  CleanupInterval: 24h    # 榜单裁剪任务间隔
+  KeepTopN: 10000         # 保留热度榜 Top N（按热度分排名，超出部分裁剪）
 
 # 推荐策略配置
 Recommend:

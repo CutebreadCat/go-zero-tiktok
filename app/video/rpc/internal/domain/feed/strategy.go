@@ -47,6 +47,13 @@ type domainFeedRepo interface {
 	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
 }
 
+// domainHotIndexRepo 是热门排行榜所需的索引能力子集。
+// 除读取排名外，还需要在视频详情缺失时移除失效成员（榜单自愈）。
+type domainHotIndexRepo interface {
+	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
+	RemoveHotVideos(ctx context.Context, videoIDs []int64) error
+}
+
 // domainQoSRepo 是各 Strategy 所需的 QoS 指标仓储能力子集。
 type domainQoSRepo interface {
 	// GetQoSMetricsByVideoIDs 批量查询视频 QoS 聚合指标。

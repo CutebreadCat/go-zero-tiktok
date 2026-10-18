@@ -73,11 +73,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		visitProducer:      visitProducer,
 	}
 
-	// 启动热度分清理 worker（定时删除过期成员并裁剪规模）。
-	if c.Hot.CleanupInterval > 0 && c.Hot.Window > 0 {
+	// 启动热度分清理 worker（定时裁剪榜单规模，只保留 TopN）。
+	if c.Hot.CleanupInterval > 0 {
 		cleanerOpts := []worker.CleanerOption{
 			worker.WithCleanupInterval(c.Hot.CleanupInterval),
-			worker.WithCleanupWindow(c.Hot.Window),
 		}
 		if c.Hot.KeepTopN > 0 {
 			cleanerOpts = append(cleanerOpts, worker.WithKeepTopN(c.Hot.KeepTopN))
