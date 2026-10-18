@@ -137,6 +137,39 @@ func (r *FeedRepo) RefreshHotScore(ctx context.Context, videoID int64, score int
 	return nil
 }
 
+// GetHotScores 批量读取视频当前热度分（未上榜或读取失败按 0 返回）。
+// 用 pipeline 一次拿完，避免按 id 逐个往返。
+func (r *FeedRepo) GetHotScores(ctx context.Context, videoIDs []int64) (map[int64]int64, error) {
+	scores := make(map[int64]int64, len(videoIDs))
+	if len(videoIDs) == 0 {
+		return scores, nil
+	}
+
+	// 用接口接收 *redis.FloatCmd，避免直接依赖 go-redis 的具体命令类型。
+	type floatResult interface {
+		Result() (float64, error)
+	}
+	cmds := make([]floatResult, len(videoIDs))
+	err := r.rdb.PipelinedCtx(ctx, func(pipe redis.Pipeliner) error {
+		for i, id := range videoIDs {
+			cmds[i] = pipe.ZScore(ctx, hotVideosKey, strconv.FormatInt(id, 10))
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "FeedRepo.GetHotScores")
+	}
+
+	for i, id := range videoIDs {
+		score, err := cmds[i].Result()
+		if err != nil {
+			continue // 未上榜（redis.Nil）或单条失败，按 0 处理
+		}
+		scores[id] = int64(score)
+	}
+	return scores, nil
+}
+
 // RemoveHotVideos 从热门榜单移除指定成员（详情已不存在时调用），避免榜单出现空洞。
 func (r *FeedRepo) RemoveHotVideos(ctx context.Context, videoIDs []int64) error {
 	if len(videoIDs) == 0 {

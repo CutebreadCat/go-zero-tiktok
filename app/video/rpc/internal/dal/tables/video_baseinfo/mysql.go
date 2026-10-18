@@ -43,6 +43,68 @@ func CreateVideo(ctx context.Context, db *gorm.DB, video *VideoBaseinfo) error {
 	return nil
 }
 
+// GetVideoByAuthorAndIdempotencyKey 按 (author_id, idempotency_key) 查询已发布视频。
+// 未命中返回 (nil, nil)，由调用方按"不存在"处理，避免泄漏 gorm.ErrRecordNotFound。
+func GetVideoByAuthorAndIdempotencyKey(ctx context.Context, db *gorm.DB, authorID int64, idempotencyKey string) (*VideoBaseinfo, error) {
+	if idempotencyKey == "" {
+		return nil, nil
+	}
+
+	var video VideoBaseinfo
+	err := db.WithContext(ctx).
+		Select("video_id, author_id, created_at").
+		Where("author_id = ? AND idempotency_key = ?", authorID, idempotencyKey).
+		First(&video).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, xerr.Wrap(err, "get video by idempotency key failed")
+	}
+
+	return &video, nil
+}
+
+// CreateVideoIdempotent 带幂等键创建视频，返回最终生效的 video_id。
+// 同一 (author_id, idempotency_key) 重复提交（含并发）时复用已存在记录，不重复插入；
+// 幂等键为空时退化为 CreateVideo 的原行为。
+func CreateVideoIdempotent(ctx context.Context, db *gorm.DB, video *VideoBaseinfo) (int64, error) {
+	if video.IdempotencyKey == nil || *video.IdempotencyKey == "" {
+		if err := CreateVideo(ctx, db, video); err != nil {
+			return 0, err
+		}
+		return video.VideoID, nil
+	}
+
+	// 三段式幂等：先查
+	existed, err := GetVideoByAuthorAndIdempotencyKey(ctx, db, video.AuthorID, *video.IdempotencyKey)
+	if err != nil {
+		return 0, err
+	}
+	if existed != nil {
+		return existed.VideoID, nil
+	}
+
+	// 再插
+	if err := db.WithContext(ctx).Create(video).Error; err != nil {
+		// 处理重复：并发请求撞 uk_author_idempotency 后回查，返回先写入的那条
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			if existed, err2 := GetVideoByAuthorAndIdempotencyKey(ctx, db, video.AuthorID, *video.IdempotencyKey); err2 == nil && existed != nil {
+				return existed.VideoID, nil
+			}
+			// 撞 video_id 主键（同 ID 重放）同样视为幂等成功
+			var sameID VideoBaseinfo
+			if err2 := db.WithContext(ctx).Where("video_id = ?", video.VideoID).First(&sameID).Error; err2 == nil {
+				return sameID.VideoID, nil
+			}
+		}
+		return 0, xerr.Wrap(err, "create video failed")
+	}
+
+	return video.VideoID, nil
+}
+
 func SearchVideosByKeyword(ctx context.Context, db *gorm.DB, keyword string, pageNum, pageSize int32) ([]VideoBaseinfo, int64, error) {
 	dbQuery := db.WithContext(ctx).Model(&VideoBaseinfo{})
 	if keyword != "" {

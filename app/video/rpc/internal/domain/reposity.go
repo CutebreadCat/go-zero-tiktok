@@ -10,7 +10,10 @@ import (
 
 
 type IVideoRepo interface {
-	CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoURL, coverURL, title, description string) error
+	// CreateVideoFromParams 创建视频基础信息，返回最终生效的 video_id（幂等键命中时复用已有记录）。
+	CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoURL, coverURL, title, description, idempotencyKey string) (int64, error)
+	// GetVideoByAuthorAndIdempotencyKey 按 (author_id, idempotency_key) 查询已发布视频，未命中 found=false。
+	GetVideoByAuthorAndIdempotencyKey(ctx context.Context, authorID int64, idempotencyKey string) (videoID int64, publishAt time.Time, found bool, err error)
 	SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
 	GetVideosByIDs(ctx context.Context, videoIDs []int64) ([]types.VideoBaseinfo, error)
 	GetVideosByAuthorID(ctx context.Context, authorID int64, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error)
@@ -110,6 +113,8 @@ type IFeedRepo interface {
 	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
 	// RemoveHotVideos 从热门榜单移除详情已不存在的成员，避免榜单出现空洞。
 	RemoveHotVideos(ctx context.Context, videoIDs []int64) error
+	// GetHotScores 批量读取视频当前热度分，未上榜或读取失败按 0 返回。
+	GetHotScores(ctx context.Context, videoIDs []int64) (map[int64]int64, error)
 	// TrimHotVideos 只保留热度最高的 keepTopN 个成员，榜单退出由排名决定。
 	TrimHotVideos(ctx context.Context, keepTopN int) error
 }

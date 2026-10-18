@@ -94,6 +94,29 @@ func TestScorer_Score(t *testing.T) {
 	}
 }
 
+func TestNormalizeHotScore(t *testing.T) {
+	tests := []struct {
+		name  string
+		score int64
+		want  int64
+	}{
+		{name: "未上榜", score: 0, want: 0},
+		{name: "负数按未上榜处理", score: -1000, want: 0},
+		{name: "新视频基础分", score: 35000, want: 175},
+		{name: "千次播放", score: 212000, want: 1060},
+		{name: "万次播放", score: 1944000, want: 9720},
+		{name: "爆款封顶", score: 50000000, want: 10000},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := normalizeHotScore(tt.score); got != tt.want {
+				t.Errorf("normalizeHotScore(%d) = %d, want %d", tt.score, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestScorer_qosBoost(t *testing.T) {
 	scorer := NewScorer(DefaultScorerWeights())
 

@@ -58,6 +58,10 @@ func (m *mockRecommendFeedRepo) GetHotVideosByCursor(ctx context.Context, cursor
 	return m.hot, nil
 }
 
+func (m *mockRecommendFeedRepo) GetHotScores(ctx context.Context, videoIDs []int64) (map[int64]int64, error) {
+	return map[int64]int64{}, nil
+}
+
 // mockRecommendQoSRepo QoS 仓库 mock。
 type mockRecommendQoSRepo struct{}
 

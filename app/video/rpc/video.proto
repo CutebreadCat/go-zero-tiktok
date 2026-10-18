@@ -10,6 +10,8 @@ message PublishVideoRequest {
     string description = 3;
     bytes video_data = 4;
     string filename = 5;
+    // 幂等键：同一次发布意图（含重试）复用同一个 key，服务端据此复用 video_id，避免重复发布。
+    string idempotency_key = 6;
 }
 
 message PublishVideoResponse {

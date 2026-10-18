@@ -11,6 +11,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// CreatePopularVideo 幂等创建 video_stat 统计行（video_id 为主键，已存在则忽略）。
+// 发布链路在基础信息写入成功、统计行写入失败后会被重试；
+// 若此处用裸 INSERT，重试会撞主键 1062，导致发布永远无法成功。
 func CreatePopularVideo(ctx context.Context, db *gorm.DB, videoID int64) error {
 	record := &VideoStat{
 		VideoID:       videoID,
@@ -20,7 +23,9 @@ func CreatePopularVideo(ctx context.Context, db *gorm.DB, videoID int64) error {
 		FavoriteCount: 0,
 	}
 
-	if err := db.WithContext(ctx).Create(record).Error; err != nil {
+	if err := db.WithContext(ctx).
+		Clauses(statConflictClause(db)).
+		Create(record).Error; err != nil {
 		return xerr.Wrap(err, "create popular video failed")
 	}
 

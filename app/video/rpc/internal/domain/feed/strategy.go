@@ -45,6 +45,8 @@ type domainFeedRepo interface {
 	GetUserInbox(ctx context.Context, uid, lastTimeMs int64, limit int) ([]types.FeedIndex, error)
 	// GetHotVideosByCursor 从 hot:videos 取热度索引。
 	GetHotVideosByCursor(ctx context.Context, cursorScore, cursorVideoID int64, limit int) ([]types.FeedIndex, error)
+	// GetHotScores 批量读取视频热度分，用于推荐粗排的热度加权。
+	GetHotScores(ctx context.Context, videoIDs []int64) (map[int64]int64, error)
 }
 
 // domainHotIndexRepo 是热门排行榜所需的索引能力子集。

@@ -47,7 +47,8 @@ func (r *VideoBaseinfoRepo) CreateVideo(ctx context.Context, video *videobasetab
 	return nil
 }
 
-func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description string) error {
+// CreateVideoFromParams 创建视频基础信息；携带幂等键时返回最终生效的 video_id（可能复用已有记录）。
+func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description, idempotencyKey string) (int64, error) {
 	video := &videobasetable.VideoBaseinfo{
 		VideoID:        videoID,
 		AuthorID:       authorID,
@@ -56,10 +57,28 @@ func (r *VideoBaseinfoRepo) CreateVideoFromParams(ctx context.Context, videoID, 
 		Title:          title,
 		Description:    description,
 	}
-	if err := videobasetable.CreateVideo(ctx, r.db, video); err != nil {
-		return pkgerrors.WithMessage(err, "VideoBaseinfoRepo.CreateVideoFromParams")
+	if idempotencyKey != "" {
+		key := idempotencyKey
+		video.IdempotencyKey = &key
 	}
-	return nil
+
+	actualID, err := videobasetable.CreateVideoIdempotent(ctx, r.db, video)
+	if err != nil {
+		return 0, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.CreateVideoFromParams")
+	}
+	return actualID, nil
+}
+
+// GetVideoByAuthorAndIdempotencyKey 按幂等键查询已发布视频，未命中时 found=false。
+func (r *VideoBaseinfoRepo) GetVideoByAuthorAndIdempotencyKey(ctx context.Context, authorID int64, idempotencyKey string) (videoID int64, publishAt time.Time, found bool, err error) {
+	video, err := videobasetable.GetVideoByAuthorAndIdempotencyKey(ctx, r.db, authorID, idempotencyKey)
+	if err != nil {
+		return 0, time.Time{}, false, pkgerrors.WithMessage(err, "VideoBaseinfoRepo.GetVideoByAuthorAndIdempotencyKey")
+	}
+	if video == nil {
+		return 0, time.Time{}, false, nil
+	}
+	return video.VideoID, video.CreatedAt, true, nil
 }
 
 func (r *VideoBaseinfoRepo) SearchVideosByKeyword(ctx context.Context, keyword string, pageNum, pageSize int32) ([]types.VideoBaseinfo, int64, error) {
@@ -127,10 +146,12 @@ func (r *VideoBaseinfoRepo) getFromCache(videoID int64) (*videobasetable.VideoBa
 	if !ok {
 		return nil, false
 	}
-	if val == nil {
+	// 负缓存存的是 typed nil 指针，接口本身不为 nil，必须断言后判断指针。
+	video, _ := val.(*videobasetable.VideoBaseinfo)
+	if video == nil {
 		return nil, true
 	}
-	return val.(*videobasetable.VideoBaseinfo), true
+	return video, true
 }
 
 func (r *VideoBaseinfoRepo) setCache(videoID int64, video *videobasetable.VideoBaseinfo) {

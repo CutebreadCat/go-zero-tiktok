@@ -302,6 +302,8 @@ type PublishVideoRequest struct {
 	Title       string `form:"title"`
 	Description string `form:"description"`
 	File        string `form:"file,optional"`
+	// IdempotencyKey 同一次发布意图（含重试）复用，服务端据此复用 video_id，避免重复发布。
+	IdempotencyKey string `header:"X-Idempotency-Key,optional"`
 }
 
 type PublishVideoResponse struct {

@@ -38,6 +38,75 @@ func TestCreateVideo_Idempotency(t *testing.T) {
 	testutil.AssertEqual(t, v.AuthorID, int64(100))
 }
 
+// TestCreateVideoIdempotent_SameKey 同一 (author_id, key) 重复发布应复用首次 video_id，只落一条
+func TestCreateVideoIdempotent_SameKey(t *testing.T) {
+	db := testutil.NewTestDB(t)
+	ctx := context.Background()
+
+	key := "key-1"
+	first := newVideo(1, 100, "标题A", "描述")
+	first.IdempotencyKey = &key
+	actualID, err := CreateVideoIdempotent(ctx, db, first)
+	testutil.AssertNoErr(t, err)
+	testutil.AssertEqual(t, actualID, int64(1))
+
+	// 幂等重试：客户端换了新 videoID，仍应返回首次落库的那条
+	second := newVideo(2, 100, "标题A", "描述")
+	second.IdempotencyKey = &key
+	actualID, err = CreateVideoIdempotent(ctx, db, second)
+	testutil.AssertNoErr(t, err)
+	testutil.AssertEqual(t, actualID, int64(1))
+
+	var count int64
+	_ = db.Model(&VideoBaseinfo{}).Count(&count)
+	testutil.AssertEqual(t, count, int64(1))
+}
+
+// TestCreateVideoIdempotent_DifferentAuthor 幂等键按作者隔离
+func TestCreateVideoIdempotent_DifferentAuthor(t *testing.T) {
+	db := testutil.NewTestDB(t)
+	ctx := context.Background()
+
+	key := "shared-key"
+	a := newVideo(1, 100, "A", "")
+	a.IdempotencyKey = &key
+	b := newVideo(2, 200, "B", "")
+	b.IdempotencyKey = &key
+
+	idA, err := CreateVideoIdempotent(ctx, db, a)
+	testutil.AssertNoErr(t, err)
+	idB, err := CreateVideoIdempotent(ctx, db, b)
+	testutil.AssertNoErr(t, err)
+	testutil.AssertEqual(t, idA, int64(1))
+	testutil.AssertEqual(t, idB, int64(2))
+}
+
+// TestGetVideoByAuthorAndIdempotencyKey 命中返回记录，未命中返回 nil
+func TestGetVideoByAuthorAndIdempotencyKey(t *testing.T) {
+	db := testutil.NewTestDB(t)
+	ctx := context.Background()
+
+	key := "key-1"
+	video := newVideo(1, 100, "A", "")
+	video.IdempotencyKey = &key
+	_, err := CreateVideoIdempotent(ctx, db, video)
+	testutil.AssertNoErr(t, err)
+
+	got, err := GetVideoByAuthorAndIdempotencyKey(ctx, db, 100, key)
+	testutil.AssertNoErr(t, err)
+	if got == nil {
+		t.Fatal("expected video, got nil")
+	}
+	testutil.AssertEqual(t, got.VideoID, int64(1))
+
+	// 作者不匹配视为未命中（幂等键按作者隔离）
+	missing, err := GetVideoByAuthorAndIdempotencyKey(ctx, db, 999, key)
+	testutil.AssertNoErr(t, err)
+	if missing != nil {
+		t.Fatalf("expected nil, got video %d", missing.VideoID)
+	}
+}
+
 // TestGetVideosByIDs 表驱动：按 ID 批量查询（空集合 / 顺序与集合一致性）
 func TestGetVideosByIDs(t *testing.T) {
 	t.Run("空集合返回空", func(t *testing.T) {

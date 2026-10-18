@@ -2,13 +2,13 @@ package feed
 
 import (
 	"context"
+	"math"
 	"sort"
 	"time"
 
 	"go_zero-tiktok/pkg/contract"
+	appLogger "go_zero-tiktok/pkg/logger"
 	"go_zero-tiktok/pkg/xerr"
-
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 // RecommendConfig 推荐策略配置。
@@ -143,7 +143,7 @@ func (s *RecommendStrategy) GetFeed(ctx context.Context, viewerID int64, cursor 
 	// 7. 写入曝光记录（失败不阻断主链路）
 	if s.seenRepo != nil && viewerID > 0 && len(seenVideoIDs) > 0 {
 		if err := s.seenRepo.MarkSeen(ctx, viewerID, seenVideoIDs); err != nil {
-			logx.Errorf("mark seen failed for user %d: %v", viewerID, err)
+			appLogger.Errorf("mark seen failed for user %d: %v", viewerID, err)
 		}
 	}
 
@@ -189,7 +189,7 @@ func (s *RecommendStrategy) recall(ctx context.Context, viewerID int64, limit in
 	if viewerID > 0 && s.feedRepo != nil {
 		inbox, err := s.feedRepo.GetUserInbox(ctx, viewerID, 0, fetchCount)
 		if err != nil {
-			logx.Errorf("recommend recall inbox failed: %v", err)
+			appLogger.Errorf("recommend recall inbox failed: %v", err)
 		} else {
 			sources[0].indexes = inbox
 		}
@@ -199,7 +199,7 @@ func (s *RecommendStrategy) recall(ctx context.Context, viewerID int64, limit in
 	if s.feedRepo != nil {
 		hot, err := s.feedRepo.GetHotVideosByCursor(ctx, 0, 0, fetchCount)
 		if err != nil {
-			logx.Errorf("recommend recall hot failed: %v", err)
+			appLogger.Errorf("recommend recall hot failed: %v", err)
 		} else {
 			sources[1].indexes = hot
 		}
@@ -209,7 +209,7 @@ func (s *RecommendStrategy) recall(ctx context.Context, viewerID int64, limit in
 	if s.feedRepo != nil {
 		global, err := s.feedRepo.GetGlobalPool(ctx, 0, fetchCount)
 		if err != nil {
-			logx.Errorf("recommend recall global failed: %v", err)
+			appLogger.Errorf("recommend recall global failed: %v", err)
 		} else {
 			sources[2].indexes = global
 		}
@@ -273,8 +273,18 @@ func (s *RecommendStrategy) score(ctx context.Context, candidates []recommendCan
 	// 批量查热度
 	populars, err := s.popularRepo.GetPopularVideosByIDs(ctx, videoIDs)
 	if err != nil {
-		logx.Errorf("recommend score get populars failed: %v", err)
+		appLogger.Errorf("recommend score get populars failed: %v", err)
 		populars = map[int64]types.VideoPopular{}
+	}
+
+	// 热度分只存在于 Redis hot:videos，MySQL 没有对应字段，需要单独批量读取。
+	var hotScores map[int64]int64
+	if s.feedRepo != nil {
+		hotScores, err = s.feedRepo.GetHotScores(ctx, videoIDs)
+		if err != nil {
+			appLogger.Errorf("recommend score get hot scores failed: %v", err)
+			hotScores = nil
+		}
 	}
 
 	// 批量查 QoS
@@ -282,7 +292,7 @@ func (s *RecommendStrategy) score(ctx context.Context, candidates []recommendCan
 	if s.qosRepo != nil {
 		qosMetrics, err = s.qosRepo.GetQoSMetricsByVideoIDs(ctx, videoIDs)
 		if err != nil {
-			logx.Errorf("recommend score get qos failed: %v", err)
+			appLogger.Errorf("recommend score get qos failed: %v", err)
 			qosMetrics = map[int64]types.VideoQoSMetrics{}
 		}
 	}
@@ -292,6 +302,8 @@ func (s *RecommendStrategy) score(ctx context.Context, candidates []recommendCan
 	for i := range candidates {
 		c := &candidates[i]
 		c.popular = populars[c.video.VideoID]
+		// 用 Redis 热度分覆盖 DB 值（DB 没有该字段），并归一到与时效分同一量纲。
+		c.popular.HotScore = normalizeHotScore(hotScores[c.video.VideoID])
 		c.popular.VideoQoSMetrics = qosMetrics[c.video.VideoID]
 		// inbox 来源的视频作者视为已关注
 		c.followed = c.source == "inbox"
@@ -345,7 +357,7 @@ func (s *RecommendStrategy) isSeen(ctx context.Context, viewerID, videoID int64)
 	}
 	seen, err := s.seenRepo.IsSeen(ctx, viewerID, videoID)
 	if err != nil {
-		logx.Errorf("check seen failed for user %d video %d: %v", viewerID, videoID, err)
+		appLogger.Errorf("check seen failed for user %d video %d: %v", viewerID, videoID, err)
 		return false
 	}
 	return seen
@@ -361,7 +373,7 @@ func (s *RecommendStrategy) fallback(ctx context.Context, viewerID int64, select
 	// 兜底取最新发布的时间线视频
 	videos, err := s.videoRepo.GetVideosByCursor(ctx, 0, 0, int32(need*2))
 	if err != nil {
-		logx.Errorf("recommend fallback failed: %v", err)
+		appLogger.Errorf("recommend fallback failed: %v", err)
 		return selected
 	}
 
@@ -402,4 +414,23 @@ func (s *RecommendStrategy) fallback(ctx context.Context, viewerID int64, select
 	}
 
 	return selected
+}
+
+// hotScoreFullMark 还原后的热度分达到该值即视为满分（映射到 10000）。
+// 还原后的热度分 = Redis 分数 / 1000，大致分布：新视频约 35、千次播放约 200、万次播放约 2000。
+const hotScoreFullMark = 2000
+
+// normalizeHotScore 把 Redis 中放大 1000 倍的热度分映射到 0~10000，
+// 与时效分、关注加成保持同一量纲，避免热度直接压过其它权重。
+// 满映射时热度贡献 = 10000 * HotWeight，默认权重下最多 5000 分。
+func normalizeHotScore(score int64) int64 {
+	if score <= 0 {
+		return 0
+	}
+	raw := float64(score) / 1000
+	norm := raw / hotScoreFullMark * 10000
+	if norm > 10000 {
+		return 10000
+	}
+	return int64(math.Round(norm))
 }

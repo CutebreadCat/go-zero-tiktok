@@ -24,6 +24,8 @@ type (
     // 2. base64 文本(httpx 解析到本字段后 handler 再 base64 解码,兜底)。
     // 注意:不要声明为 []byte,go-zero 对 []byte+form 只做 base64 解码,非 base64 会报 type mismatch。
     File string `form:"file,optional"`
+    // 幂等键:同一次发布意图(含重试)复用同一个 key,服务端据此复用 video_id,避免重复发布。
+    IdempotencyKey string `header:"X-Idempotency-Key,optional"`
   }
   PublishVideoResponse {
     Base    BaseResponse `json:"base"`

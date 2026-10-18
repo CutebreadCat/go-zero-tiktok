@@ -9,9 +9,6 @@ import (
 	"go_zero-tiktok/pkg/xerr"
 )
 
-// hotFetchLimit Redis 同分过滤兜底：多取若干条再精断。
-const hotFetchLimit = 5
-
 // hotSelfHealLimit 单次请求最多从榜单移除的失效成员数，避免异常数据一次性清空榜单。
 const hotSelfHealLimit = 50
 

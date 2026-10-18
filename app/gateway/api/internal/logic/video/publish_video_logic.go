@@ -63,11 +63,12 @@ func (l *PublishVideoLogic) PublishVideo(req *types.PublishVideoRequest) (resp *
 	}
 
 	rpcResp, err := l.svcCtx.VideoRpc.PublishVideo(l.ctx, &videopb.PublishVideoRequest{
-		UserId:      authorID,
-		Title:       req.Title,
-		Description: req.Description,
-		VideoData:   videoBytes,
-		Filename:    filename,
+		UserId:         authorID,
+		Title:          req.Title,
+		Description:    req.Description,
+		VideoData:      videoBytes,
+		Filename:       filename,
+		IdempotencyKey: req.IdempotencyKey,
 	})
 	if err != nil {
 		return nil, xerr.HandleDaoError(err, "PublishVideo.CreateVideo")

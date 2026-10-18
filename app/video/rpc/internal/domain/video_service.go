@@ -57,16 +57,56 @@ func NewVideoService(
 	}
 }
 
-// PublishVideo 创建视频并初始化 Popular 记录，发布成功后写入 Feed 候选池与热门榜。
+// PublishVideo 创建视频并初始化统计记录，发布成功后写入 Feed 候选池与热门榜。
+// idempotencyKey 非空时按 (authorID, key) 幂等：重复/并发提交复用已存在的 videoID，不会重复发布。
+// 返回最终生效的 videoID 与发布时刻 publishAt（幂等命中时为首次发布时间）。
 // 候选池写入失败不阻断发布（DB 是主数据源，Redis 是加速层）。
-// 返回发布时刻 publishAt，供 gateway 编排扇出时保证 feed:global 与 feed:inbox 的 score 一致。
-func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description string) (time.Time, error) {
+func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64, videoObjectKey, coverObjectKey, title, description, idempotencyKey string) (int64, time.Time, error) {
 	publishAt := time.Now()
-	if err := s.videoRepo.CreateVideoFromParams(ctx, videoID, authorID, videoObjectKey, coverObjectKey, title, description); err != nil {
-		return time.Time{}, err
+	actualID, err := s.videoRepo.CreateVideoFromParams(ctx, videoID, authorID, videoObjectKey, coverObjectKey, title, description, idempotencyKey)
+	if err != nil {
+		return 0, time.Time{}, err
 	}
+
+	// 并发重试：本次生成的新 ID 未生效，复用先写入记录及其原始发布时间
+	if actualID != videoID {
+		publishAt, err = s.videoRepo.GetVideoPublishAt(ctx, actualID)
+		if err != nil {
+			return 0, time.Time{}, err
+		}
+	}
+
+	if err := s.ensureVideoIndexed(ctx, actualID, publishAt); err != nil {
+		return 0, time.Time{}, err
+	}
+
+	return actualID, publishAt, nil
+}
+
+// FindPublishedVideoByKey 幂等键命中时返回已发布视频，并补齐可能缺失的统计行/Feed 索引。
+// 这样"首次发布部分失败 + 客户端重试"也能收敛到完整状态，而不是直接返回半成品。
+func (s *VideoService) FindPublishedVideoByKey(ctx context.Context, authorID int64, idempotencyKey string) (int64, time.Time, bool, error) {
+	if idempotencyKey == "" {
+		return 0, time.Time{}, false, nil
+	}
+
+	videoID, publishAt, found, err := s.videoRepo.GetVideoByAuthorAndIdempotencyKey(ctx, authorID, idempotencyKey)
+	if err != nil || !found {
+		return 0, time.Time{}, found, err
+	}
+
+	if err := s.ensureVideoIndexed(ctx, videoID, publishAt); err != nil {
+		return 0, time.Time{}, false, err
+	}
+
+	return videoID, publishAt, true, nil
+}
+
+// ensureVideoIndexed 初始化视频的统计行与 Feed/热度索引。
+// 全部操作幂等（统计行 INSERT IGNORE、ZSet 覆盖写），可安全重复执行。
+func (s *VideoService) ensureVideoIndexed(ctx context.Context, videoID int64, publishAt time.Time) error {
 	if err := s.popularRepo.CreatePopularVideo(ctx, videoID); err != nil {
-		return time.Time{}, err
+		return err
 	}
 
 	// 写入候选池 feed:global（失败仅记日志，不影响发布主流程）
@@ -76,12 +116,12 @@ func (s *VideoService) PublishVideo(ctx context.Context, videoID, authorID int64
 		}
 	}
 
-	// 新视频发布后立即同步计算初始热度分并写入 hot:videos（Redis 写入失败不阻断发布）。
+	// 同步计算初始热度分并写入 hot:videos（Redis 写入失败不阻断发布）。
 	if err := s.RecalculateHotScore(ctx, videoID); err != nil {
 		logx.Errorf("recalculate hot score for new video %d failed: %v", videoID, err)
 	}
 
-	return publishAt, nil
+	return nil
 }
 
 // FanoutToUsers 关注流扇出：将视频写入每个粉丝的收件箱 feed:inbox:{uid}。
