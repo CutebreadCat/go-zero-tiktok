@@ -40,6 +40,11 @@ type IPopularRepo interface {
 	// GetPopularVideosByCursor 复合游标分页：按 (visit_count, video_id) < (score, videoID) 倒序取 limit 条。
 	// score=0 且 videoID=0 表示首页。
 	GetPopularVideosByCursor(ctx context.Context, score, videoID int64, limit int32) ([]types.VideoPopular, error)
+	// ListVideoStatsForRebuild 按候选窗口分批读取统计快照。
+	// since 为零值表示全量模式（按 video_id 游标）；否则按 (created_at, video_id) 复合游标。
+	ListVideoStatsForRebuild(ctx context.Context, since, cursorAt time.Time, cursorID int64, limit int32) ([]types.VideoStatSnapshot, error)
+	// CountVideoStatsForRebuild 统计候选窗口内的视频数，供 dry-run 预检。
+	CountVideoStatsForRebuild(ctx context.Context, since time.Time) (int64, error)
 }
 
 type IVideoInteractionRepo interface {
@@ -117,4 +122,14 @@ type IFeedRepo interface {
 	GetHotScores(ctx context.Context, videoIDs []int64) (map[int64]int64, error)
 	// TrimHotVideos 只保留热度最高的 keepTopN 个成员，榜单退出由排名决定。
 	TrimHotVideos(ctx context.Context, keepTopN int) error
+
+	// 以下供热度榜全量重建使用：先写临时键，构建完成后原子替换正式键。
+	ResetHotRebuild(ctx context.Context) error
+	AppendHotRebuildScores(ctx context.Context, scores []types.FeedIndex) error
+	// PublishHotRebuild 原子替换 hot:videos 并按 keepTopN 裁剪，返回最终成员数。
+	PublishHotRebuild(ctx context.Context, keepTopN int) (int64, error)
+	// TryLockHotRebuild 抢占重建锁并返回本次执行的 token；ttl 为锁自动过期时间。
+	TryLockHotRebuild(ctx context.Context, ttl time.Duration) (token string, ok bool, err error)
+	// UnlockHotRebuild 仅在 token 匹配时释放锁，避免误删其他执行者的锁。
+	UnlockHotRebuild(ctx context.Context, token string) error
 }

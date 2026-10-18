@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	feedpkg "go_zero-tiktok/app/video/rpc/internal/domain/feed"
@@ -172,6 +173,121 @@ func (s *VideoService) RecalculateHotScore(ctx context.Context, videoID int64) e
 
 	score := s.hotScoreCalculator.Compute(popular, publishAt)
 	return s.feedRepo.RefreshHotScore(ctx, videoID, score)
+}
+
+// hotRebuildDefaultBatch 重建时单批扫描的统计行数。
+const hotRebuildDefaultBatch int32 = 500
+
+// HotRebuildOptions 热度榜重建参数。
+type HotRebuildOptions struct {
+	Since     time.Time // 候选窗口起点；零值表示全量重建
+	BatchSize int32     // 单批扫描行数，<=0 取默认 500
+	KeepTopN  int       // 最终保留条数，<=0 不裁剪
+	DryRun    bool      // 只统计候选数量，不写 Redis
+}
+
+// RebuildHotRanking 从 MySQL 计数重建 hot:videos。
+//
+//  1. 按候选窗口分批扫描（窗口模式走 (created_at, video_id) 复合索引）；
+//  2. 用与实时重算相同的公式算分，写入临时键；
+//  3. Lua 原子 RENAME 到正式键并按 KeepTopN 裁剪。
+//
+// 返回扫描条数与最终榜单成员数；DryRun 时只返回候选数，members 为 0。
+// 重建期间读请求始终读旧榜，失败不会替换正式榜。
+func (s *VideoService) RebuildHotRanking(ctx context.Context, opts HotRebuildOptions) (scanned, members int64, err error) {
+	if s.feedRepo == nil || s.popularRepo == nil || s.hotScoreCalculator == nil {
+		return 0, 0, fmt.Errorf("hot ranking rebuild dependencies are not configured")
+	}
+	if opts.BatchSize <= 0 {
+		opts.BatchSize = hotRebuildDefaultBatch
+	}
+
+	// dry-run 只读，不抢锁、不写 Redis。
+	if opts.DryRun {
+		scanned, err = s.popularRepo.CountVideoStatsForRebuild(ctx, opts.Since)
+		return scanned, 0, err
+	}
+
+	token, locked, err := s.feedRepo.TryLockHotRebuild(ctx, 30*time.Minute)
+	if err != nil {
+		return 0, 0, err
+	}
+	if !locked {
+		return 0, 0, fmt.Errorf("hot ranking rebuild is already running")
+	}
+
+	published := false
+	defer func() {
+		cleanupCtx := context.WithoutCancel(ctx)
+		// 成功时临时键已被 RENAME 消费；失败时清理，避免残留半成品。
+		if !published {
+			if cleanupErr := s.feedRepo.ResetHotRebuild(cleanupCtx); cleanupErr != nil {
+				logx.Errorf("clean hot ranking rebuild temp key failed: %v", cleanupErr)
+			}
+		}
+		if unlockErr := s.feedRepo.UnlockHotRebuild(cleanupCtx, token); unlockErr != nil {
+			logx.Errorf("release hot ranking rebuild lock failed: %v", unlockErr)
+		}
+	}()
+
+	if err = s.feedRepo.ResetHotRebuild(ctx); err != nil {
+		return 0, 0, err
+	}
+
+	var cursorAt time.Time
+	var cursorID int64
+	if !opts.Since.IsZero() {
+		// 窗口模式首页游标为 (cutoff, 0)，包含 created_at 恰好等于 cutoff 的视频。
+		cursorAt = opts.Since
+	}
+
+	for {
+		rows, listErr := s.popularRepo.ListVideoStatsForRebuild(ctx, opts.Since, cursorAt, cursorID, opts.BatchSize)
+		if listErr != nil {
+			return 0, 0, listErr
+		}
+		if len(rows) == 0 {
+			break
+		}
+
+		batch := make([]types.FeedIndex, 0, len(rows))
+		for _, row := range rows {
+			popular := types.VideoPopular{
+				VideoID:       row.VideoID,
+				VisitCount:    row.VisitCount,
+				LikeCount:     row.LikeCount,
+				CommentCount:  row.CommentCount,
+				FavoriteCount: row.FavoriteCount,
+			}
+			batch = append(batch, types.FeedIndex{
+				VideoID: row.VideoID,
+				Score:   s.hotScoreCalculator.Compute(popular, row.PublishAt),
+			})
+			cursorAt = row.PublishAt
+			cursorID = row.VideoID
+		}
+
+		if appendErr := s.feedRepo.AppendHotRebuildScores(ctx, batch); appendErr != nil {
+			return 0, 0, appendErr
+		}
+		scanned += int64(len(batch))
+		logx.Infof("hot ranking rebuild progress: scanned=%d cursor_at=%s cursor_id=%d",
+			scanned, cursorAt.Format(time.RFC3339Nano), cursorID)
+	}
+
+	// 空结果不替换正式榜，避免异常窗口或查询故障把线上榜单清空。
+	if scanned == 0 {
+		return 0, 0, fmt.Errorf("no video stats found, abort hot ranking rebuild")
+	}
+
+	members, err = s.feedRepo.PublishHotRebuild(ctx, opts.KeepTopN)
+	if err != nil {
+		return scanned, 0, err
+	}
+	published = true
+
+	logx.Infof("hot ranking rebuild done: scanned=%d members=%d keep_top_n=%d", scanned, members, opts.KeepTopN)
+	return scanned, members, nil
 }
 
 // RecordVisit 记录视频访问量与热度分。

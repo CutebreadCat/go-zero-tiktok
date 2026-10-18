@@ -4,6 +4,7 @@
         run-interaction-local run-communication-local run-all-local \
         frontend-install frontend-dev frontend-build \
         test vet fmt api-get api-apifox db-shell mysql \
+        hot-rebuild hot-rebuild-dry \
         migrate-up migrate-down \
         log-clean log-clean-dry log-clean-stop \
         log-cleaner-install log-cleaner-uninstall log-cleaner-status
@@ -71,6 +72,15 @@ run-communication-local:
 
 run-all-local: build-local
 	@echo "Tip: run each service in its own terminal, e.g. 'make run-gateway-local'."
+
+# 热度榜离线重建（MySQL 计数 -> 临时键 -> 原子替换 hot:videos）
+#   make hot-rebuild-dry                                  # 只统计候选数，不写 Redis
+#   make hot-rebuild ARGS="-since 168h -keep 10000"       # 重建最近 7 天候选并保留 Top 10000
+hot-rebuild-dry:
+	$(LOCAL_ENV) go run ./app/video/rpc/cmd/hotrebuild -f app/video/rpc/etc/video.yaml -dry-run $(ARGS)
+
+hot-rebuild:
+	$(LOCAL_ENV) go run ./app/video/rpc/cmd/hotrebuild -f app/video/rpc/etc/video.yaml $(ARGS)
 
 # Build and quality checks
 gateway-build:

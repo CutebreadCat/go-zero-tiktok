@@ -2,6 +2,8 @@ package reposity
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"math"
 	"strconv"
 	"time"
@@ -19,6 +21,11 @@ const (
 	feedRetention = 7 * 24 * time.Hour
 	// hotVideosKey 全站热门视频有序集合：member=video_id, score=热度分（放大 1000 倍）
 	hotVideosKey = "hot:videos"
+	// hotRebuildKey 热榜重建临时键：构建完成后原子 RENAME 到 hotVideosKey。
+	// 注意：RENAME 要求两个 key 同槽，当前部署为单节点 Redis；若切集群需给两键加同一 hash tag。
+	hotRebuildKey = "hot:videos:rebuild"
+	// hotRebuildLockKey 重建互斥锁，value 为本次执行的唯一 token。
+	hotRebuildLockKey = "hot:videos:rebuild:lock"
 	// hotFetchFactor Redis 同分过滤兜底因子，先多取若干条再按 video_id 精断
 	hotFetchFactor = 5
 )
@@ -251,6 +258,108 @@ func (r *FeedRepo) GetHotVideosByCursor(ctx context.Context, cursorScore, cursor
 	}
 
 	return r.pairsToIndexes(pairs), nil
+}
+
+// ResetHotRebuild 清理上次残留的重建临时键。
+func (r *FeedRepo) ResetHotRebuild(ctx context.Context) error {
+	if _, err := r.rdb.DelCtx(ctx, hotRebuildKey); err != nil {
+		return pkgerrors.WithMessage(err, "FeedRepo.ResetHotRebuild")
+	}
+	return nil
+}
+
+// AppendHotRebuildScores 分批把分值写入重建临时键（ZADD 覆盖写）。
+func (r *FeedRepo) AppendHotRebuildScores(ctx context.Context, scores []types.FeedIndex) error {
+	if len(scores) == 0 {
+		return nil
+	}
+
+	const batchSize = 500
+	for start := 0; start < len(scores); start += batchSize {
+		end := start + batchSize
+		if end > len(scores) {
+			end = len(scores)
+		}
+		part := scores[start:end]
+
+		err := r.rdb.PipelinedCtx(ctx, func(pipe redis.Pipeliner) error {
+			for _, item := range part {
+				if item.VideoID <= 0 {
+					continue
+				}
+				pipe.ZAdd(ctx, hotRebuildKey, redis.Z{
+					Score:  float64(item.Score),
+					Member: strconv.FormatInt(item.VideoID, 10),
+				})
+			}
+			return nil
+		})
+		if err != nil {
+			return pkgerrors.WithMessage(err, "FeedRepo.AppendHotRebuildScores")
+		}
+	}
+
+	return nil
+}
+
+// PublishHotRebuild 用临时键原子替换正式榜单，并按 keepTopN 裁剪，返回最终成员数。
+// 替换用 Lua 完成：读请求要么看到旧榜、要么看到新榜，不会读到半成品。
+func (r *FeedRepo) PublishHotRebuild(ctx context.Context, keepTopN int) (int64, error) {
+	const script = `
+if redis.call('EXISTS', KEYS[1]) == 0 then
+  return 0
+end
+redis.call('RENAME', KEYS[1], KEYS[2])
+local keep = tonumber(ARGV[1])
+if keep and keep > 0 then
+  redis.call('ZREMRANGEBYRANK', KEYS[2], 0, -(keep + 1))
+end
+return redis.call('ZCARD', KEYS[2])`
+
+	res, err := r.rdb.EvalCtx(ctx, script, []string{hotRebuildKey, hotVideosKey}, keepTopN)
+	if err != nil {
+		return 0, pkgerrors.WithMessage(err, "FeedRepo.PublishHotRebuild")
+	}
+
+	count, _ := res.(int64)
+	return count, nil
+}
+
+// TryLockHotRebuild 抢占重建锁，返回本次执行的 token 与是否成功。
+func (r *FeedRepo) TryLockHotRebuild(ctx context.Context, ttl time.Duration) (string, bool, error) {
+	if ttl <= 0 {
+		ttl = 30 * time.Minute
+	}
+
+	buf := make([]byte, 8)
+	if _, err := rand.Read(buf); err != nil {
+		return "", false, pkgerrors.WithMessage(err, "FeedRepo.TryLockHotRebuild")
+	}
+	token := hex.EncodeToString(buf)
+
+	ok, err := r.rdb.SetnxExCtx(ctx, hotRebuildLockKey, token, int(ttl.Seconds()))
+	if err != nil {
+		return "", false, pkgerrors.WithMessage(err, "FeedRepo.TryLockHotRebuild")
+	}
+	return token, ok, nil
+}
+
+// UnlockHotRebuild 仅在 token 与锁值一致时释放，避免 TTL 过期后误删下一个执行者的锁。
+func (r *FeedRepo) UnlockHotRebuild(ctx context.Context, token string) error {
+	if token == "" {
+		return nil
+	}
+
+	const script = `
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('DEL', KEYS[1])
+end
+return 0`
+
+	if _, err := r.rdb.EvalCtx(ctx, script, []string{hotRebuildLockKey}, token); err != nil {
+		return pkgerrors.WithMessage(err, "FeedRepo.UnlockHotRebuild")
+	}
+	return nil
 }
 
 func (r *FeedRepo) pairsToIndexes(pairs []redis.Pair) []types.FeedIndex {

@@ -5,6 +5,8 @@
 //   - 此处仅存放跨 RPC 服务复用的领域模型，字段以 api/model.api 为基准对齐。
 package types
 
+import "time"
+
 // UserBaseinfo 用户基础信息（user / communication RPC 共享）
 type UserBaseinfo struct {
 	UserID    int64  `json:"user_id,string"`
@@ -63,6 +65,16 @@ type VideoPopular struct {
 	FavoriteCount int64 `json:"favorite_count"`
 	HotScore      int64 `json:"hot_score"`
 	VideoQoSMetrics
+}
+
+// VideoStatSnapshot 热榜重建所需的统计快照：四类计数 + 发布时间。
+type VideoStatSnapshot struct {
+	VideoID       int64
+	VisitCount    int64
+	LikeCount     int64
+	CommentCount  int64
+	FavoriteCount int64
+	PublishAt     time.Time
 }
 
 // PlaybackQoSReport 播放质量上报领域模型（video RPC 使用）

@@ -57,7 +57,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		visitProducer = producer
 	}
 
-	hotCalculator := newHotScoreCalculator(c.Hot)
+	hotCalculator := NewHotScoreCalculator(c.Hot)
 	recommendConfig := newRecommendConfig(c.Recommend)
 	videoService := videodomain.NewVideoService(dalRepo.Video, dalRepo.VideoStat, dalRepo.VideoQoS, storageAdapter, dalRepo.Feed, dalRepo.FeedSeen, hotCalculator, visitProducer, recommendConfig)
 	playbackQoSService := videodomain.NewPlaybackQoSService(dalRepo.PlaybackQoS)
@@ -236,8 +236,9 @@ func newRecommendConfig(c config.RecommendConfig) feedpkg.RecommendConfig {
 	return cfg
 }
 
-// newHotScoreCalculator 根据配置创建热度分计算器，未配置时使用默认值。
-func newHotScoreCalculator(c config.HotConfig) *feedpkg.HotScoreCalculator {
+// NewHotScoreCalculator 根据配置创建热度分计算器，未配置时使用默认值。
+// 导出供热榜重建命令（cmd/hotrebuild）复用同一套打分参数。
+func NewHotScoreCalculator(c config.HotConfig) *feedpkg.HotScoreCalculator {
 	calc := &feedpkg.HotScoreCalculator{
 		BaseScore:      defaultHotBaseScore,
 		LikeWeight:     defaultHotLikeWeight,
