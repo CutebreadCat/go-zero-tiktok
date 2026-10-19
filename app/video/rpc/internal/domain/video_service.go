@@ -290,6 +290,80 @@ func (s *VideoService) RebuildHotRanking(ctx context.Context, opts HotRebuildOpt
 	return scanned, members, nil
 }
 
+// RefreshHotRankingScores 按当前时间重算榜单前 limit 名成员的热度分。
+//
+// 热度分是写入时刻的快照，视频停止互动后分数不会自然衰减；定时调用本方法
+// 可以让榜单持续逼近 HN 公式的真实值。只覆盖已上榜成员，不新增成员，
+// 新视频仍由实时重算链路写入。
+func (s *VideoService) RefreshHotRankingScores(ctx context.Context, limit int) (int, error) {
+	if limit <= 0 || s.feedRepo == nil || s.popularRepo == nil || s.hotScoreCalculator == nil {
+		return 0, nil
+	}
+
+	indexes, err := s.feedRepo.GetHotVideosByCursor(ctx, 0, 0, limit)
+	if err != nil {
+		return 0, err
+	}
+	if len(indexes) == 0 {
+		return 0, nil
+	}
+
+	videoIDs := make([]int64, 0, len(indexes))
+	for _, idx := range indexes {
+		videoIDs = append(videoIDs, idx.VideoID)
+	}
+
+	rows, err := s.popularRepo.ListVideoStatsByIDs(ctx, videoIDs)
+	if err != nil {
+		return 0, err
+	}
+
+	batch := make([]types.FeedIndex, 0, len(rows))
+	existing := make(map[int64]struct{}, len(rows))
+	for _, row := range rows {
+		popular := types.VideoPopular{
+			VideoID:       row.VideoID,
+			VisitCount:    row.VisitCount,
+			LikeCount:     row.LikeCount,
+			CommentCount:  row.CommentCount,
+			FavoriteCount: row.FavoriteCount,
+		}
+		batch = append(batch, types.FeedIndex{
+			VideoID: row.VideoID,
+			Score:   s.hotScoreCalculator.Compute(popular, row.PublishAt),
+		})
+		existing[row.VideoID] = struct{}{}
+	}
+
+	if err := s.feedRepo.RefreshHotScores(ctx, batch); err != nil {
+		return 0, err
+	}
+
+	// 榜内但 MySQL 已查不到的成员（视频删除/统计行缺失）顺手摘除，避免榜单空洞。
+	s.removeStaleHotIndexes(ctx, videoIDs, existing)
+
+	logx.Infof("hot ranking scores refreshed: candidates=%d refreshed=%d", len(videoIDs), len(batch))
+	return len(batch), nil
+}
+
+// removeStaleHotIndexes 把榜单里查不到统计行的成员移除（视频已删除或数据缺失）。
+func (s *VideoService) removeStaleHotIndexes(ctx context.Context, requested []int64, existing map[int64]struct{}) {
+	stale := make([]int64, 0)
+	for _, id := range requested {
+		if _, ok := existing[id]; !ok {
+			stale = append(stale, id)
+		}
+	}
+	if len(stale) == 0 {
+		return
+	}
+
+	logx.Infof("removing %d stale videos from hot ranking", len(stale))
+	if err := s.feedRepo.RemoveHotVideos(ctx, stale); err != nil {
+		logx.Errorf("remove stale hot videos failed: %v", err)
+	}
+}
+
 // RecordVisit 记录视频访问量与热度分。
 // 若配置了访问事件生产者，则通过 Kafka 异步化（业务代码不创建 goroutine）；
 // 否则同步执行 IncreaseVideoVisitCount 作为兜底。

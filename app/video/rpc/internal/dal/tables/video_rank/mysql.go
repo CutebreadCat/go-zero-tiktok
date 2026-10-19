@@ -106,6 +106,74 @@ func ListCandidates(ctx context.Context, db *gorm.DB, since, cursorAt time.Time,
 	return rows, nil
 }
 
+// ListCandidatesByIDs 按视频 ID 批量取候选快照（两段 IN 查询，不联表）。
+// 已软删或缺少统计行的视频不会返回，返回顺序与入参顺序无关。
+func ListCandidatesByIDs(ctx context.Context, db *gorm.DB, videoIDs []int64) ([]CandidateRow, error) {
+	ids := uniquePositiveIDs(videoIDs)
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	videos := make([]candidateVideo, 0, len(ids))
+	for start := 0; start < len(ids); start += statQueryChunk {
+		end := start + statQueryChunk
+		if end > len(ids) {
+			end = len(ids)
+		}
+
+		var part []candidateVideo
+		if err := db.WithContext(ctx).
+			Table("video_baseinfo AS v").
+			Select("v.video_id, v.created_at").
+			Where("v.deleted_at IS NULL").
+			Where("v.video_id IN ?", ids[start:end]).
+			Scan(&part).Error; err != nil {
+			return nil, xerr.Wrap(err, "list hot ranking candidate videos by ids failed")
+		}
+		videos = append(videos, part...)
+	}
+
+	stats, err := loadStatRows(ctx, db, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := make([]CandidateRow, 0, len(videos))
+	for _, video := range videos {
+		stat, ok := stats[video.VideoID]
+		if !ok {
+			continue
+		}
+		rows = append(rows, CandidateRow{
+			VideoID:       video.VideoID,
+			VisitCount:    stat.VisitCount,
+			LikeCount:     stat.LikeCount,
+			CommentCount:  stat.CommentCount,
+			FavoriteCount: stat.FavoriteCount,
+			PublishAt:     video.CreatedAt,
+		})
+	}
+	return rows, nil
+}
+
+// uniquePositiveIDs 去重并过滤非法 ID，减少 IN 查询的参数规模。
+func uniquePositiveIDs(videoIDs []int64) []int64 {
+	seen := make(map[int64]struct{}, len(videoIDs))
+	ids := make([]int64, 0, len(videoIDs))
+	for _, id := range videoIDs {
+		if id <= 0 {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		ids = append(ids, id)
+	}
+	return ids
+}
+
 // listCandidateVideos 只查驱动表，按游标取一批视频 ID 与发布时间。
 func listCandidateVideos(ctx context.Context, db *gorm.DB, since, cursorAt time.Time, cursorID int64, limit int32) ([]candidateVideo, error) {
 	dbQuery := db.WithContext(ctx).

@@ -40,3 +40,24 @@ func (r *VideoStatRepo) CountVideoStatsForRebuild(ctx context.Context, since tim
 	}
 	return total, nil
 }
+
+// ListVideoStatsByIDs 按视频 ID 批量读取统计快照，供榜单分数保鲜重算使用。
+func (r *VideoStatRepo) ListVideoStatsByIDs(ctx context.Context, videoIDs []int64) ([]types.VideoStatSnapshot, error) {
+	rows, err := videoranktable.ListCandidatesByIDs(ctx, r.db, videoIDs)
+	if err != nil {
+		return nil, pkgerrors.WithMessage(err, "VideoStatRepo.ListVideoStatsByIDs")
+	}
+
+	result := make([]types.VideoStatSnapshot, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, types.VideoStatSnapshot{
+			VideoID:       row.VideoID,
+			VisitCount:    row.VisitCount,
+			LikeCount:     row.LikeCount,
+			CommentCount:  row.CommentCount,
+			FavoriteCount: row.FavoriteCount,
+			PublishAt:     row.PublishAt,
+		})
+	}
+	return result, nil
+}

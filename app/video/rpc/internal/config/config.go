@@ -90,4 +90,9 @@ type HotConfig struct {
 	CleanupInterval time.Duration `json:"CleanupInterval"`
 	// KeepTopN 热度榜保留的最大视频数，超出部分会被裁剪。
 	KeepTopN int `json:"KeepTopN"`
+	// RefreshInterval 榜单分数保鲜任务执行间隔，0 表示不启动。
+	// 热度分写入后不会随时间自然衰减，定期重算可避免老视频长期占榜。
+	RefreshInterval time.Duration `json:"RefreshInterval"`
+	// RefreshTopN 每轮保鲜重算的榜单条数，0 表示沿用 KeepTopN。
+	RefreshTopN int `json:"RefreshTopN"`
 }

@@ -15,10 +15,11 @@ import (
 type fakePopularRepo struct {
 	IPopularRepo
 
-	rows     []types.VideoStatSnapshot
-	count    int64
-	listErr  error
-	countErr error
+	rows      []types.VideoStatSnapshot
+	statsByID []types.VideoStatSnapshot
+	count     int64
+	listErr   error
+	countErr  error
 
 	listCalls int
 	lastSince time.Time
@@ -60,6 +61,21 @@ func (f *fakePopularRepo) CountVideoStatsForRebuild(_ context.Context, since tim
 	return f.count, f.countErr
 }
 
+func (f *fakePopularRepo) ListVideoStatsByIDs(_ context.Context, videoIDs []int64) ([]types.VideoStatSnapshot, error) {
+	wanted := make(map[int64]struct{}, len(videoIDs))
+	for _, id := range videoIDs {
+		wanted[id] = struct{}{}
+	}
+
+	result := make([]types.VideoStatSnapshot, 0, len(f.statsByID))
+	for _, row := range f.statsByID {
+		if _, ok := wanted[row.VideoID]; ok {
+			result = append(result, row)
+		}
+	}
+	return result, nil
+}
+
 // fakeFeedRepo 记录重建期间的锁、临时键与发布动作。
 type fakeFeedRepo struct {
 	IFeedRepo
@@ -69,10 +85,15 @@ type fakeFeedRepo struct {
 	publishErr error
 	members    int64
 
+	hotIndexes []types.FeedIndex
+	refreshErr error
+
 	locked    bool
 	unlocked  bool
 	resets    int
 	appended  []types.FeedIndex
+	refreshed []types.FeedIndex
+	removed   []int64
 	published bool
 	keepTopN  int
 }
@@ -110,6 +131,30 @@ func (f *fakeFeedRepo) PublishHotRebuild(_ context.Context, keepTopN int) (int64
 	f.published = true
 	f.keepTopN = keepTopN
 	return f.members, nil
+}
+
+// GetHotVideosByCursor 首页返回预置榜单，模拟 hot:videos 的 TopN 读取。
+func (f *fakeFeedRepo) GetHotVideosByCursor(_ context.Context, cursorScore, _ int64, limit int) ([]types.FeedIndex, error) {
+	if cursorScore != 0 || len(f.hotIndexes) == 0 {
+		return nil, nil
+	}
+	if limit > len(f.hotIndexes) {
+		limit = len(f.hotIndexes)
+	}
+	return f.hotIndexes[:limit], nil
+}
+
+func (f *fakeFeedRepo) RefreshHotScores(_ context.Context, scores []types.FeedIndex) error {
+	if f.refreshErr != nil {
+		return f.refreshErr
+	}
+	f.refreshed = append(f.refreshed, scores...)
+	return nil
+}
+
+func (f *fakeFeedRepo) RemoveHotVideos(_ context.Context, videoIDs []int64) error {
+	f.removed = append(f.removed, videoIDs...)
+	return nil
 }
 
 func newRebuildTestService(popular *fakePopularRepo, feedRepo *fakeFeedRepo) *VideoService {
@@ -290,5 +335,63 @@ func TestRebuildHotRanking_WindowScansSince(t *testing.T) {
 	}
 	if len(feedRepo.appended) != 2 {
 		t.Fatalf("appended = %d, want 2", len(feedRepo.appended))
+	}
+}
+
+// TestRefreshHotRankingScores_RecomputesAndDropsStale 定时保鲜按当前时间重算榜内分数，
+// 并摘除 MySQL 已查不到的成员。
+func TestRefreshHotRankingScores_RecomputesAndDropsStale(t *testing.T) {
+	publishAt := time.Now().Add(-2 * time.Hour)
+	popular := &fakePopularRepo{statsByID: []types.VideoStatSnapshot{
+		{VideoID: 1, VisitCount: 10, LikeCount: 1, CommentCount: 2, FavoriteCount: 3, PublishAt: publishAt},
+		{VideoID: 2, VisitCount: 20, LikeCount: 2, CommentCount: 3, FavoriteCount: 4, PublishAt: publishAt},
+	}}
+	feedRepo := &fakeFeedRepo{hotIndexes: []types.FeedIndex{
+		{VideoID: 1, Score: 999},
+		{VideoID: 2, Score: 888},
+		{VideoID: 3, Score: 777},
+	}}
+	svc := newRebuildTestService(popular, feedRepo)
+
+	refreshed, err := svc.RefreshHotRankingScores(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("refresh failed: %v", err)
+	}
+	if refreshed != 2 || len(feedRepo.refreshed) != 2 {
+		t.Fatalf("refreshed = %d/%d, want 2", refreshed, len(feedRepo.refreshed))
+	}
+
+	want := svc.hotScoreCalculator.Compute(types.VideoPopular{
+		VideoID:       1,
+		VisitCount:    10,
+		LikeCount:     1,
+		CommentCount:  2,
+		FavoriteCount: 3,
+	}, publishAt)
+	scores := make(map[int64]int64, len(feedRepo.refreshed))
+	for _, item := range feedRepo.refreshed {
+		scores[item.VideoID] = item.Score
+	}
+	if scores[1] != want {
+		t.Fatalf("score = %d, want %d", scores[1], want)
+	}
+
+	// 榜内的 video 3 在 MySQL 查不到，应被摘除
+	if len(feedRepo.removed) != 1 || feedRepo.removed[0] != 3 {
+		t.Fatalf("removed = %v, want [3]", feedRepo.removed)
+	}
+}
+
+// TestRefreshHotRankingScores_EmptyRanking 空榜直接返回，不写 Redis 也不报错。
+func TestRefreshHotRankingScores_EmptyRanking(t *testing.T) {
+	feedRepo := &fakeFeedRepo{}
+	svc := newRebuildTestService(&fakePopularRepo{}, feedRepo)
+
+	refreshed, err := svc.RefreshHotRankingScores(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("refresh failed: %v", err)
+	}
+	if refreshed != 0 || len(feedRepo.refreshed) != 0 {
+		t.Fatalf("refreshed = %d, want 0", refreshed)
 	}
 }

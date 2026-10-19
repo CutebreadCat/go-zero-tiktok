@@ -88,6 +88,39 @@ func TestListCandidates_SkipsBatchWithoutStats(t *testing.T) {
 	testutil.AssertEqual(t, rows[0].VisitCount, int64(7))
 }
 
+// TestListCandidatesByIDs 按 ID 批量取快照：重复 ID 去重，软删与缺统计行的视频被跳过。
+func TestListCandidatesByIDs(t *testing.T) {
+	db := testutil.NewTestDB(t)
+	ctx := context.Background()
+
+	deletedAt := time.Now()
+	seedVideo(t, db, 1, time.Time{}, nil)
+	seedVideo(t, db, 2, time.Time{}, nil)
+	seedVideo(t, db, 3, time.Time{}, &deletedAt)
+	seedVideo(t, db, 4, time.Time{}, nil)
+	seedStat(t, db, 1, 10, 1, 0, 0)
+	seedStat(t, db, 2, 20, 2, 0, 0)
+	seedStat(t, db, 3, 30, 3, 0, 0)
+	// video 4 缺统计行
+
+	rows, err := ListCandidatesByIDs(ctx, db, []int64{1, 2, 3, 4, 1, 0, -1})
+	testutil.AssertNoErr(t, err)
+	testutil.AssertEqual(t, len(rows), 2)
+
+	byID := make(map[int64]CandidateRow, len(rows))
+	for _, row := range rows {
+		byID[row.VideoID] = row
+	}
+	testutil.AssertEqual(t, byID[1].VisitCount, int64(10))
+	testutil.AssertEqual(t, byID[2].LikeCount, int64(2))
+	if _, ok := byID[3]; ok {
+		t.Fatal("soft-deleted video should be excluded")
+	}
+	if _, ok := byID[4]; ok {
+		t.Fatal("video without stat row should be excluded")
+	}
+}
+
 // TestListCandidates_WindowUsesCreatedAtCursor 窗口模式按 (created_at, video_id) 过滤，
 // 首页游标 (since, 0) 包含 created_at 恰好等于 since 的视频。
 func TestListCandidates_WindowUsesCreatedAtCursor(t *testing.T) {

@@ -8,7 +8,6 @@ import (
 	"go_zero-tiktok/pkg/contract"
 )
 
-
 type IVideoRepo interface {
 	// CreateVideoFromParams 创建视频基础信息，返回最终生效的 video_id（幂等键命中时复用已有记录）。
 	CreateVideoFromParams(ctx context.Context, videoID, authorID int64, videoURL, coverURL, title, description, idempotencyKey string) (int64, error)
@@ -45,6 +44,9 @@ type IPopularRepo interface {
 	ListVideoStatsForRebuild(ctx context.Context, since, cursorAt time.Time, cursorID int64, limit int32) ([]types.VideoStatSnapshot, error)
 	// CountVideoStatsForRebuild 统计候选窗口内的视频数，供 dry-run 预检。
 	CountVideoStatsForRebuild(ctx context.Context, since time.Time) (int64, error)
+	// ListVideoStatsByIDs 按视频 ID 批量读取统计快照，供榜单分数保鲜重算使用。
+	// 缺少统计行或已软删的视频不会返回。
+	ListVideoStatsByIDs(ctx context.Context, videoIDs []int64) ([]types.VideoStatSnapshot, error)
 }
 
 type IVideoInteractionRepo interface {
@@ -132,4 +134,8 @@ type IFeedRepo interface {
 	TryLockHotRebuild(ctx context.Context, ttl time.Duration) (token string, ok bool, err error)
 	// UnlockHotRebuild 仅在 token 匹配时释放锁，避免误删其他执行者的锁。
 	UnlockHotRebuild(ctx context.Context, token string) error
+	// HotRebuildRunning 探测是否有重建任务正在执行，供分数保鲜任务避让。
+	HotRebuildRunning(ctx context.Context) (bool, error)
+	// RefreshHotScores 批量覆盖正式榜单分数，仅更新已存在成员，不新增成员。
+	RefreshHotScores(ctx context.Context, scores []types.FeedIndex) error
 }

@@ -46,6 +46,8 @@ Hot:
   Gravity: 1.5            # HN 时间衰减指数
   CleanupInterval: 24h    # 榜单裁剪任务间隔
   KeepTopN: 10000         # 保留热度榜 Top N（按热度分排名，超出部分裁剪）
+  RefreshInterval: 10m    # 榜单分数保鲜间隔：按当前时间重算榜内 TopN（0 关闭）
+  RefreshTopN: 10000      # 每轮保鲜重算条数（0 沿用 KeepTopN）
 
 # 推荐策略配置
 Recommend:

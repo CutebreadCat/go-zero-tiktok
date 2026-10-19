@@ -19,18 +19,19 @@ import (
 
 // ServiceContext 聚合 video RPC 的所有基础设施与领域服务。
 type ServiceContext struct {
-	Config            config.Config
-	DB                *gorm.DB
-	Redis             *redis.Redis
-	Dal                *Repositories
-	VideoService       *videodomain.VideoService
-	PlaybackQoSService *videodomain.PlaybackQoSService
-	Storage            *StorageAdapter
-	HotScoreCleaner        *worker.HotScoreCleaner
-	QoSAggregator          *worker.QoSAggregator
-	consumerUnit           *appkafka.MultiTopicConsumerUnit
-	trackingConsumerUnit   *appkafka.MultiTopicConsumerUnit
-	visitProducer          videodomain.VisitEventProducer
+	Config               config.Config
+	DB                   *gorm.DB
+	Redis                *redis.Redis
+	Dal                  *Repositories
+	VideoService         *videodomain.VideoService
+	PlaybackQoSService   *videodomain.PlaybackQoSService
+	Storage              *StorageAdapter
+	HotScoreCleaner      *worker.HotScoreCleaner
+	HotScoreRefresher    *worker.HotScoreRefresher
+	QoSAggregator        *worker.QoSAggregator
+	consumerUnit         *appkafka.MultiTopicConsumerUnit
+	trackingConsumerUnit *appkafka.MultiTopicConsumerUnit
+	visitProducer        videodomain.VisitEventProducer
 }
 
 // NewServiceContext 初始化 video RPC 服务上下文。
@@ -83,6 +84,23 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		}
 		ctx.HotScoreCleaner = worker.NewHotScoreCleaner(dalRepo.Feed, cleanerOpts...)
 		ctx.HotScoreCleaner.Start(context.Background())
+	}
+
+	// 启动热度分保鲜 worker：定期按当前时间重算榜内 TopN，避免分数停止衰减后失真。
+	if c.Hot.RefreshInterval > 0 {
+		refreshTopN := c.Hot.RefreshTopN
+		if refreshTopN <= 0 {
+			refreshTopN = c.Hot.KeepTopN
+		}
+		if refreshTopN > 0 {
+			ctx.HotScoreRefresher = worker.NewHotScoreRefresher(
+				videoService,
+				dalRepo.Feed,
+				worker.WithRefreshInterval(c.Hot.RefreshInterval),
+				worker.WithRefreshTopN(refreshTopN),
+			)
+			ctx.HotScoreRefresher.Start(context.Background())
+		}
 	}
 
 	// 启动 QoS 聚合 worker（按 video_id 聚合 playback_qos_reports 写入 video_qos_stat）。
@@ -268,6 +286,9 @@ func NewHotScoreCalculator(c config.HotConfig) *feedpkg.HotScoreCalculator {
 func (ctx *ServiceContext) Close() {
 	if ctx.HotScoreCleaner != nil {
 		ctx.HotScoreCleaner.Stop()
+	}
+	if ctx.HotScoreRefresher != nil {
+		ctx.HotScoreRefresher.Stop()
 	}
 	if ctx.QoSAggregator != nil {
 		ctx.QoSAggregator.Stop()

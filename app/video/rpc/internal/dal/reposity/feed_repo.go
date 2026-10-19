@@ -144,6 +144,40 @@ func (r *FeedRepo) RefreshHotScore(ctx context.Context, videoID int64, score int
 	return nil
 }
 
+// RefreshHotScores 批量覆盖正式榜单分数。
+// 只更新已存在成员（ZADD 不会因为覆盖而丢失其它成员），分块 pipeline 降低 RTT。
+func (r *FeedRepo) RefreshHotScores(ctx context.Context, scores []types.FeedIndex) error {
+	if len(scores) == 0 {
+		return nil
+	}
+
+	const batchSize = 500
+	for start := 0; start < len(scores); start += batchSize {
+		end := start + batchSize
+		if end > len(scores) {
+			end = len(scores)
+		}
+		part := scores[start:end]
+
+		err := r.rdb.PipelinedCtx(ctx, func(pipe redis.Pipeliner) error {
+			for _, item := range part {
+				if item.VideoID <= 0 {
+					continue
+				}
+				pipe.ZAdd(ctx, hotVideosKey, redis.Z{
+					Score:  float64(item.Score),
+					Member: strconv.FormatInt(item.VideoID, 10),
+				})
+			}
+			return nil
+		})
+		if err != nil {
+			return pkgerrors.WithMessage(err, "FeedRepo.RefreshHotScores")
+		}
+	}
+	return nil
+}
+
 // GetHotScores 批量读取视频当前热度分（未上榜或读取失败按 0 返回）。
 // 用 pipeline 一次拿完，避免按 id 逐个往返。
 func (r *FeedRepo) GetHotScores(ctx context.Context, videoIDs []int64) (map[int64]int64, error) {
@@ -360,6 +394,15 @@ return 0`
 		return pkgerrors.WithMessage(err, "FeedRepo.UnlockHotRebuild")
 	}
 	return nil
+}
+
+// HotRebuildRunning 探测重建锁是否存在，供分数保鲜任务避让正在进行的全量重建。
+func (r *FeedRepo) HotRebuildRunning(ctx context.Context) (bool, error) {
+	running, err := r.rdb.ExistsCtx(ctx, hotRebuildLockKey)
+	if err != nil {
+		return false, pkgerrors.WithMessage(err, "FeedRepo.HotRebuildRunning")
+	}
+	return running, nil
 }
 
 func (r *FeedRepo) pairsToIndexes(pairs []redis.Pair) []types.FeedIndex {
